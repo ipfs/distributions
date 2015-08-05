@@ -2,6 +2,7 @@
 
 # constants
 gpath="github.com/ipfs/go-ipfs/cmd/ipfs"
+build="../../build/go-ipfs"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
@@ -29,7 +30,7 @@ ipfs -h  >/dev/null || die "please install ipfs"
 ipfs swarm peers >/dev/null || die "please run: ipfs daemon"
 
 # variables
-dest_path="../build/go-ipfs/$version"
+dest_path="$build/$version"
 
 # get archives from gobuilder
 echo "---> preparing go-ipfs $version dist"
