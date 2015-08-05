@@ -1,9 +1,12 @@
 
-gobuilder-cli =
 repo = http://github.com/ipfs/go-ipfs
 gpath = github.com/ipfs/go-ipfs/cmd/ipfs
+build = ../../build/go-ipfs
 
-all: versions deps
+all: dist
+
+dist: versions deps
+	./go-ipfs-dist all
 
 versions:
 	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' >versions
