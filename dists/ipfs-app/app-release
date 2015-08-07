@@ -1,12 +1,11 @@
 #!/bin/bash
 
 # constants
-gpath="github.com/ipfs/go-ipfs/cmd/ipfs"
-releases="../../releases/go-ipfs"
+releases="../../releases/ipfs-app"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
-  echo "construct the go-ipfs dist directory for given version"
+  echo "construct the ipfs-app release directory for given version"
   echo ""
   exit 1
 fi
@@ -21,23 +20,17 @@ assert() {
 }
 
 # check we have things installed
-assert "bin/gobuilder-cli -h" "please run: make deps"
-assert "ipfs -h" "please install ipfs"
 assert "stat versions" "please run: make versions"
 
-# check the ipfs daemon is running
-ipfs swarm peers >/dev/null || die "please run: ipfs daemon"
-
-
-dist_version() {
+release_version() {
   # get version from input
   version=$1
   dest_path="$releases/$version"
 
   # check version is ok
-  cat versions | grep "$version" >/dev/null || die "versions not in listing"
+  cat versions | grep "$version" > /dev/null || die "versions not in listing"
 
-  stat "$releases/$version/hashes" >/dev/null 2>&1
+  stat "$releases/$version/hashes" > /dev/null 2>&1
   if [ "$?" -eq 0 ]; then
     echo "--> have $version in $dest_path"
     return
@@ -54,22 +47,19 @@ dist_version() {
     return -1
   fi
 
-  # get OSX installer (TODO)
-  # echo "---> building OSX installer..."
-
   # generate hashes file
   cwd=`pwd`
   cd "$dest_path"
-  ipfs add --only-hash * >hashes
+  ipfs add --only-hash * > hashes
   cd "$cwd"
 }
 
 if [ "$1" = "all" ]; then
-
   for version in $(cat versions); do
-    dist_version $version || die "failed to make $version"
+    echo $version 
+    # release_version $version || die "failed to make $version"
   done
-
 else
-  dist_version $1 || die "failed to make $version"
+  echo $version
+  # release_version $1 || die "failed to make $version"
 fi
