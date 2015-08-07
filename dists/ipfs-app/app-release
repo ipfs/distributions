@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# constants
+releases="../../releases/ipfs-app"
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: $0 <version>"
+  echo "construct the ipfs-app release directory for given version"
+  echo ""
+  exit 1
+fi
+
+die() {
+  echo >&2 "error: $@"
+  exit 1
+}
+
+assert() {
+  eval $1 >/dev/null 2>&1 || die $2
+}
+
+# check we have things installed
+assert "stat versions" "please run: make versions"
+
+release_version() {
+  # get version from input
+  version=$1
+  dest_path="$releases/$version"
+
+  # check version is ok
+  cat versions | grep "$version" > /dev/null || die "versions not in listing"
+
+  stat "$releases/$version/hashes" > /dev/null 2>&1
+  if [ "$?" -eq 0 ]; then
+    echo "--> have $version in $dest_path"
+    return
+  fi
+
+  echo "--> making $version"
+
+  # get archives from gobuilder
+  echo "---> preparing $dest_path"
+  echo "---> getting archives from gobuilder..."
+  bin/gobuilder-cli get-all "$gpath" "$dest_path" "$version"
+  if [ "$?" -ne 0 ]; then
+    echo "---> failed."
+    return -1
+  fi
+
+  # generate hashes file
+  cwd=`pwd`
+  cd "$dest_path"
+  ipfs add --only-hash * > hashes
+  cd "$cwd"
+}
+
+if [ "$1" = "all" ]; then
+  for version in $(cat versions); do
+    echo $version 
+    # release_version $version || die "failed to make $version"
+  done
+else
+  echo $version
+  # release_version $1 || die "failed to make $version"
+fi

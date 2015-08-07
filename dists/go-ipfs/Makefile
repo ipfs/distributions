@@ -1,7 +1,5 @@
-
 repo = http://github.com/ipfs/go-ipfs
 gpath = github.com/ipfs/go-ipfs/cmd/ipfs
-build = ../../build/go-ipfs
 
 all: dist
 

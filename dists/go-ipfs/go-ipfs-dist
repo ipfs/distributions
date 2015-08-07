@@ -2,7 +2,7 @@
 
 # constants
 gpath="github.com/ipfs/go-ipfs/cmd/ipfs"
-build="../../build/go-ipfs"
+releases="../../releases/go-ipfs"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
@@ -32,12 +32,12 @@ ipfs swarm peers >/dev/null || die "please run: ipfs daemon"
 dist_version() {
   # get version from input
   version=$1
-  dest_path="$build/$version"
+  dest_path="$releases/$version"
 
   # check version is ok
   cat versions | grep "$version" >/dev/null || die "versions not in listing"
 
-  stat "$build/$version/hashes" >/dev/null 2>&1
+  stat "$releases/$version/hashes" >/dev/null 2>&1
   if [ "$?" -eq 0 ]; then
     echo "--> have $version in $dest_path"
     return
