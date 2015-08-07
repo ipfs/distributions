@@ -2,6 +2,8 @@
 
 # constants
 releases="../../releases/ipfs-app"
+repo = "http://github.com/ipfs/electron-app"
+archive = "$repo/archive/"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
@@ -21,45 +23,55 @@ assert() {
 
 # check we have things installed
 assert "stat versions" "please run: make versions"
+assert "node -v" "please make sure to have Node.js installed"
+assert "npm -v" "please make sure to npmjs installed"
+
+build_path="build"
+
+stat "$build_path" > /dev/null 2>&1
+if [ "$?" -ne 0 ]; then
+  mkdir $build_path
+fi
+
+cwd=`pwd`
 
 release_version() {
   # get version from input
   version=$1
   dest_path="$releases/$version"
-
+  
   # check version is ok
   cat versions | grep "$version" > /dev/null || die "versions not in listing"
 
-  stat "$releases/$version/hashes" > /dev/null 2>&1
+  stat "$build_path/$version.zip" > /dev/null 2>&1
   if [ "$?" -eq 0 ]; then
-    echo "--> have $version in $dest_path"
+    echo "--> have $version in $build_path already"
     return
   fi
 
+  echo "--> downloading $version"
+  wget https://github.com/ipfs/electron-app/archive/v0.1.0.zip -P build
+  cd $build_path
+  unzip "$version.zip" -d $version
+
   echo "--> making $version"
+  cd $version
+  tmp=$(ls)
+  cd $tmp
+  npm i
+  npm run dist-all
+  cd dist
 
-  # get archives from gobuilder
-  echo "---> preparing $dest_path"
-  echo "---> getting archives from gobuilder..."
-  bin/gobuilder-cli get-all "$gpath" "$dest_path" "$version"
-  if [ "$?" -ne 0 ]; then
-    echo "---> failed."
-    return -1
-  fi
+  mkdir -p ../../../../../../releases/electron-app/
+  mv * ../../../../../../releases/electron-app/
 
-  # generate hashes file
-  cwd=`pwd`
-  cd "$dest_path"
-  ipfs add --only-hash * > hashes
   cd "$cwd"
 }
 
 if [ "$1" = "all" ]; then
   for version in $(cat versions); do
-    echo $version 
-    # release_version $version || die "failed to make $version"
+    release_version $version || die "failed to make $version"
   done
 else
-  echo $version
-  # release_version $1 || die "failed to make $version"
+  release_version $1 || die "failed to make $version"
 fi
