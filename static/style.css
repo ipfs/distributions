@@ -1,0 +1,41 @@
+body {
+  font-size: 16px;
+}
+
+.section {
+  padding: 150px 0px;
+}
+
+.card {
+  margin: 60px 0px;
+  /*background: #999;*/
+  /*padding: 30px 10px;*/
+}
+
+.dist-screenshot img {
+  width: 300px;
+}
+
+.version {
+  margin: 35px 0px;
+}
+
+table.dist-downloads {
+  margin: 10px 0px;
+/*  border-collapse:separate;
+  border-spacing:8px;
+*/}
+
+table.dist-downloads td {
+  padding: 6px 12px;
+}
+
+table.dist-downloads td.dist-download {
+  text-align: center;
+  /*background: #ccc;*/
+}
+
+table.dist-downloads td.dist-download button {
+  height: 100%;
+  font-weight: bold;
+}
