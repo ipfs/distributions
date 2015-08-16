@@ -38,7 +38,7 @@
 <body>
 
 <div class="container-fluid ipw-container">
-<div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+<div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-10 col-lg-offset-1">
 
   <div class="section dist-thumbnails row">
 
@@ -64,49 +64,60 @@
 
   <div class="section dist" id="go-ipfs">
 
-    <div class="card dist-title-card row">
-      <div class="dist-icon col-xs-12 col-md-2">
-        <img src="static/img/go-ipfs.png" />
-      </div>
-      <div class="dist-title col-xs-12 col-md-10">
-        <h2>go-ipfs</h2>
-        <h3>IPFS implementation and toolchain</h3>
-      </div>
-    </div>
+    <div class="dist-cols row">
+      <div class="dist-col-1 dist-info-card col-xs-12 col-lg-6">
 
-    <div class="card dist-description-card row">
-      <div class="dist-description col-xs-12 col-md-8">
-        go-ipfs is the main implementation of IPFS. It is the base distribution, and includes:
-        <ul>
-          <li>an IPFS core implementation</li>
-          <li>an IPFS daemon server</li>
-          <li>extensive command line tooling</li>
-          <li>an HTTP API for controlling the node</li>
-          <li>an HTTP Gateway for serving content to HTTP browsers</li>
-        </ul>
-
-        <div class="version">
-        <h4>Version:
-          <code class="dist-version">0.3.7</code>
-          <small>
-            <a href="go-ipfs/0.3.7/changelog">changelog</a>,
-           <a href="go-ipfs">all versions</a>
-          </small>
-        </h4>
+        <div class="media card dist-title-card">
+          <div class="media-left dist-icon">
+            <img class="media-object" src="static/img/go-ipfs.png" />
+          </div>
+          <div class="media-body dist-title">
+            <h2 class="media-heading">go-ipfs</h2>
+            <h3>IPFS implementation and toolchain</h3>
+          </div>
         </div>
+
+        <div class="card dist-description-card row">
+          <div class="dist-description col-xs-12">
+            go-ipfs is the main implementation of IPFS. It is the base distribution, and includes:
+            <ul>
+              <li>an IPFS core implementation</li>
+              <li>an IPFS daemon server</li>
+              <li>extensive command line tooling</li>
+              <li>an HTTP API for controlling the node</li>
+              <li>an HTTP Gateway for serving content to HTTP browsers</li>
+            </ul>
+
+            <div class="version">
+              <h4>Version:
+                <code class="dist-version">0.3.7</code>
+                <a href="go-ipfs/0.3.7/changelog">changelog</a>,
+                <a href="go-ipfs">all versions</a>
+              </h4>
+            </div>
+
+            <div>
+              <button class="btn btn-lg btn-block btn-success install-btn">Install Now <i class="fa fa-download"></i></button>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <div class="dist-screenshot col-xs-12 col-md-4">
+
+      <div class="dist-col-1 col-xs-12 col-lg-6 dist-screenshot">
         <img src="static/img/go-ipfs.gif" />
       </div>
     </div>
 
+
     <div class="card dist-downloads-card">
+      <h3 class="downloads-header">Other Downloads</h3>
       <table class="dist-downloads">
         <tr class="row">
           <td class="dist-download-name col-xs-4"><i class="fa fa-apple"></i>  Mac OS X Installer (.pkg)</td>
           <td class="dist-download col-xs-8" colspan="2">
             <button type="button" class="btn btn-default btn-block">
-              Universal
+              Universal <i class="fa fa-download show-on-hover"></i>
             </button>
           </td>
         </tr>
@@ -114,11 +125,11 @@
           <td class="dist-download-name col-xs-4"><i class="fa fa-apple"></i> Mac OS X Binaries</td>
           <td class="dist-download col-xs-4">
             <button type="button" class="btn btn-default btn-block">
-              32 bit
+              32 bit <i class="fa fa-download show-on-hover"></i>
             </button></td>
           <td class="dist-download col-xs-4">
             <button type="button" class="btn btn-default btn-block">
-              64 bit
+              64 bit <i class="fa fa-download show-on-hover"></i>
             </button></td>
           </td>
         </tr>
@@ -126,21 +137,20 @@
           <td class="dist-download-name col-xs-4"><i class="fa fa-linux"></i> Linux Binaries</td>
           <td class="dist-download col-xs-4">
             <button type="button" class="btn btn-default btn-block">
-              32 bit
+              32 bit <i class="fa fa-download show-on-hover"></i>
             </button></td>
           <td class="dist-download col-xs-4">
             <button type="button" class="btn btn-default btn-block">
-              64 bit
+              64 bit <i class="fa fa-download show-on-hover"></i>
             </button></td>
           </td>
         </tr>
         <tr class="row">
-          <td class="dist-download-name col-xs-4"><i class="fa fa-document"></i>
-              Source Code
+          <td class="dist-download-name col-xs-4"><i class="fa fa-code"></i> Source Code
           </td>
           <td class="dist-download col-xs-8" colspan="2">
             <button type="button" class="btn btn-default btn-block">
-              go-ipfs_0.3.7.tar.gz
+              go-ipfs_0.3.7.tar.gz <i class="fa fa-download show-on-hover"></i>
             </button>
           </td>
         </tr>

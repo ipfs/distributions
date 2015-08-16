@@ -1,0 +1,43 @@
+{#
+<!--
+This table assumes a construction like:
+
+releaseLink: "/go-ipfs/0.3.7/"
+platforms:
+  - name: "Mac OS X Installer (.pkg)"
+    icon: "apple"
+    archs:
+      - name: "Universal"
+        link: "go-ipfs_0.3.7_OSX-Installer.pkg"
+-->
+#}
+
+{# <!-- figure out largest column --> #}
+{% set archmax = 1 %}
+{% for p, platform in platforms %}
+  {% if platform.archs.length > archmax %}
+    {% set archmax = platform.archs.length %}
+  {% endif %}
+{% endfor %}
+
+<div class="dist-downloads">
+  {% for platform in platforms %}
+
+    <div class="row">
+      <div class="dist-download-name col-xs-4"><i class="fa fa-{{ platform.icon }}"></i> {{ platform.name }}</div>
+      <div class="col-xs-8">
+
+      {% set colspan = platform.archs.length/archmax %}
+      {% for arch in platform.archs %}
+        <div class="dist-download"
+          style="width: {{ 100 / platform.archs.length }}%">
+          <a href="{{ releaseLink }}/{{ arch.link }}" class="btn btn-default btn-block">
+            {{ arch.name }} <i class="fa fa-download show-on-hover"></i>
+          </a>
+        </div>
+      {% endfor %}
+
+      </div>
+    </div>
+  {% endfor %}
+</div>

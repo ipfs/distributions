@@ -1,0 +1,48 @@
+<div class="section dist" id="{{ dist.id }}">
+
+  <div class="dist-cols row">
+    <div class="dist-col-1 dist-info-card col-xs-12 col-lg-6">
+
+      <div class="media card dist-title-card">
+        <div class="media-left dist-icon">
+          <img class="media-object" src="static/img/{{ dist.id }}.png" />
+        </div>
+        <div class="media-body dist-title">
+          <h2 class="media-heading">{{ dist.name }}</h2>
+          <h3>{{ dist.tagline }}</h3>
+        </div>
+      </div>
+
+      <div class="card dist-description-card row">
+        <div class="dist-description col-xs-12">
+          {{ dist.description }}
+
+          <div class="version">
+            <h4>Version:
+              <code class="dist-version">{{ dist.current_version }}</code>
+              <a href="{{ dist.id }}/{{ dist.current_version }}/changelog">changelog</a>,
+              <a href="{{ dist.id }}">all versions</a>
+            </h4>
+          </div>
+
+          <div>
+            <button class="btn btn-lg btn-block btn-success install-btn">Install Now <i class="fa fa-download"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="dist-col-1 col-xs-12 col-lg-6 dist-screenshot">
+      <img src="static/img/{{ dist.id }}.shortdemo.gif" />
+    </div>
+  </div>
+
+  <div class="card dist-downloads-card">
+    <h3 class="downloads-header">Other Downloads</h3>
+    {% set platforms = dist.platforms %}
+    {% set releaseLink = dist.releaseLink %}
+    {% include "tmpl/platform-table.html" %}
+  </div>
+
+</div>

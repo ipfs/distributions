@@ -2,18 +2,41 @@ body {
   font-size: 16px;
 }
 
-.section {
-  padding: 150px 0px;
+.section.dist {
+  margin: 70px -70px;
+  padding: 70px 70px;
+  /*background: #eeeeee;*/
 }
 
 .card {
-  margin: 60px 0px;
-  /*background: #999;*/
   /*padding: 30px 10px;*/
 }
 
+.dist-screenshot {
+  margin: 40px 0px;
+}
+
 .dist-screenshot img {
-  width: 300px;
+  width: 100%;
+}
+
+.dist-info-card {
+  margin: 40px 0px;
+  padding: 20px;
+  background: #eeeeee;
+}
+
+.dist-title-card {
+  padding: 20px 0px;
+  padding-bottom: 40px;
+}
+
+.dist-title-card .dist-title {
+  vertical-align: middle;
+}
+
+.dist-info-card .install-btn {
+  font-size: 24px;
 }
 
 .version {
@@ -37,5 +60,31 @@ table.dist-downloads td.dist-download {
 
 table.dist-downloads td.dist-download button {
   height: 100%;
+}
+
+table.dist-downloads td.dist-download:hover button {
   font-weight: bold;
+}
+
+td.dist-download-name i {
+  width: 16px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+tr:hover td.dist-download-name {
+  font-weight: bold;
+}
+
+h3.downloads-header {
+  padding-left: 12px;
+  padding-bottom: 10px;
+}
+
+* > .show-on-hover {
+  opacity: 0;
+}
+
+*:hover > .show-on-hover {
+  opacity: 1.0;
 }
