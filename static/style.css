@@ -12,6 +12,10 @@ body {
   /*padding: 30px 10px;*/
 }
 
+.dist-jumbotron {
+  margin: 250px 0px 50px;
+}
+
 .dist-screenshot {
   margin: 40px 0px;
 }
@@ -43,36 +47,27 @@ body {
   margin: 35px 0px;
 }
 
-table.dist-downloads {
+.dist-downloads {
   margin: 10px 0px;
 /*  border-collapse:separate;
   border-spacing:8px;
 */}
 
-table.dist-downloads td {
+.dist-downloads > div {
   padding: 6px 12px;
 }
 
-table.dist-downloads td.dist-download {
-  text-align: center;
-  /*background: #ccc;*/
-}
-
-table.dist-downloads td.dist-download button {
-  height: 100%;
-}
-
-table.dist-downloads td.dist-download:hover button {
+.dist-downloads .dist-download-links:hover button {
   font-weight: bold;
 }
 
-td.dist-download-name i {
+.dist-download-name i {
   width: 16px;
   margin-left: 3px;
   margin-right: 3px;
 }
 
-tr:hover td.dist-download-name {
+:hover .dist-download-name {
   font-weight: bold;
 }
 

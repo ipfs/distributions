@@ -38,11 +38,18 @@
     </div>
   </div>
 
-  <div class="card dist-downloads-card">
-    <h3 class="downloads-header">Other Downloads</h3>
-    {% set platforms = dist.platforms %}
-    {% set releaseLink = dist.releaseLink %}
-    {% include "tmpl/platform-table.html" %}
+  <div class="row">
+    <div class="card dist-downloads-card col-xs-12 col-md-8 col-lg-6">
+      <h3>Other Downloads</h3>
+      {% set platforms = dist.platforms %}
+      {% set releaseLink = dist.releaseLink %}
+      {% include "tmpl/platform-table.html" %}
+    </div>
+
+    <div class="card dist-pkgmgrs-card col-xs-12 col-md-4 col-lg-6">
+      <h3>Package Managers</h3>
+      At this time, we recommend installing {{ dist.name }} from this page. The packages available at the various package managers are outdated.
+    </div>
   </div>
 
 </div>

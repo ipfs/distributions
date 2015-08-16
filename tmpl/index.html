@@ -39,11 +39,18 @@
 
 {% block content %}
 
+  <div class="jumbotron dist-jumbotron">
+    <h1>
+      IPFS Distributions &amp; Downloads
+    </h1>
+    <p>This page lists all of the official IPFS distributions, the supported packages, and links to all downloads. It's a one-stop shop for the releases made by the IPFS team.</p>
+  </div>
+
   <!-- dist menu -->
   <div class="section dist-thumbnails row">
-  {% for d, dist in dists %}
-    {% include "tmpl/dist-tile.html" %}
-  {% endfor %}
+    {% for d, dist in dists %}
+      {% include "tmpl/dist-tile.html" %}
+    {% endfor %}
   </div>
 
 

@@ -23,21 +23,20 @@ platforms:
 <div class="dist-downloads">
   {% for platform in platforms %}
 
-    <div class="row">
-      <div class="dist-download-name col-xs-4"><i class="fa fa-{{ platform.icon }}"></i> {{ platform.name }}</div>
-      <div class="col-xs-8">
-
+  <div class="row">
+    <div class="dist-download-name col-xs-4"><i class="fa fa-{{ platform.icon }}"></i> {{ platform.name }}</div>
+    <div class="col-xs-8">
+      <div class="row-fluid dist-download-links" style="vertical-align: middle;">
       {% set colspan = platform.archs.length/archmax %}
       {% for arch in platform.archs %}
-        <div class="dist-download"
-          style="width: {{ 100 / platform.archs.length }}%">
-          <a href="{{ releaseLink }}/{{ arch.link }}" class="btn btn-default btn-block">
-            {{ arch.name }} <i class="fa fa-download show-on-hover"></i>
-          </a>
-        </div>
+        <a href="{{ releaseLink }}/{{ arch.link }}" class="btn btn-default btn-md">
+          {{ arch.name }} <i class="fa fa-download show-on-hover"></i>
+        </a>
       {% endfor %}
 
       </div>
     </div>
+  </div>
+
   {% endfor %}
 </div>
