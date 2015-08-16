@@ -62,6 +62,9 @@ dist_version() {
   cd "$dest_path"
   ipfs add --only-hash * >hashes
   cd "$cwd"
+
+  # generate dist.json file
+  ./mkdist.js "$version"
 }
 
 if [ "$1" = "all" ]; then

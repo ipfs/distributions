@@ -9,9 +9,9 @@ if (process.argv.length != 3) {
 var oses = [
   {id: 'darwin',  name: "Mac OSX Binaries", icon: 'apple'},
   {id: 'linux',   name: "Linux Binaries",   icon: 'linux'},
-  {id: 'windows', name: "Windows Binaries", icon: 'windows'},
   {id: 'openbsd', name: "OpenBSD Binaries", icon: 'circle-o'},
   {id: 'freebsd', name: "FreeBSD Binaries", icon: 'circle-o'},
+  {id: 'windows', name: "Windows Binaries", icon: 'windows'},
 ]
 
 var archs = [
@@ -25,6 +25,7 @@ main() // run the program.
 function main() {
   var dist = require('./dist.json')
   var ver = dist.current_version = process.argv[2]
+  if (ver.match(/^v/)) ver = ver.substring(1)
   dist.releaseLink = 'releases/go-ipfs/v' + ver
   var releasePath = '../../' + dist.releaseLink
   dist.platforms = []
