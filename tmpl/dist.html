@@ -15,7 +15,12 @@
 
       <div class="card dist-description-card row">
         <div class="dist-description col-xs-12">
-          {{ dist.description }}
+
+{% markdown %}
+
+{{ dist.description }}
+
+{% endmarkdown %}
 
           <div class="version">
             <h4>Version:
