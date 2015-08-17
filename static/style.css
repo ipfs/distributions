@@ -57,8 +57,17 @@ body {
   padding: 6px 12px;
 }
 
-.dist-downloads .dist-download-links:hover button {
-  font-weight: bold;
+.dist-download-name {
+  padding: 10px 16px;
+}
+
+.dist-download-links .btn {
+  width: 90px;
+  padding: 10px 16px 10px 20px;
+}
+
+.dist-download-links .btn:hover {
+  /*font-weight: bold;*/
 }
 
 .dist-download-name i {
@@ -67,7 +76,7 @@ body {
   margin-right: 3px;
 }
 
-:hover .dist-download-name {
+.dist-download-row:hover .dist-download-name {
   font-weight: bold;
 }
 

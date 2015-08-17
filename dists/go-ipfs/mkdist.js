@@ -7,17 +7,17 @@ if (process.argv.length != 3) {
 }
 
 var oses = [
-  {id: 'darwin',  name: "Mac OSX Binaries", icon: 'apple'},
-  {id: 'linux',   name: "Linux Binaries",   icon: 'linux'},
-  {id: 'openbsd', name: "OpenBSD Binaries", icon: 'circle-o'},
-  {id: 'freebsd', name: "FreeBSD Binaries", icon: 'circle-o'},
-  {id: 'windows', name: "Windows Binaries", icon: 'windows'},
+  {id: 'darwin',  name: "Mac OSX Binaries", browser:'OS X',    icon: 'apple'},
+  {id: 'linux',   name: "Linux Binaries",   browser:'Linux',   icon: 'linux'},
+  {id: 'openbsd', name: "OpenBSD Binaries", browser:'OpenBSD', icon: 'circle-o'},
+  {id: 'freebsd', name: "FreeBSD Binaries", browser:'FreeBSD', icon: 'circle-o'},
+  {id: 'windows', name: "Windows Binaries", browser:'Windows', icon: 'windows'},
 ]
 
 var archs = [
-  {id: '386',   name: '32 bit'},
-  {id: 'amd64', name: '64 bit'},
-  {id: 'arm',   name: 'ARM'},
+  {id: '386',   name: '32 bit', browser: '32'},
+  {id: 'amd64', name: '64 bit', browser: '64'},
+  {id: 'arm',   name: 'ARM',    browser: 'ARM'},
 ]
 
 main() // run the program.
@@ -36,10 +36,11 @@ function main() {
   var f = findFile(/\.pkg$/)
   if (f) {
     dist.platforms.push({
-      name: "Mac OSX Installer (.pkg)",
-      icon: "apple",
+      id: 'osxpkg',
+      name: 'Mac OSX Installer (.pkg)',
+      icon: 'apple',
       archs: [{
-        name: "Universal",
+        name: 'Universal',
         link: f,
       }]
     })
@@ -49,6 +50,17 @@ function main() {
 
   // add standard os binaries
   addOSBinaries(dir, dist.platforms)
+
+  // add source
+  dist.platforms.push({
+    id: 'src',
+    name: 'Source Code (.zip)',
+    icon: 'archive',
+    archs: [{
+      name: 'src',
+      link: 'go-ipfs_v'+ver+'_src.zip'
+    }]
+  })
 
   writeDist(releasePath + '/dist.json', dist)
 }
