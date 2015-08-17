@@ -31,6 +31,7 @@ ipfs swarm peers >/dev/null || die "please run: ipfs daemon"
 
 dist_version() {
   # get version from input
+  cwd=`pwd`
   version=$1
   dest_path="$releases/$version"
 
@@ -47,6 +48,8 @@ dist_version() {
 
   # get archives from gobuilder
   echo "---> preparing $dest_path"
+  mkdir -p "$dest_path"
+
   echo "---> getting archives from gobuilder..."
   bin/gobuilder-cli get-all "$gpath" "$dest_path" "$version"
   if [ "$?" -ne 0 ]; then
@@ -54,16 +57,23 @@ dist_version() {
     return -1
   fi
 
+  # move gobuilder archives; they start with "ipfs_", not "go-ipfs_"
+  cd "$dest_path"
+  for f in ipfs_*.zip ; do mv "$f" "go-$f"; done
+  echo "mmv ipfs_*.zip go-ipfs_*.zip"
+  cd "$cwd"
+
   # get OSX installer (TODO)
   # echo "---> building OSX installer..."
 
   # generate hashes file
-  cwd=`pwd`
+  echo "---> generating hashes"
   cd "$dest_path"
   ipfs add --only-hash * >hashes
   cd "$cwd"
 
   # generate dist.json file
+  echo "---> generating dist.js"
   ./mkdist.js "$version"
 }
 
