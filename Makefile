@@ -16,4 +16,4 @@ index:
 	cp -r static releases/.
 
 publish: all_dists
-	ipfs add -q -r build | tail -n1 >>versions
+	ipfs add -s rabin -q -r build | tail -n1 >>versions

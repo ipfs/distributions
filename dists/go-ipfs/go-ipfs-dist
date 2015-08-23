@@ -75,7 +75,7 @@ dist_version() {
   # generate hashes file
   echo "---> generating hashes"
   cd "$dest_path"
-  ipfs add --only-hash * >hashes
+  ipfs add -s rabin --only-hash * >hashes
   cd "$cwd"
 
   # generate dist.json file
