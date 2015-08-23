@@ -1,0 +1,6 @@
+{
+  "id": "ipfs-app",
+  "name": "IPFS Node",
+  "tagline": "IPFS Node Desktop App",
+  "description": "IPFS Node is a cross-platform native desktop app. Features:\n- Use it to run an IPFS Node on your computer\n- Can drag-and-drop files straight to the menu bar! \n- Menu bar for easy control of the node\n- Includes the [Web UI](#webui) interface\n- Includes the [go-ipfs](#go-ipfs) commandline tools\n"
+}
