@@ -2,8 +2,8 @@
 
 # constants
 releases="../../releases/ipfs-app"
-repo = "http://github.com/ipfs/electron-app"
-archive = "$repo/archive/"
+repo="http://github.com/ipfs/electron-app"
+archive="$repo/archive/"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
