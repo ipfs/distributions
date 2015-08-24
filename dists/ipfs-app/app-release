@@ -65,6 +65,9 @@ release_version() {
   mkdir -p ../../../../../../releases/electron-app/
   mv * ../../../../../../releases/electron-app/
 
+  echo "--> making dist.json"
+  ./mkdist.js "$version"
+
   cd "$cwd"
 }
 
