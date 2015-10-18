@@ -2,8 +2,8 @@
 
 # constants
 releases="../../releases/ipfs-app"
-repo = "http://github.com/ipfs/electron-app"
-archive = "$repo/archive/"
+repo="http://github.com/ipfs/electron-app"
+archive="$repo/archive/"
 
 if [ "$#" -eq 0 ]; then
   echo "usage: $0 <version>"
@@ -64,6 +64,9 @@ release_version() {
 
   mkdir -p ../../../../../../releases/electron-app/
   mv * ../../../../../../releases/electron-app/
+
+  echo "--> making dist.json"
+  ./mkdist.js "$version"
 
   cd "$cwd"
 }

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # constants
+repo="github.com/ipfs/go-ipfs"
 gpath="github.com/ipfs/go-ipfs/cmd/ipfs"
 releases="../../releases/go-ipfs"
 
@@ -31,13 +32,15 @@ ipfs swarm peers >/dev/null || die "please run: ipfs daemon"
 
 dist_version() {
   # get version from input
+  cwd=`pwd`
   version=$1
   dest_path="$releases/$version"
+  dest_path_src="$dest_path/go-ipfs_${version}_src.zip"
 
   # check version is ok
   cat versions | grep "$version" >/dev/null || die "versions not in listing"
 
-  stat "$releases/$version/hashes" >/dev/null 2>&1
+  stat "$releases/$version/dist.json" >/dev/null 2>&1
   if [ "$?" -eq 0 ]; then
     echo "--> have $version in $dest_path"
     return
@@ -47,6 +50,8 @@ dist_version() {
 
   # get archives from gobuilder
   echo "---> preparing $dest_path"
+  mkdir -p "$dest_path"
+
   echo "---> getting archives from gobuilder..."
   bin/gobuilder-cli get-all "$gpath" "$dest_path" "$version"
   if [ "$?" -ne 0 ]; then
@@ -54,14 +59,28 @@ dist_version() {
     return -1
   fi
 
+  # move gobuilder archives; they start with "ipfs_", not "go-ipfs_"
+  cd "$dest_path"
+  for f in ipfs_*.zip ; do mv "$f" "go-$f"; done
+  echo "mmv ipfs_*.zip go-ipfs_*.zip"
+  cd "$cwd"
+
   # get OSX installer (TODO)
   # echo "---> building OSX installer..."
 
+  echo "---> getting source tarball"
+  wget -q -O "$dest_path_src" "https://$repo/zipball/$version.zip"
+  echo "wrote $dest_path_src"
+
   # generate hashes file
-  cwd=`pwd`
+  echo "---> generating hashes"
   cd "$dest_path"
-  ipfs add --only-hash * >hashes
+  ipfs add -s rabin --only-hash * >hashes
   cd "$cwd"
+
+  # generate dist.json file
+  echo "---> generating dist.json"
+  ./mkdist.js "$version"
 }
 
 if [ "$1" = "all" ]; then
