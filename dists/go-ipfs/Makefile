@@ -1,9 +1,12 @@
 repo = http://github.com/ipfs/go-ipfs
 gpath = github.com/ipfs/go-ipfs/cmd/ipfs
+releases = ../../releases/go-ipfs
 
 all: dist
 
 dist: versions deps
+	mkdir -p $(releases)
+	cp versions $(releases)/versions
 	./go-ipfs-dist all
 
 versions:

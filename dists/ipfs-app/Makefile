@@ -1,8 +1,11 @@
 repo = http://github.com/ipfs/electron-app
+releases = ../../releases/ipfs-app
 
 all: release
 
 release: versions
+	mkdir -p $(releases)
+	cp versions $(releases)/versions
 	./app-release all
 
 versions:
