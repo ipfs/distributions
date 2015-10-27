@@ -15,5 +15,5 @@ index:
 	node gen-index.js >releases/index.html
 	cp -r static releases/.
 
-publish: all_dists
-	ipfs add -s rabin -q -r build | tail -n1 >>versions
+publish: all_dists index
+	ipfs add -s rabin -q -r releases | tail -n1 >>versions
