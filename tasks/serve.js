@@ -48,17 +48,3 @@ gulp.task('serve', () => {
     }))
   })
 })
-
-gulp.task('lint', () => {
-  return gulp.src([
-    '*.js',
-    'public/**/*.js'
-  ])
-    .pipe($.eslint())
-    .pipe($.eslint.format())
-    .pipe($.eslint.failAfterError())
-})
-
-// Default task, running `gulp` will fire up the Harp site,
-// launch BrowserSync & watch files.
-gulp.task('default', ['serve'])

@@ -1,6 +1,6 @@
 all: all_dists index
 
-all_dists: go-ipfs ipfs-app
+all_dists: go-ipfs
 
 ipfs-app:
 	echo "** making $@ **"
