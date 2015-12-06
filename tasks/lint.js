@@ -5,7 +5,8 @@ gulp.task('lint', () => {
   return gulp.src([
     '*.js',
     'site/**/*.js',
-    'tasks/*.js'
+    'tasks/*.js',
+    'scripts/*.js'
   ])
     .pipe($.eslint())
     .pipe($.eslint.format())

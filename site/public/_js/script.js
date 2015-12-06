@@ -1,4 +1,4 @@
-function init () {
+const init = () => {
   // LETS DO THIS!
   console.log('hello world')
 }

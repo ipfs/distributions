@@ -2,13 +2,13 @@ var fs = require('fs')
 
 module.exports = mkdist
 
-function mkdist(opts, cb) {
-  if (!opts) throw new Error("no options given")
-  if (!opts.dist) throw new Error("no dist given")
-  if (!opts.dist.id) throw new Error("no dist.id given")
-  if (!opts.dist.version) throw new Error("no dist.version given")
-  if (!opts.path) throw new Error("no path given")
-  if (!opts.platforms) throw new Error("no platforms given")
+function mkdist (opts, cb) {
+  if (!opts) throw new Error('no options given')
+  if (!opts.dist) throw new Error('no dist given')
+  if (!opts.dist.id) throw new Error('no dist.id given')
+  if (!opts.dist.version) throw new Error('no dist.version given')
+  if (!opts.path) throw new Error('no path given')
+  if (!opts.platforms) throw new Error('no platforms given')
   if (!cb) cb = noopcb
 
   var dist = opts.dist
@@ -30,7 +30,7 @@ function mkdist(opts, cb) {
       icon: 'apple',
       archs: [{
         name: 'Universal',
-        link: f,
+        link: f
       }]
     })
   }
@@ -57,19 +57,19 @@ function mkdist(opts, cb) {
   })
 }
 
-function writeDist(path, dist) {
+function writeDist (path, dist) {
   fs.writeFileSync(path, JSON.stringify(dist, null, '    '))
   console.log('wrote', path)
 }
 
-function addOSBinaries(dir, src, dst) {
+function addOSBinaries (dir, src, dst) {
   for (var osi in src.oses) {
     var os = src.oses[osi]
     var p = {
       id: os.id,
       name: os.name,
       icon: os.icon,
-      archs: [],
+      archs: []
     }
 
     for (var a in src.archs) {
@@ -81,7 +81,7 @@ function addOSBinaries(dir, src, dst) {
       p.archs.push({
         id: arch.id,
         name: arch.name,
-        link: f,
+        link: f
       })
     }
 
@@ -92,7 +92,7 @@ function addOSBinaries(dir, src, dst) {
   return dst
 }
 
-function findFile(dir, pattern) {
+function findFile (dir, pattern) {
   for (var e in dir) {
     if (dir[e].match(pattern)) {
       return dir[e]
@@ -101,6 +101,6 @@ function findFile(dir, pattern) {
   return null
 }
 
-function noopcb(err) {
+function noopcb (err) {
   if (err) throw err
 }
