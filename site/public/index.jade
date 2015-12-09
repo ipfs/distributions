@@ -3,20 +3,22 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
 
 .container
   .row
-    .col-md-3
+    .col-md-2
       .d-sidebar
         ul.nav#d-navbar
-          li.nav-item
-            a.nav-link go-ipfs
-          li.nav-item
-            a.nav-link Station
-    .col-md-9
+          li.d-sidebar-item.nav-item.active
+            a.d-sidebar-link.nav-link go-ipfs
+          li.d-sidebar-item.nav-item
+            a.d-sidebar-link.nav-link Station
+          li.d-sidebar-item.nav-item
+            a.d-sidebar-link.nav-link ipfs-update
+    .col-md-10
       .d-component
         .d-component-desc.row
-          .col-md-9
+          .col-md-8
             h1.d-component-desc-title
               | go-ipfs
-            h2.d-component-desc-sub-ttle
+            h2.d-component-desc-sub-title
               | IPFS reference implementation and toolchain in Go
             .d-component-desc-body
               | go-ipfs is the main implementation of IPFS. It is the base
@@ -27,7 +29,7 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
                 li extensive command line tooling
                 li an HTTP API for controlling the node
                 li an HTTP Gateway for serving content to HTTP browsers
-          .d-component-asset.col-md-3
+          .d-component-asset.col-md-4
             a(href='https://asciinema.org/a/23012' target='_blank')
               img(src='https://asciinema.org/a/23012.png' width='260')
 
@@ -40,7 +42,7 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
               a.d-component-actions-changelog Changelog
               a.d-component-actions-versions All Versions
           .col-md-8
-            table
+            table.table.d-download-table
               tbody
                 tr
                   th Windows Binary (.zip)

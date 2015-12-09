@@ -1,0 +1,28 @@
+@leftBorderWidth: 2px;
+
+.d-sidebar-item {
+  line-height: 27px;
+
+  &.active {
+    .d-sidebar-link {
+      border-left: @leftBorderWidth solid @baseBlue;
+      color: @baseBlue;
+    }
+  }
+}
+
+.d-sidebar-link {
+  border-left: @leftBorderWidth solid transparent;
+  padding-left: 7px;
+  font-weight: 500;
+  font-size: 14px;
+  color: @black;
+  line-height: 14px;
+
+  transition: color 0.4s linear;
+
+  &:hover {
+    color: @baseBlue;
+    cursor: pointer;
+  }
+}
