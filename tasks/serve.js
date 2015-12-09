@@ -5,6 +5,15 @@ const harp = require('harp')
 const webpack = require('webpack')
 const webpackStream = require('webpack-stream')
 const $ = require('gulp-load-plugins')()
+const _ = require('lodash')
+
+const tmpFiles = p => {
+  const file = _.last(p.split('/'))
+  const emacsTmp = !!file.match(/^\.#/)
+  const flycheck = !!file.match(/^flycheck/)
+
+  return emacsTmp || flycheck
+}
 
 const makeGlob = ext => `site/public/**/*.${ext}`
 
@@ -37,14 +46,17 @@ gulp.task('harp', () => {
         styles: ['opacity: 0', 'position: absolute']
       }
     })
-    // Watch for stlye changes, tell BrowserSync to refresh main.css
+    // Watch for stlye changes, tell BrowserSync to refresh
     $.watch(styles, $.batch((events, done) => {
-      reload('main.css', {stream: true})
+      reload('style.css', {stream: true})
       done()
     }))
 
     // Watch for all other changes, reload the whole page
-    $.watch(others, $.batch((events, done) => {
+    $.watch(others, {
+      ignored: tmpFiles,
+      followSymlinks: false
+    }, $.batch((events, done) => {
       reload()
       done()
     }))
