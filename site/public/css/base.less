@@ -1,0 +1,23 @@
+body {
+  font-family: 'Fira Sans', sans-serif;
+  line-height: @baseLineHeight;
+}
+
+.container {
+  margin-top: 88px;
+}
+
+.bg-inverse {
+  background-color: @baseBlue;
+}
+
+a {
+  color: @linkBlue;
+  transition: color 0.4s linear;
+
+  &:hover {
+    color: lighten(@linkBlue, 10%);
+    text-decoration: none;
+    cursor: pointer;
+  }
+}

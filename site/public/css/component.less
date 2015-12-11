@@ -1,0 +1,81 @@
+.d-component {
+
+}
+
+.d-component-desc-title {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.d-component-desc-sub-title {
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.d-component-desc-body {
+  font-size: 14px;
+  font-weight: 400;
+  color: @lightGray;
+}
+
+.d-component-release {
+  margin-top: 3 * @baseLineHeight;
+}
+
+.d-component-version {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.d-component-release-date {
+  font-size: 14px;
+}
+
+.d-component-actions {
+  margin-top: @baseLineHeight;
+
+  a {
+    font-size: 14px;
+    padding-left: @baseLineHeight;
+
+    &:first-child {
+      padding-left: 0;
+    }
+  }
+}
+
+.d-download-table {
+  font-size: 14px;
+  line-height: 36px;
+
+  th {
+    font-weight: 400;
+    text-align: left;
+    padding-right: @baseLineHeight;
+    padding-left: 10px;
+    border-bottom: 1px solid @borderGray;
+    border-top: none;
+  }
+
+  td {
+    text-align: center;
+    padding-right: 10px;
+    border-bottom: 1px solid @borderGray;
+    border-top: none;
+
+    transition: all 0.3s linear;
+
+    &:hover {
+      background-color: @baseBlue;
+      color: @white;
+      cursor: pointer;
+    }
+  }
+
+  tr:last-child {
+    th,
+    td {
+      border-bottom: none;
+    }
+  }
+}

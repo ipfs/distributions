@@ -1,0 +1,24 @@
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# node-waf configuration
+.lock-wscript
+
+# HARP BUILD FOLDER
+www
+
+# BABELJS BUILDS
+public/build
+
+www
+
+# Dependency directory
+node_modules
+
+npm-debug.log

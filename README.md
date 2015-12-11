@@ -1,6 +1,6 @@
-# distributions
+# IPFS distributions
 
-Script to build the dist.ipfs.io pages.
+> Source for building https://dist.ipfs.io
 
 ## How this repo works
 
@@ -78,5 +78,3 @@ This project uses a makefile + scripts to build all the things.
 make
 ```
 should do everything.
-
-

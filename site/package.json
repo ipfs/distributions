@@ -1,0 +1,45 @@
+{
+  "name": "ipfs-distributions",
+  "version": "1.0.0",
+  "description": "IPFS Distributions page",
+  "main": "app.js",
+  "scripts": {
+    "dev": "webpack --progress --colors --watch",
+    "prod": "NODE_ENV=production webpack -p --config webpack.production.config.js",
+    "lint": "gulp lint"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ipfs/distributions.git"
+  },
+  "author": "Friedel Ziegelmayer <dignifiedquire@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ipfs/distributions/issues"
+  },
+  "homepage": "https://dist.ipfs.io",
+  "devDependencies": {
+    "babel-core": "^6.1.2",
+    "babel-eslint": "^4.1.3",
+    "babel-jscs": "^2.0.0",
+    "babel-loader": "^6.0.0",
+    "babel-plugin-transform-remove-console": "^6.0.14",
+    "babel-polyfill": "^6.0.14",
+    "babel-preset-es2015": "^6.0.15",
+    "browser-sync": "^2.10.0",
+    "eslint": "^1.8.0",
+    "eslint-config-standard": "^4.4.0",
+    "eslint-plugin-standard": "^1.3.1",
+    "gulp": "^3.9.0",
+    "gulp-batch": "^1.0.5",
+    "gulp-eslint": "^1.1.1",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-watch": "^4.3.5",
+    "harp": "^0.20.0",
+    "pre-commit": "^1.1.2",
+    "webpack": "^1.12.2"
+  }
+}

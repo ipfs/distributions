@@ -1,0 +1,70 @@
+nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
+  a.navbar-brand IPFS distributions
+
+.container
+  .row
+    .col-md-2
+      .d-sidebar
+        ul.nav#d-navbar
+          li.d-sidebar-item.nav-item.active
+            a.d-sidebar-link.nav-link go-ipfs
+          li.d-sidebar-item.nav-item
+            a.d-sidebar-link.nav-link Station
+          li.d-sidebar-item.nav-item
+            a.d-sidebar-link.nav-link ipfs-update
+    .col-md-10
+      .d-component
+        .d-component-desc.row
+          .col-md-8
+            h1.d-component-desc-title
+              | go-ipfs
+            h2.d-component-desc-sub-title
+              | IPFS reference implementation and toolchain in Go
+            .d-component-desc-body
+              | go-ipfs is the main implementation of IPFS. It is the base
+              | distribution, and includes:
+              ul
+                li an IPFS core implementation
+                li an IPFS daemon server
+                li extensive command line tooling
+                li an HTTP API for controlling the node
+                li an HTTP Gateway for serving content to HTTP browsers
+          .d-component-asset.col-md-4
+            a(href='https://asciinema.org/a/23012' target='_blank')
+              img(src='https://asciinema.org/a/23012.png' width='260')
+
+        .d-component-release.row
+          .col-md-4
+            h3.d-component-version 0.4.0
+            h4.d-component-release-date January 1, 2016
+            .d-component-actions
+              a.d-component-actions-docs Docs
+              a.d-component-actions-changelog Changelog
+              a.d-component-actions-versions All Versions
+          .col-md-8
+            table.table.d-download-table
+              tbody
+                tr
+                  th Windows Binary (.zip)
+                  td(colspan='3') 32bit
+                  td(colspan='3') 64bit
+                tr
+                  th Mac OS X Binary (.zip)
+                  td(colspan='3') 32bit
+                  td(colspan='3') 64bit
+                tr
+                  th Linux Binary (.tar.gz)
+                  td(colspan='3') 32bit
+                  td(colspan='3') 64bit
+                tr
+                  th ARM Binary (.tar.gz)
+                  td(colspan='2') ARM v6
+                  td(colspan='2') ARM v7
+                  td(colspan='2') ARM v8
+                tr
+                  th Free BSD Binary (.tar.gz)
+                  td(colspan='3') 32bit
+                  td(colspan='3') 64bit
+                tr
+                  th Source Code (.tar.gz)
+                  td(colspan='6') Download
