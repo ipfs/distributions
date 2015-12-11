@@ -1,30 +1,30 @@
-var fs = require('fs')
+const fs = require('fs')
+const {join} = require('path')
+const mkdirp = require('mkdirp')
+
+const sitePath = join(__dirname, '..', 'site', 'public', 'releases')
 
 module.exports = mkdist
 
 function mkdist (opts, cb) {
   if (!opts) throw new Error('no options given')
-  if (!opts.dist) throw new Error('no dist given')
-  if (!opts.dist.id) throw new Error('no dist.id given')
-  if (!opts.dist.version) throw new Error('no dist.version given')
-  if (!opts.path) throw new Error('no path given')
+  if (!opts.id) throw new Error('no id given')
+  if (!opts.version) throw new Error('no version given')
   if (!opts.platforms) throw new Error('no platforms given')
-  if (!cb) cb = noopcb
 
-  var dist = opts.dist
-  var ver = dist.version
+  let ver = opts.version
   if (ver.match(/^v/)) ver = ver.substring(1)
 
-  dist.releaseLink = 'releases/' + dist.id + '/v' + ver
-  var releasePath = opts.path + '/' + dist.releaseLink
-  dist.platforms = []
+  opts.releaseLink = `releases/${opts.id}/v${ver}`
+  const releasePath = join(__dirname, '..', opts.releaseLink)
+  opts.releases = []
 
-  var dir = fs.readdirSync(releasePath)
+  const dir = fs.readdirSync(releasePath)
 
   // add osx installer
-  var f = findFile(/\.pkg$/)
+  const f = findFile(/\.pkg$/)
   if (f) {
-    dist.platforms.push({
+    opts.releases.push({
       id: 'osxpkg',
       name: 'Mac OSX Installer (.pkg)',
       icon: 'apple',
@@ -38,31 +38,35 @@ function mkdist (opts, cb) {
   // TODO: windows msi installer
 
   // add standard os binaries
-  addOSBinaries(dir, opts.platforms, dist.platforms)
+  opts.releases = opts.releases.concat(addOSBinaries(dir, opts.platforms))
 
   // add source
-  dist.platforms.push({
+  opts.releases.push({
     id: 'src',
     name: 'Source Code (.zip)',
     icon: 'archive',
     archs: [{
       name: 'src',
-      link: dist.id + '_v' + ver + '_src.zip'
+      link: opts.id + '_v' + ver + '_src.zip'
     }]
   })
 
-  writeDist(releasePath + '/dist.json', dist, function (err) {
-    if (err) return cb(err)
-    cb(null, dist)
-  })
+  writeDist(opts)
+  cb()
 }
 
-function writeDist (path, dist) {
-  fs.writeFileSync(path, JSON.stringify(dist, null, '    '))
-  console.log('wrote', path)
+function writeDist (dist) {
+  const targetPath = join(sitePath, dist.id, dist.version)
+  const targetJson = join(targetPath, '_data.json')
+  const targetMd = join(targetPath, 'index.md')
+
+  mkdirp.sync(targetPath)
+  fs.writeFileSync(targetJson, JSON.stringify(dist, null, '  '))
+  fs.writeFileSync(targetMd, dist.description)
 }
 
-function addOSBinaries (dir, src, dst) {
+function addOSBinaries (dir, src) {
+  const dst = []
   for (var osi in src.oses) {
     var os = src.oses[osi]
     var p = {
@@ -89,6 +93,7 @@ function addOSBinaries (dir, src, dst) {
       dst.push(p) // do have releases for this os.
     }
   }
+
   return dst
 }
 
@@ -99,8 +104,4 @@ function findFile (dir, pattern) {
     }
   }
   return null
-}
-
-function noopcb (err) {
-  if (err) throw err
 }
