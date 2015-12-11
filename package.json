@@ -25,6 +25,7 @@
     "gulp-watch": "^4.3.5",
     "harp": "^0.20.0",
     "jquery": "^2.1.4",
+    "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
     "pre-commit": "^1.1.2",
     "require-dir": "^0.3.0",
