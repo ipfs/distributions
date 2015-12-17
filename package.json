@@ -34,7 +34,8 @@
     "webpack-stream": "^2.3.0"
   },
   "scripts": {
-    "lint": "gulp lint"
+    "lint": "gulp lint",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",

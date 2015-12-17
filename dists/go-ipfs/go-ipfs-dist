@@ -79,8 +79,8 @@ dist_version() {
   cd "$cwd"
 
   # generate dist.json file
-  echo "---> generating config for $version"
-  ../../node_modules/.bin/gulp dist "--path=$(pwd)" "--version=$version"
+  echo "---> generating dist.json"
+  `which node` ./mkdist.js "$version"
 }
 
 if [ "$1" = "all" ]; then
