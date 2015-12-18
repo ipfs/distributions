@@ -35,9 +35,10 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
           .col-md-8
             table.table.d-download-table
               tbody
-                for release in data.platforms
+                for p in data.platforms
+                  - colspan = 6 / p.archs.length
                   tr
-                    th= release.name
-                    - colspan = 6 / release.archs.length
-                    for arch in release.archs
-                      td(colspan="#{colspan}")= arch.name
+                    th= p.name
+                    for arch in p.archs
+                      td(colspan="#{colspan}")
+                        a(href="#{data.releaseLink}/#{arch.link}")= arch.name
