@@ -11,7 +11,7 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
             a.d-sidebar-link.nav-item(href='##{key}')= key
     .col-md-10: each value, key in public.releases
       .d-component
-        - data = value[version]._data
+        - data = value._data
         .d-component-desc.row
           .col-md-8
             h1.d-component-desc-title
@@ -19,10 +19,10 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
             h2.d-component-desc-sub-title
               = data.tagline
             .d-component-desc-body
-              != partial('releases/' + key + '/' + version  + '/index')
+              != partial('releases/' + key + '/index')
           .d-component-asset.col-md-4
-            a(href='https://asciinema.org/a/23012' target='_blank')
-              img(src='https://asciinema.org/a/23012.png' width='260')
+            a(href="https://asciinema.org/a/#{data.ascii}" target='_blank')
+              img(src="https://asciinema.org/a/#{data.ascii}.png" width='260')
 
         .d-component-release.row
           .col-md-4
@@ -35,7 +35,7 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
           .col-md-8
             table.table.d-download-table
               tbody
-                for release in data.releases
+                for release in data.platforms
                   tr
                     th= release.name
                     - colspan = 6 / release.archs.length

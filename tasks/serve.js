@@ -97,4 +97,4 @@ gulp.task('webpack', () => {
     .pipe(gulp.dest('site/'))
 })
 
-gulp.task('serve', ['harp', 'webpack'])
+gulp.task('serve', ['dist', 'harp', 'webpack'])
