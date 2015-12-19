@@ -4,24 +4,23 @@
 outputDir=../../releases/go-ipfs
 goipfspath=github.com/ipfs/go-ipfs/cmd/ipfs
 
+# init colors
 txtnon='\e[0m'    # color reset
-txtblk='\e[0;30m' # Black
 txtred='\e[0;31m' # Red
 txtgrn='\e[0;32m' # Green
 txtylw='\e[0;33m' # Yellow
-txtblu='\e[0;34m' # Blue
 
 function fail() {
-	echo -e $txtred$@$txtnon
+	printf $txtred%s$txtnon\\n "$@"
 	exit 1
 }
 
 function warn() {
-	echo -e $txtylw$@$txtnon
+	printf $txtylw%s$txtnon\\n "$@"
 }
 
 function notice() {
-	echo -e $txtgrn$@$txtnon
+	printf $txtgrn%s$txtnon\\n "$@"
 }
 
 function doBuild() {
