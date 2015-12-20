@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # globals
-outputDir=../../releases/go-ipfs
-goipfspath=github.com/ipfs/go-ipfs/cmd/ipfs
+releases=../../releases
 
 # init colors
 txtnon='\e[0m'    # color reset
@@ -21,6 +20,32 @@ function warn() {
 
 function notice() {
 	printf $txtgrn%s$txtnon\\n "$@"
+}
+
+# dep checks
+if [ ! -f `which jq` ]
+then
+	fail "must have 'jq' installed"
+fi
+
+function printDistInfo() {
+	# print json output
+	jq -e ".platforms[\"$goos\"]" dist.json > /dev/null
+	if [ ! $? -eq 0 ]
+	then
+		cp dist.json dist.json.temp
+		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
+	fi
+
+	local binname="ipfs"
+	if [ "$goos" = "windows" ]
+	then
+		binname="ipfs.exe"
+	fi
+
+	cp dist.json dist.json.temp
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$goos-$goarch/$binname\"}" dist.json.temp > dist.json
+
 }
 
 function doBuild() {
@@ -45,12 +70,31 @@ function doBuild() {
 	if [ "$success" == 0 ]
 	then
 		notice "    success!"
+		printDistInfo
 	else
 		warn "    failed."
 	fi
 
 	# output results to results table
-	echo $target, $goos, $goarch, $? >> $output/results
+	echo $target, $goos, $goarch, $success >> $output/results
+}
+
+function printInitialDistfile() {
+	local distname=$1
+	local version=$2
+	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"releases/$distname/$version\"}" |
+	jq ".name = \"go-ipfs\"" |
+	jq ".platforms = {}" |
+	jq ".description = \"`cat description`\""
+}
+
+function printBuildInfo() {
+	# print out build information
+	local commit=$1
+	go version
+	echo "git sha of code: $commit" 
+	uname -a
+	echo built on `date`
 }
 
 function buildWithMatrix() {
@@ -59,28 +103,26 @@ function buildWithMatrix() {
 	local output=$3
 	local commit=$4
 
-	if [ -z "$output" ]
-	then
+	if [ -z "$output" ]; then
 		fail "error: output dir not specified"
 	fi
 
-	if [ ! -e $matfile ]
-	then
+	if [ ! -e $matfile ]; then
 		fail "build matrix $matfile does not exist"
 	fi
 
-	# print out build information
 	mkdir -p $output
-	go version > $output/build-info
-	echo "git sha of code: $commit" >> $output/build-info
-	uname -a >> $output/build-info
-	echo built on `date` >> $output/build-info
+
+	printInitialDistfile "go-ipfs" $version > dist.json
+	printBuildInfo $commit > $output/build-info
 
 	# build each os/arch combo
 	while read line
 	do
 		doBuild $line $gobin $output
 	done < $matfile
+
+	mv dist.json $output/dist.json
 }
 
 function checkoutVersion() {
@@ -100,39 +142,54 @@ function currentSha() {
 	(cd $1 && git show --pretty="%H")
 }
 
-# if the output directory already exists, warn user
-if [ -e $outputDir ]
-then
-	warn "dirty output directory"
-	warn "will skip building already existing binaries"
-fi
+function printVersions() {
+	versarr=""
+	while read v
+	do
+		versarr="$versarr $v"
+	done < versions
+	echo "building versions: $versarr"
+}
 
+function startGoBuilds() {
+	distname=$1
+	gpath=$2
 
-export GOPATH=$(pwd)/gopath
-if [ ! -e $GOPATH ]
-then
-	echo "fetching ipfs code..."
-	go get $goipfspath 2> /dev/null
-fi
+	outputDir=$releases/$distname
 
-repopath=$GOPATH/src/$goipfspath
+	# if the output directory already exists, warn user
+	if [ -e $outputDir ]
+	then
+		warn "dirty output directory"
+		warn "will skip building already existing binaries"
+	fi
 
-versarr=""
-while read v
-do
-	versarr="$versarr $v"
-done < versions
+	export GOPATH=$(pwd)/gopath
+	if [ ! -e $GOPATH ]
+	then
+		echo "fetching ipfs code..."
+		go get $gpath 2> /dev/null
+	fi
 
-echo "building versions: $versarr"
+	repopath=$GOPATH/src/$gpath
 
-echo ""
-while read v
-do
-	notice "Building version $v binaries"
-	checkoutVersion $repopath $v
+	printVersions
 
-	buildWithMatrix matrices/$v $goipfspath $outputDir/$v $(currentSha $repopath)
 	echo ""
-done < versions
+	while read version
+	do
+		notice "Building version $version binaries"
+		checkoutVersion $repopath $version
 
-notice "build complete!"
+		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath)
+		echo ""
+	done < versions
+
+	notice "build complete!"
+}
+# globals
+
+
+gpath=github.com/ipfs/go-ipfs/cmd/ipfs
+
+startGoBuilds go-ipfs $gpath
