@@ -1,4 +1,4 @@
-all: all_dists index
+all: all_dists site
 
 all_dists: go-ipfs
 
@@ -10,10 +10,9 @@ go-ipfs:
 	echo "** making $@ **"
 	cd dists/$@ && make
 
-index:
-	echo "** making index.html **"
-	node gen-index.js >releases/index.html
-	cp -r static releases/.
+site:
+	echo "** Building site **"
+	npm run build
 
-publish: all_dists index
+publish: all_dists site
 	ipfs add -s rabin -q -r releases | tail -n1 >>versions

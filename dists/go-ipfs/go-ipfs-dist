@@ -80,7 +80,7 @@ dist_version() {
 
   # generate dist.json file
   echo "---> generating dist.json"
-  ./mkdist.js "$version"
+  `which node` ./mkdist.js "$version"
 }
 
 if [ "$1" = "all" ]; then

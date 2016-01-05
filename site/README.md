@@ -1,7 +1,6 @@
-# IPFS Distributions
+# Site
 
-
-## Development
+> Distributions page written with [harpjs](http://harpjs.com).
 
 Harpjs setup with
 
@@ -10,9 +9,17 @@ Harpjs setup with
   * bundeling using webpack
   * transpiling using babel
 * Linting using eslint
+* Templates in jade
 
+## Development
 
 ```bash
 $ gulp
 $ open localhost:3000
+```
+
+## Build
+
+```bash
+$ gulp build
 ```
