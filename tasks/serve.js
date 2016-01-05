@@ -2,10 +2,11 @@ const gulp = require('gulp')
 const browserSync = require('browser-sync')
 const reload = browserSync.reload
 const harp = require('harp')
-const webpack = require('webpack')
 const webpackStream = require('webpack-stream')
 const $ = require('gulp-load-plugins')()
 const _ = require('lodash')
+
+const config = require('./config')
 
 const tmpFiles = p => {
   const file = _.last(p.split('/'))
@@ -65,35 +66,7 @@ gulp.task('harp', () => {
 
 gulp.task('webpack', () => {
   gulp.src('./site/public/_js/script.js')
-    .pipe(webpackStream({
-      watch: true,
-      entry: [
-        'babel-polyfill',
-        './site/public/_js/script.js'
-      ],
-      output: {
-        path: __dirname,
-        filename: './public/build/script.js'
-      },
-      module: {
-        loaders: [{
-          test: /\.js$/,
-          exclude: /node_modules/,
-          loader: 'babel',
-          query: {
-            cacheDirectory: true,
-            presets: ['es2015']
-          }
-        }]
-      },
-      plugins: [
-        new webpack.NoErrorsPlugin()
-      ],
-      stats: {
-        colors: true
-      },
-      devtool: 'source-map'
-    }))
+    .pipe(webpackStream(config.webpack.dev))
     .pipe(gulp.dest('site/'))
 })
 
