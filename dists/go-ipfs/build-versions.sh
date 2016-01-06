@@ -23,10 +23,14 @@ function notice() {
 }
 
 # dep checks
-if [ ! -f `which jq` ]
-then
-	fail "must have 'jq' installed"
-fi
+reqbins="jq zip go"
+for b in $reqbins
+do
+	if ! type $b > /dev/null
+	then
+		fail "must have '$b' installed"
+	fi
+done
 
 function printDistInfo() {
 	# print json output
@@ -65,16 +69,28 @@ function doBuild() {
 	echo "    output to $dir"
 	mkdir -p $dir
 
-	(cd $dir && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
+	mkdir -p tmp-build
+
+	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	local success=$?
 	local binname=$(basename $target)
 	if [ "$success" == 0 ]
 	then
-		notice "    success!"
-		printDistInfo $binname
+		notice "    build succeeded!"
+
+		# now zip it all up
+		if  zip -r $dir/$binname.zip tmp-build
+		then
+			printDistInfo $binname
+			rm -rf tmp-build
+		else
+			warn "failed to zip up output"
+			success=1
+		fi
 	else
 		warn "    failed."
 	fi
+
 
 	# output results to results table
 	echo $target, $goos, $goarch, $success >> $output/results
@@ -176,6 +192,8 @@ function startGoBuilds() {
 
 	repopath=$GOPATH/src/$gpath
 
+	(cd $repopath && git reset --hard && git clean -df)
+
 	printVersions
 
 	echo ""
@@ -191,8 +209,6 @@ function startGoBuilds() {
 	notice "build complete!"
 }
 # globals
-
-
 gpath=github.com/ipfs/go-ipfs/cmd/ipfs
 
 startGoBuilds go-ipfs $gpath
