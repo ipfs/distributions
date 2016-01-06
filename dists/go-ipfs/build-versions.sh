@@ -37,10 +37,10 @@ function printDistInfo() {
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
-	local binname="ipfs"
+	local binname="$1"
 	if [ "$goos" = "windows" ]
 	then
-		binname="ipfs.exe"
+		binname="$binname.exe"
 	fi
 
 	cp dist.json dist.json.temp
@@ -67,10 +67,11 @@ function doBuild() {
 
 	(cd $dir && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	local success=$?
+	local binname=$(basename $target)
 	if [ "$success" == 0 ]
 	then
 		notice "    success!"
-		printDistInfo
+		printDistInfo $binname
 	else
 		warn "    failed."
 	fi
@@ -83,7 +84,7 @@ function printInitialDistfile() {
 	local distname=$1
 	local version=$2
 	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"releases/$distname/$version\"}" |
-	jq ".name = \"go-ipfs\"" |
+	jq ".name = \"$disname\"" |
 	jq ".platforms = {}" |
 	jq ".description = \"`cat description`\""
 }
@@ -113,7 +114,9 @@ function buildWithMatrix() {
 
 	mkdir -p $output
 
-	printInitialDistfile "go-ipfs" $version > dist.json
+	local distname=$(basename $gobin)
+
+	printInitialDistfile $distname $version > dist.json
 	printBuildInfo $commit > $output/build-info
 
 	# build each os/arch combo
@@ -167,7 +170,7 @@ function startGoBuilds() {
 	export GOPATH=$(pwd)/gopath
 	if [ ! -e $GOPATH ]
 	then
-		echo "fetching ipfs code..."
+		echo "fetching $distname code..."
 		go get $gpath 2> /dev/null
 	fi
 
