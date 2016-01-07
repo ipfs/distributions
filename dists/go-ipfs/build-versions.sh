@@ -149,7 +149,7 @@ function checkoutVersion() {
 	local ref=$2
 
 	echo "==> checking out version $ref in $repopath"
-	(cd $repopath && git checkout $ref > /dev/null)
+	(cd $repopath && git reset --hard && git clean -df && git checkout $ref > /dev/null)
 
 	if [ "$?" != 0 ]
 	then
