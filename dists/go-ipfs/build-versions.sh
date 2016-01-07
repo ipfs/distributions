@@ -67,7 +67,6 @@ function doBuild() {
 		return
 	fi
 	echo "    output to $dir"
-	mkdir -p $dir
 
 	mkdir -p tmp-build
 
@@ -79,12 +78,13 @@ function doBuild() {
 		notice "    build succeeded!"
 
 		# now zip it all up
-		if  zip -r $dir/$binname.zip tmp-build
+		mkdir -p $dir
+		if  zip -r $dir/$binname.zip tmp-build > /dev/null
 		then
 			printDistInfo $binname
 			rm -rf tmp-build
 		else
-			warn "failed to zip up output"
+			warn "    failed to zip up output"
 			success=1
 		fi
 	else
