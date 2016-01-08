@@ -88,7 +88,7 @@ function doBuild() {
 
 	# now zip it all up
 	mkdir -p $dir
-	if  zip -r $dir/$binname.zip tmp-build > /dev/null
+	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null
 	then
 		printDistInfo $binname
 		rm -rf tmp-build
