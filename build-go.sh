@@ -105,10 +105,15 @@ function doBuild() {
 function printInitialDistfile() {
 	local distname=$1
 	local version=$2
+
 	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"releases/$distname/$version\"}" |
 	jq ".name = \"$disname\"" |
 	jq ".platforms = {}" |
-	jq ".description = \"`cat description`\""
+	if [  -e description ]; then
+		jq ".description = \"`cat description`\""
+	else
+		warn "no description file found"
+	fi
 }
 
 function printBuildInfo() {
@@ -160,13 +165,14 @@ function checkoutVersion() {
 	fi
 
 	echo "==> checking out version $ref in $repopath"
-	(cd $repopath && git reset --hard)
-	(cd $repopath && git clean -df)
-	(cd $repopath && git checkout $ref > /dev/null)
+	reporoot=$(cd $repopath && git rev-parse --show-toplevel)
+	(cd $reporoot && git clean -df)
+	(cd $reporoot && git reset --hard)
+	(cd $reporoot && git checkout $ref > /dev/null)
 
 	if [ "$?" != 0 ]
 	then
-		fail "failed to check out $ref in $repopath"
+		fail "failed to check out $ref in $reporoot"
 	fi
 }
 

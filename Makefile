@@ -1,13 +1,9 @@
 all: all_dists site
 
-all_dists: go-ipfs
+all_dists: go-ipfs ipfs-update fs-repo-migrations
 
-ipfs-app:
-	echo "** making $@ **"
-	cd dists/$@ && make
-
-go-ipfs:
-	echo "** making $@ **"
+%:
+	echo "** $@ **"
 	cd dists/$@ && make
 
 site:
