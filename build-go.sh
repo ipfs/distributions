@@ -222,7 +222,4 @@ function startGoBuilds() {
 	notice "build complete!"
 }
 
-# globals
-gpath=github.com/ipfs/go-ipfs/cmd/ipfs
-
-startGoBuilds go-ipfs $gpath
+startGoBuilds $1 $2
