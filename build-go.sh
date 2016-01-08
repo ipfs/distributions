@@ -73,22 +73,28 @@ function doBuild() {
 	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	local success=$?
 	local binname=$(basename $target)
-	if [ "$success" == 0 ]
+	if [ "$success" != 0 ]
 	then
-		notice "    build succeeded!"
-
-		# now zip it all up
-		mkdir -p $dir
-		if  zip -r $dir/$binname.zip tmp-build > /dev/null
-		then
-			printDistInfo $binname
-			rm -rf tmp-build
-		else
-			warn "    failed to zip up output"
-			success=1
-		fi
-	else
 		warn "    failed."
+		return 1
+	fi
+
+	notice "    build succeeded!"
+
+	# copy dist assets if they exist
+	if [ -e $GOPATH/src/$target/dist ]; then
+		cp -r $GOPATH/src/$target/dist/* tmp-build/
+	fi
+
+	# now zip it all up
+	mkdir -p $dir
+	if  zip -r $dir/$binname.zip tmp-build > /dev/null
+	then
+		printDistInfo $binname
+		rm -rf tmp-build
+	else
+		warn "    failed to zip up output"
+		success=1
 	fi
 
 
@@ -148,8 +154,15 @@ function checkoutVersion() {
 	local repopath=$1
 	local ref=$2
 
+	if [ -z "$repopath" ]
+	then
+		fail "checkoutVersion: no repo to check out specified"
+	fi
+
 	echo "==> checking out version $ref in $repopath"
-	(cd $repopath && git reset --hard && git clean -df && git checkout $ref > /dev/null)
+	(cd $repopath && git reset --hard)
+	(cd $repopath && git clean -df)
+	(cd $repopath && git checkout $ref > /dev/null)
 
 	if [ "$?" != 0 ]
 	then
@@ -208,6 +221,7 @@ function startGoBuilds() {
 
 	notice "build complete!"
 }
+
 # globals
 gpath=github.com/ipfs/go-ipfs/cmd/ipfs
 
