@@ -9,8 +9,8 @@ dist: versions
 	../../build-go.sh ipfs-update github.com/ipfs/ipfs-update
 
 versions: filtered_versions
-	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' > tag_versions
-	cat tag_versions | grep -f filtered_versions -vE > versions
+	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | sort > tag_versions
+	comm -23 -- tag_versions filtered_versions > versions
 
 filtered_versions:
 	touch filtered_versions
