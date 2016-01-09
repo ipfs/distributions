@@ -4,3 +4,4 @@ logs
 **/node_modules
 releases
 dists/ipfs-app/build
+www

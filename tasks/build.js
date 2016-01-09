@@ -1,6 +1,30 @@
 const gulp = require('gulp')
-const $ = require('gulp-load-plugins')()
+const runSequence = require('run-sequence')
+const harp = require('harp')
+const webpackStream = require('webpack-stream')
+const del = require('del')
 
-gulp.task('build', () => {
-  $.util.log('Not implemented!')
+const config = require('./config')
+
+gulp.task('clean', () => {
+  return del(['./www'])
+})
+
+gulp.task('webpack:prod', () => {
+  return gulp.src('./site/public/_js/script.js')
+    .pipe(webpackStream(config.webpack.prod))
+    .pipe(gulp.dest('site/'))
+})
+
+gulp.task('harp:compile', done => {
+  harp.compile('./site', '../www', done)
+})
+
+gulp.task('build', done => {
+  runSequence(
+    ['clean', 'dist'],
+    'webpack:prod',
+    'harp:compile',
+    done
+  )
 })
