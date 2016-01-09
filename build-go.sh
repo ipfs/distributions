@@ -155,6 +155,14 @@ function buildWithMatrix() {
 	mv dist.json $output/dist.json
 }
 
+function cleanRepo() {
+	local repopath=$1
+
+	reporoot=$(cd $repopath && git rev-parse --show-toplevel)
+	(cd $reporoot && git clean -df)
+	(cd $reporoot && git reset --hard)
+}
+
 function checkoutVersion() {
 	local repopath=$1
 	local ref=$2
@@ -165,10 +173,8 @@ function checkoutVersion() {
 	fi
 
 	echo "==> checking out version $ref in $repopath"
-	reporoot=$(cd $repopath && git rev-parse --show-toplevel)
-	(cd $reporoot && git clean -df)
-	(cd $reporoot && git reset --hard)
-	(cd $reporoot && git checkout $ref > /dev/null)
+	cleanRepo $repopath
+	(cd $repopath && git checkout $ref > /dev/null)
 
 	if [ "$?" != 0 ]
 	then
@@ -203,7 +209,7 @@ function startGoBuilds() {
 	fi
 
 	export GOPATH=$(pwd)/gopath
-	if [ ! -e $GOPATH ]
+	if [ ! -e $GOPATH/src/$gpath ]
 	then
 		echo "fetching $distname code..."
 		go get $gpath 2> /dev/null
