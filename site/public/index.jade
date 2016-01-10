@@ -1,28 +1,30 @@
-- version = 'v0.3.8'
 nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
-  a.navbar-brand IPFS distributions
+  .container
+    .row
+      a.navbar-brand IPFS distributions
 
 .container
   .row
-    .col-md-2
+    .d-sidebar-wrapper.col-md-2.sticky
       .d-sidebar
         ul.nav#d-navbar: each value, key in public.releases
           li.d-sidebar-item.nav-item
-            a.d-sidebar-link.nav-item(href='##{key}')= key
+            a.d-sidebar-link.nav-link(href='##{key}')= key
     .col-md-10: each value, key in public.releases
-      .d-component
+      .d-component(id='#{key}')
         - data = value._data
         .d-component-desc.row
           .col-md-8
             h1.d-component-desc-title
-              = data.name
+              = key
             h2.d-component-desc-sub-title
               = data.tagline
             .d-component-desc-body
               != partial('releases/' + key + '/index')
-          .d-component-asset.col-md-4
-            a(href="https://asciinema.org/a/#{data.ascii}" target='_blank')
-              img(src="https://asciinema.org/a/#{data.ascii}.png" width='260')
+          if data.ascii
+            .d-component-asset.col-md-4
+              a(href="https://asciinema.org/a/#{data.ascii}" target='_blank')
+                img(src="https://asciinema.org/a/#{data.ascii}.png" width='260')
 
         .d-component-release.row
           .col-md-4
@@ -39,9 +41,9 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
             table.table.d-download-table
               tbody
                 for p in data.platforms
-                  - colspan = 6 / p.archs.length
+                  - colspan = 6 / Object.keys(p.archs).length
                   tr
                     th= p.name
-                    for arch in p.archs
+                    for arch, name in p.archs
                       td(colspan="#{colspan}")
-                        a(href="#{data.releaseLink}/#{arch.link}")= arch.name
+                        a(href="#{data.releaseLink}/#{arch.link}")= name

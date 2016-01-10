@@ -1,14 +1,20 @@
 .d-component {
+  padding-top: 4 * @baseLineHeight;
+  padding-bottom: 3 * @baseLineHeight;
+  border-bottom: 1px solid @borderGray;
 
+  &:first-child {
+    padding-top: 5 * @baseLineHeight;
+  }
 }
 
 .d-component-desc-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 500;
 }
 
 .d-component-desc-sub-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 300;
 }
 
@@ -63,10 +69,15 @@
     border-bottom: 1px solid @borderGray;
     border-top: none;
 
-    transition: all 0.3s linear;
+    transition: background 0.3s linear;
 
-    &:hover {
+    &:hover{
       background-color: @baseBlue;
+      color: @white;
+      cursor: pointer;
+    }
+    &:hover a,
+    a:hover {
       color: @white;
       cursor: pointer;
     }

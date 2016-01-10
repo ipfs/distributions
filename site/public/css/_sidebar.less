@@ -1,14 +1,12 @@
 @leftBorderWidth: 2px;
 
+.d-sidebar-wrapper {
+  top: 4.8 * @baseLineHeight;
+  position: sticky;
+}
+
 .d-sidebar-item {
   line-height: 27px;
-
-  &.active {
-    .d-sidebar-link {
-      border-left: @leftBorderWidth solid @baseBlue;
-      color: @baseBlue;
-    }
-  }
 }
 
 .d-sidebar-link {
@@ -20,6 +18,11 @@
   line-height: 14px;
 
   transition: color 0.4s linear;
+
+  &.active {
+    border-left: @leftBorderWidth solid @baseBlue;
+    color: @baseBlue;
+  }
 
   &:hover {
     color: @baseBlue;

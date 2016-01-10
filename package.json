@@ -32,6 +32,7 @@
     "pre-commit": "^1.1.2",
     "require-dir": "^0.3.0",
     "run-sequence": "^1.1.5",
+    "stickyfill": "^1.1.1",
     "tether": "^1.1.1",
     "webpack": "^1.12.2",
     "webpack-stream": "^3.1.0"
