@@ -5,6 +5,7 @@
   "main": "gulpfile.babel.js",
   "dependencies": {},
   "devDependencies": {
+    "Bootstrap-Offcanvas": "github:iamphill/Bootstrap-Offcanvas",
     "async": "^1.5.0",
     "babel-core": "^6.1.2",
     "babel-eslint": "^5.0.0-beta6",

@@ -4,7 +4,7 @@
   border-bottom: 1px solid @borderGray;
 
   &:first-child {
-    padding-top: 5 * @baseLineHeight;
+    padding-top: 0;
   }
 }
 
@@ -53,6 +53,7 @@
 .d-download-table {
   font-size: 14px;
   line-height: 36px;
+  margin-top: 2 * @baseLineHeight;
 
   th {
     font-weight: 400;
@@ -88,5 +89,15 @@
     td {
       border-bottom: none;
     }
+  }
+}
+
+@media (min-width: 768px) {
+  .d-component:first-child {
+    padding-top: 5 * @baseLineHeight;
+  }
+
+  .d-download-table {
+    margin-top: 0;
   }
 }
