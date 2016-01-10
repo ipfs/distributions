@@ -1,7 +1,4 @@
-nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
-  .container
-    .row
-      a.navbar-brand IPFS distributions
+include ./_header.jade
 
 .container
   .row
@@ -47,3 +44,5 @@ nav.navbar.navbar-fixed-top.navbar-dark.bg-inverse
                     for arch, name in p.archs
                       td(colspan="#{colspan}")
                         a(href="#{data.releaseLink}/#{arch.link}")= name
+
+include ./_footer.jade
