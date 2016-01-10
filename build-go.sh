@@ -26,8 +26,7 @@ function notice() {
 reqbins="jq zip go"
 for b in $reqbins
 do
-	if ! type $b > /dev/null
-	then
+	if ! type $b > /dev/null; then
 		fail "must have '$b' installed"
 	fi
 done
@@ -35,15 +34,13 @@ done
 function printDistInfo() {
 	# print json output
 	jq -e ".platforms[\"$goos\"]" dist.json > /dev/null
-	if [ ! $? -eq 0 ]
-	then
+	if [ ! $? -eq 0 ]; then
 		cp dist.json dist.json.temp
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
 	local binname="$1"
-	if [ "$goos" = "windows" ]
-	then
+	if [ "$goos" = "windows" ]; then
 		binname="$binname.exe"
 	fi
 
@@ -61,8 +58,7 @@ function doBuild() {
 	echo "==> building for $goos $goarch"
 
 	dir=$output/$1-$2
-	if [ -e $dir ]
-	then
+	if [ -e $dir ]; then
 		echo "    $dir exists, skipping build"
 		return
 	fi
@@ -71,10 +67,7 @@ function doBuild() {
 	mkdir -p tmp-build
 
 	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
-	local success=$?
-	local binname=$(basename $target)
-	if [ "$success" != 0 ]
-	then
+	if [ $? -ne 0 ]; then 
 		warn "    failed."
 		return 1
 	fi
@@ -87,9 +80,9 @@ function doBuild() {
 	fi
 
 	# now zip it all up
+	local binname=$(basename $target)
 	mkdir -p $dir
-	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null
-	then
+	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null; then
 		printDistInfo $binname
 		rm -rf tmp-build
 	else
@@ -105,15 +98,12 @@ function doBuild() {
 function printInitialDistfile() {
 	local distname=$1
 	local version=$2
+	test -e description || fail "no description file found"
 
 	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"releases/$distname/$version\"}" |
 	jq ".name = \"$disname\"" |
 	jq ".platforms = {}" |
-	if [  -e description ]; then
-		jq ".description = \"`cat description`\""
-	else
-		warn "no description file found"
-	fi
+	jq ".description = \"`cat description`\""
 }
 
 function printBuildInfo() {
@@ -131,13 +121,8 @@ function buildWithMatrix() {
 	local output=$3
 	local commit=$4
 
-	if [ -z "$output" ]; then
-		fail "error: output dir not specified"
-	fi
-
-	if [ ! -e $matfile ]; then
-		fail "build matrix $matfile does not exist"
-	fi
+	test -n "$output" || fail "error: output dir not specified"
+	test -e "$matfile" || fail "build matrix $matfile does not exist"
 
 	mkdir -p $output
 
@@ -158,28 +143,22 @@ function buildWithMatrix() {
 function cleanRepo() {
 	local repopath=$1
 
-	reporoot=$(cd $repopath && git rev-parse --show-toplevel)
-	(cd $reporoot && git clean -df)
-	(cd $reporoot && git reset --hard)
+	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+	(cd "$reporoot" && git clean -df)
+	(cd "$reporoot" && git reset --hard)
 }
 
 function checkoutVersion() {
 	local repopath=$1
 	local ref=$2
 
-	if [ -z "$repopath" ]
-	then
-		fail "checkoutVersion: no repo to check out specified"
-	fi
+	test -n "$repopath" || fail "checkoutVersion: no repo to check out specified"
 
 	echo "==> checking out version $ref in $repopath"
-	cleanRepo $repopath
-	(cd $repopath && git checkout $ref > /dev/null)
+	cleanRepo "$repopath"
+	(cd "$repopath" && git checkout $ref > /dev/null)
 
-	if [ "$?" != 0 ]
-	then
-		fail "failed to check out $ref in $reporoot"
-	fi
+	test $? -eq 0 || fail "failed to check out $ref in $reporoot"
 }
 
 function currentSha() {
@@ -199,25 +178,23 @@ function startGoBuilds() {
 	distname=$1
 	gpath=$2
 
-	outputDir=$releases/$distname
+	outputDir="$releases/$distname"
 
 	# if the output directory already exists, warn user
-	if [ -e $outputDir ]
-	then
+	if [ -e $outputDir ]; then
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
 	fi
 
 	export GOPATH=$(pwd)/gopath
-	if [ ! -e $GOPATH/src/$gpath ]
-	then
+	if [ ! -e $GOPATH/src/$gpath ]; then
 		echo "fetching $distname code..."
 		go get $gpath 2> /dev/null
 	fi
 
-	repopath=$GOPATH/src/$gpath
+	repopath="$GOPATH/src/$gpath"
 
-	(cd $repopath && git reset --hard && git clean -df)
+	(cd "$repopath" && git reset --hard && git clean -df)
 
 	printVersions
 
