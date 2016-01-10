@@ -124,9 +124,9 @@ function buildWithMatrix() {
 	test -n "$output" || fail "error: output dir not specified"
 	test -e "$matfile" || fail "build matrix $matfile does not exist"
 
-	mkdir -p $output
+	mkdir -p "$output"
 
-	local distname=$(basename $gobin)
+	local distname=$(basename "$gobin")
 
 	printInitialDistfile $distname $version > dist.json
 	printBuildInfo $commit > $output/build-info
@@ -166,11 +166,7 @@ function currentSha() {
 }
 
 function printVersions() {
-	versarr=""
-	while read v
-	do
-		versarr="$versarr $v"
-	done < versions
+	versarr=$(tr \n ' ' < versions)
 	echo "building versions: $versarr"
 }
 
