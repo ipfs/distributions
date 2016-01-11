@@ -5,3 +5,5 @@ logs
 releases
 dists/ipfs-app/build
 www
+**/gopath
+**/tmp-build

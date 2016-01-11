@@ -46,7 +46,7 @@ function printDistInfo() {
 
 	cp dist.json dist.json.temp
 	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$goos-$goarch/$binname\"}" dist.json.temp > dist.json
-
+	rm dist.json.temp
 }
 
 function doBuild() {
