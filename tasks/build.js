@@ -20,11 +20,18 @@ gulp.task('harp:compile', done => {
   harp.compile('./site', '../www', done)
 })
 
+gulp.task('copy:site', done => {
+  return gulp.src(['./www/**/*'])
+    .pipe(gulp.dest('./releases'))
+})
+
 gulp.task('build', done => {
   runSequence(
     ['clean', 'dist'],
     'webpack:prod',
     'harp:compile',
+    'copy:site',
+    'clean',
     done
   )
 })
