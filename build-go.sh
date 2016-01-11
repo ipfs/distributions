@@ -67,7 +67,7 @@ function doBuild() {
 	mkdir -p tmp-build
 
 	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
-	if [ $? -ne 0 ]; then 
+	if [ $? -ne 0 ]; then
 		warn "    failed."
 		return 1
 	fi
@@ -100,7 +100,7 @@ function printInitialDistfile() {
 	local version=$2
 	test -e description || fail "no description file found"
 
-	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"releases/$distname/$version\"}" |
+	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"/$distname/$version\"}" |
 	jq ".name = \"$disname\"" |
 	jq ".platforms = {}" |
 	jq ".description = \"`cat description`\""
@@ -110,7 +110,7 @@ function printBuildInfo() {
 	# print out build information
 	local commit=$1
 	go version
-	echo "git sha of code: $commit" 
+	echo "git sha of code: $commit"
 	uname -a
 	echo built on `date`
 }

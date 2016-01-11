@@ -1,5 +1,8 @@
 include ./_header.jade
 
+- targetMap = {'386': '32-bit', 'amd64': '64-bit', 'arm': 'ARM'}
+- architectureMap = {'darwin Binary': 'Mac OS X Binary', 'freebsd Binary': 'FreeBSD Binary', 'linux Binary': 'Linux Binary', 'windows Binary': 'Windows Binary'}
+
 .container
   .row
     .d-sidebar-wrapper.col-md-2.sticky.navbar-offcanvas#d-navbar-offcanvas
@@ -40,9 +43,9 @@ include ./_header.jade
                 for p in data.platforms
                   - colspan = 6 / Object.keys(p.archs).length
                   tr
-                    th= p.name
-                    for arch, name in p.archs
+                    th= architectureMap[p.name]
+                    for arch, target in p.archs
                       td(colspan="#{colspan}")
-                        a(href="#{data.releaseLink}/#{arch.link}")= name
+                        a(href="#{data.releaseLink}/#{arch.link}")= targetMap[target]
 
 include ./_footer.jade
