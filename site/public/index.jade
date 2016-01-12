@@ -46,6 +46,7 @@ include ./_header.jade
                     th= architectureMap[p.name]
                     for arch, target in p.archs
                       td(colspan="#{colspan}")
-                        a(href="#{data.releaseLink}/#{arch.link}")= targetMap[target]
+                        - link = data.releaseLink.replace(/^\//, '') + '/' + arch.link
+                        a(href="#{link}")= targetMap[target]
 
 include ./_footer.jade
