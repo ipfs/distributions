@@ -40,12 +40,8 @@ function printDistInfo() {
 	fi
 
 	local binname="$1"
-	if [ "$goos" = "windows" ]; then
-		binname="$binname.exe"
-	fi
-
 	cp dist.json dist.json.temp
-	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$goos-$goarch/$binname\"}" dist.json.temp > dist.json
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$goos-$goarch/$binname.zip\"}" dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -126,7 +122,7 @@ function buildWithMatrix() {
 
 	mkdir -p "$output"
 
-	local distname=$(basename "$gobin")
+	local distname=$(basename `pwd`)
 
 	printInitialDistfile $distname $version > dist.json
 	printBuildInfo $commit > $output/build-info
