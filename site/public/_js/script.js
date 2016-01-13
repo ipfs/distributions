@@ -1,10 +1,7 @@
 const $ = window.jQuery = require('jquery')
 window.Tether = require('tether')
+const Stickyfill = require('stickyfill')()
 require('bootstrap')
+require('bootstrap-offcanvas/dist/js/bootstrap.offcanvas.js')
 
-const init = () => {
-  // LETS DO THIS!
-  console.log('hello world')
-}
-
-$(init)
+Stickyfill.add($('.sticky')[0])

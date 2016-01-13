@@ -1,0 +1,41 @@
+@leftBorderWidth: 2px;
+
+.d-sidebar-wrapper {
+  top: 2 * @baseLineHeight;
+  background: #FFFFFF;
+  padding-top: @baseLineHeight;
+}
+
+.d-sidebar-item {
+  line-height: 27px;
+}
+
+.d-sidebar-link {
+  border-left: @leftBorderWidth solid transparent;
+  padding-left: 7px;
+  font-weight: 500;
+  font-size: 14px;
+  color: @black;
+  line-height: 14px;
+
+  transition: color 0.4s linear;
+
+  &.active {
+    border-left: @leftBorderWidth solid @baseBlue;
+    color: @baseBlue;
+  }
+
+  &:hover {
+    color: @baseBlue;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 768px) {
+  .d-sidebar-wrapper {
+    top: 4.8 * @baseLineHeight;
+    position: sticky;
+    background: #FFFFFF;
+    padding-top: 0;
+  }
+}

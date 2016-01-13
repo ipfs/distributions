@@ -1,19 +1,17 @@
-all: all_dists index
+all: all_dists site
 
-all_dists: go-ipfs
+all_dists: go-ipfs ipfs-update fs-repo-migrations
 
-ipfs-app:
-	echo "** making $@ **"
+%:
+	echo "** $@ **"
 	cd dists/$@ && make
 
-go-ipfs:
-	echo "** making $@ **"
-	cd dists/$@ && make
+site:
+	echo "** Building site **"
+	npm run build
 
-index:
-	echo "** making index.html **"
-	node gen-index.js >releases/index.html
-	cp -r static releases/.
-
-publish: all_dists index
+publish: all_dists site
 	ipfs add -s rabin -q -r releases | tail -n1 >>versions
+
+clean:
+	rm -rf releases
