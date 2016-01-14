@@ -2,6 +2,7 @@
   padding-top: 4 * @baseLineHeight;
   padding-bottom: 3 * @baseLineHeight;
   border-bottom: 1px solid @borderGray;
+  min-height: 80vh;
 
   &:first-child {
     padding-top: 0;
@@ -24,8 +25,35 @@
   color: @lightGray;
 }
 
+.d-component-download-btn {
+  background-color: @baseBlue;
+  font-size: 13px;
+  width: 100%;
+  border: none;
+  transition: background .2s linear;
+
+  &:hover {
+    background-color: lighten(@baseBlue, 5%);
+    border: none;
+  }
+}
+
+.d-component-download-alternative {
+  text-align: center;
+  margin-top: 1/2 * @baseLineHeight;
+}
+
+.d-component-arch {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.d-component-not {
+  font-size: 11px;
+}
+
 .d-component-release {
-  margin-top: 3 * @baseLineHeight;
+  margin-top: 4 * @baseLineHeight;
 }
 
 .d-component-version {
