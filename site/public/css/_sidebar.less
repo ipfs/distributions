@@ -31,11 +31,49 @@
   }
 }
 
+
+.slicknav_menu {
+  display: block;
+  background: none;
+  padding: 0;
+  font-size: 16px;
+
+  .slicknav_btn {
+    margin: 0px 2px;
+    background: none;
+  }
+
+  .slicknav_icon-bar {
+    box-shadow: none;
+  }
+}
+
+.slicknav_nav {
+  padding-top: @baseLineHeight;
+
+  a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+}
+
+.nav {
+  display: none;
+}
+
 @media (min-width: 768px) {
   .d-sidebar-wrapper {
-    top: 4.8 * @baseLineHeight;
-    position: sticky;
-    background: #FFFFFF;
+    background: @white;
     padding-top: 0;
+  }
+
+  .slicknav_menu {
+    display: none;
+  }
+
+  .nav {
+    top: 4.8 * @baseLineHeight;
+    display: block;
+    position: fixed;
   }
 }

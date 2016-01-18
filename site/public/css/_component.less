@@ -3,10 +3,6 @@
   padding-bottom: 3 * @baseLineHeight;
   border-bottom: 1px solid @borderGray;
   min-height: 80vh;
-
-  &:first-child {
-    padding-top: 0;
-  }
 }
 
 .d-component-desc-title {
@@ -70,10 +66,11 @@
 
   a {
     font-size: 14px;
-    padding-left: @baseLineHeight;
+    margin-left: @baseLineHeight;
+    .linkUnderlines(@white, @black);
 
     &:first-child {
-      padding-left: 0;
+      margin-left: 0;
     }
   }
 }
@@ -94,21 +91,26 @@
 
   td {
     text-align: center;
-    padding-right: 10px;
+    padding: 0;
     border-bottom: 1px solid @borderGray;
     border-top: none;
 
-    transition: background 0.3s linear;
-
-    &:hover{
-      background-color: @baseBlue;
-      color: @white;
-      cursor: pointer;
+    a {
+      background: none;
+      display: block;
+      height: 100%;
+      width: 100%;
+      text-align: center;
+      transition: background 0.2s ease-in-out;
+      line-height: 3 * @baseLineHeight;
     }
+
     &:hover a,
     a:hover {
       color: @white;
+      background-color: @baseBlue;
       cursor: pointer;
+      text-decoration: none;
     }
   }
 

@@ -2,6 +2,7 @@ body {
   font-family: 'Fira Sans', sans-serif;
   line-height: @baseLineHeight;
   position: relative;
+  color: @black;
 }
 
 .bg-inverse {
@@ -10,13 +11,6 @@ body {
 
 a {
   color: @linkBlue;
-  transition: color 0.4s linear;
-
-  &:hover {
-    color: lighten(@linkBlue, 10%);
-    text-decoration: none;
-    cursor: pointer;
-  }
 }
 
 .pull-right {
