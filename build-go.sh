@@ -76,7 +76,7 @@ function doBuild() {
 	fi
 
 	# now zip it all up
-	local binname=$(basename $target)
+	binname=$(echo $target | awk -F'/' '{ print $3 }')
 	mkdir -p $dir
 	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null; then
 		printDistInfo $binname
