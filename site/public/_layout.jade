@@ -8,10 +8,9 @@ html(lang='en')
     meta(name='description' content='#{meta.desc}')
     link(rel='stylesheet' href='css/style.css')
     link(
-      href='https://fonts.googleapis.com/css?family=Fira+Sans:500,300,400,400italic'
+      href='https://code.cdn.mozilla.net/fonts/fira.css'
       rel='stylesheet'
-      type='text/css'
     )
-  body(data-spy='scroll' data-target='#d-navbar')
+  body(data-spy='scroll' data-target='#d-navbar' data-offset='30')
     != yield
     script(src='build/script.js')

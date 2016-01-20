@@ -2,9 +2,9 @@ const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
 const fs = require('fs')
 const {join} = require('path')
-const _ = require('lodash')
 const mkdirp = require('mkdirp')
-const async = require('async')
+const {series, each} = require('async')
+const del = require('del')
 
 const log = $.util.log
 
@@ -15,13 +15,14 @@ function fail (msg) {
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
 const SITE_PATH = join(__dirname, '..', 'site', 'public', 'releases')
+const DIST_PATH = join(__dirname, '..', 'dists')
 
 function getVersion (type, done) {
-  const p = join(RELEASE_PATH, type, 'versions')
+  const p = join(DIST_PATH, type, 'current')
 
-  fs.readFile(p, (err, versions) => {
+  fs.readFile(p, (err, version) => {
     if (err) return done(err)
-    done(null, _(versions.toString().split('\n')).compact().last())
+    done(null, version.toString().trim())
   })
 }
 
@@ -30,7 +31,7 @@ function writeData (type, version, done) {
   const data = JSON.parse(fs.readFileSync(dataPath).toString())
 
   const dataTargetPath = join(SITE_PATH, type)
-  async.series([
+  series([
     mkdirp.bind(mkdirp, dataTargetPath),
     fs.writeFile.bind(fs, join(dataTargetPath, '_data.json'), JSON.stringify(data, null, 2)),
     fs.writeFile.bind(fs, join(dataTargetPath, 'index.md'), data.description)
@@ -38,17 +39,34 @@ function writeData (type, version, done) {
 }
 
 function writeSiteFiles (type, done) {
-  getVersion(type, (err, version) => {
+  fs.stat(join(RELEASE_PATH, type), (err, stats) => {
     if (err) return done(err)
 
-    writeData(type, version, done)
+    if (stats.isDirectory()) {
+      getVersion(type, (err, version) => {
+        if (err) return done(err)
+
+        writeData(type, version, done)
+      })
+    } else {
+      done()
+    }
   })
 }
 
-gulp.task('dist', done => {
+gulp.task('clean:release:site', () => {
+  return del([
+    './releases/*.html',
+    './releases/css',
+    './releases/build',
+    './releases/releases'
+  ])
+})
+
+gulp.task('dist', ['clean:release:site'], done => {
   fs.readdir(RELEASE_PATH, (err, types) => {
     if (err) return fail(err.msg)
 
-    async.each(types, writeSiteFiles, done)
+    each(types, writeSiteFiles, done)
   })
 })

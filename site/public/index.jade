@@ -14,28 +14,33 @@ include ./_header.jade
       .d-component(id='#{key}')
         - data = value._data
         .d-component-desc.row
-          .col-md-8
+          .col-md-7
             h1.d-component-desc-title
               = key
             h2.d-component-desc-sub-title
               = data.tagline
             .d-component-desc-body
               != partial('releases/' + key + '/index')
-          if data.ascii
-            .d-component-asset.col-md-4
-              a(href="https://asciinema.org/a/#{data.ascii}" target='_blank')
-                img(src="https://asciinema.org/a/#{data.ascii}.png" width='260')
-
+          .d-component-asset.col-md-4.col-md-offset-1
+            a(
+              href=''
+              data-id='#{key}'
+              data-version='#{data.version}'
+            ).d-component-download-btn.btn.btn-primary
+              = 'Download ' + key
+            .d-component-download-alternative
+              .d-component-arch
+              .d-component-not Not your platform? See below for alternatives
         .d-component-release.row
           .col-md-4
             h3.d-component-version= data.version
             h4.d-component-release-date January 1, 2016
             .d-component-actions
-              a.d-component-actions-docs(href="https://github.com/ipfs/#{data.id}/tree/#{data.version}/README.md" target='_blank')
+              a.d-component-actions-docs(href='https://github.com/ipfs/#{data.id}/tree/#{data.version}/README.md' target='_blank')
                 | Docs
-              a.d-component-actions-changelog(href="https://github.com/ipfs/#{data.id}/tree/#{data.version}/CHANGELOG.md" target='_blank')
+              a.d-component-actions-changelog(href='https://github.com/ipfs/#{data.id}/tree/#{data.version}/CHANGELOG.md' target='_blank')
                 | Changelog
-              a.d-component-actions-versions(href="#{data.id}")
+              a.d-component-actions-versions(href='#{data.id}')
                 | All Versions
           .col-md-8
             table.table.d-download-table
@@ -45,8 +50,8 @@ include ./_header.jade
                   tr
                     th= architectureMap[p.name]
                     for arch, target in p.archs
-                      td(colspan="#{colspan}")
+                      td(colspan='#{colspan}')
                         - link = data.releaseLink.replace(/^\//, '') + '/' + arch.link
-                        a(href="#{link}")= targetMap[target]
+                        a(href='#{link}')= targetMap[target]
 
 include ./_footer.jade
