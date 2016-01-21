@@ -23,7 +23,7 @@ function notice() {
 }
 
 # dep checks
-reqbins="jq zip go"
+reqbins="jq zip tar go"
 for b in $reqbins
 do
 	if ! type $b > /dev/null; then
@@ -31,7 +31,22 @@ do
 	fi
 done
 
+function pkgType() {
+	os=$1
+	case $os in
+	windows)
+		echo "zip"
+		;;
+	*)
+		echo "tar.gz"
+		;;
+	esac
+}
+
 function printDistInfo() {
+	local bundle="$1"
+	local version="$2"
+
 	# print json output
 	jq -e ".platforms[\"$goos\"]" dist.json > /dev/null
 	if [ ! $? -eq 0 ]; then
@@ -39,9 +54,9 @@ function printDistInfo() {
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
-	local binname="$1"
+	local linkname="$version/$bundle.`pkgType $goos`"
 	cp dist.json dist.json.temp
-	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$goos-$goarch/$binname.zip\"}" dist.json.temp > dist.json
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$linkname\"}" dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -58,17 +73,19 @@ function doBuild() {
 
 	echo "==> building for $goos $goarch"
 
-	# if [ -e $dir ]; then
-	# 	echo "    $dir exists, skipping build"
-	# 	return
-	# fi
-	echo "    output to $dir"
+	if [ -e $dir/$binname ]; then
+		echo "    $dir/$binname exists, skipping build"
+		return
+	fi
+	echo "    output to $dir/$binname"
 
 	mkdir -p tmp-build
 
+	mkdir -p $dir
 	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	if [ $? -ne 0 ]; then
-		warn "    failed."
+		cp tmp-build/build-log $dir/
+		warn "    failed. logfile at '$dir/build-log'"
 		return 1
 	fi
 
@@ -79,12 +96,12 @@ function doBuild() {
 		cp -r $GOPATH/src/$target/dist/* tmp-build/
 	fi
 
-	# now zip it all up
-	mkdir -p $dir
-	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null; then
+	# now package it all up
+	if bundleDist $dir/$binname $goos; then
 		printDistInfo $binname
 		rm -rf tmp-build
 	else
+		cp tmp-build/build-log $dir/
 		warn "    failed to zip up output"
 		success=1
 	fi
@@ -92,6 +109,23 @@ function doBuild() {
 
 	# output results to results table
 	echo $target, $goos, $goarch, $success >> $output/results
+}
+
+function bundleDist() {
+	local name=$1
+	local os=$2
+	case `pkgType $os` in
+	zip)
+		zip -r $name.zip tmp-build/* > /dev/null
+		return $?
+		;;
+	tar.gz)
+		tar czf $name.tar.gz tmp-build/*
+		return $?
+		;;
+	esac
+
+	fail "unrecognized package type"
 }
 
 function printInitialDistfile() {
@@ -119,6 +153,7 @@ function buildWithMatrix() {
 	local gobin=$2
 	local output=$3
 	local commit=$4
+	local version=$5
 
 	test -n "$output" || fail "error: output dir not specified"
 	test -e "$matfile" || fail "build matrix $matfile does not exist"
@@ -199,7 +234,7 @@ function startGoBuilds() {
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
 
-		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath)
+		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
 		echo ""
 	done < versions
 
