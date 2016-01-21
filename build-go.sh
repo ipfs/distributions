@@ -50,14 +50,18 @@ function doBuild() {
 	local goarch=$2
 	local target=$3
 	local output=$4
+  local version=$5
+
+  dir=$output
+	name=$(echo $target | awk -F'/' '{ print $3 }')
+  binname=${name}_${version}_${goos}-${goarch}
 
 	echo "==> building for $goos $goarch"
 
-	dir=$output/$1-$2
-	if [ -e $dir ]; then
-		echo "    $dir exists, skipping build"
-		return
-	fi
+	# if [ -e $dir ]; then
+	# 	echo "    $dir exists, skipping build"
+	# 	return
+	# fi
 	echo "    output to $dir"
 
 	mkdir -p tmp-build
@@ -76,7 +80,6 @@ function doBuild() {
 	fi
 
 	# now zip it all up
-	binname=$(echo $target | awk -F'/' '{ print $3 }')
 	mkdir -p $dir
 	if  zip -r $dir/$binname.zip tmp-build/* > /dev/null; then
 		printDistInfo $binname
@@ -130,7 +133,7 @@ function buildWithMatrix() {
 	# build each os/arch combo
 	while read line
 	do
-		doBuild $line $gobin $output
+		doBuild $line $gobin $output $version
 	done < $matfile
 
 	mv dist.json $output/dist.json

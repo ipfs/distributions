@@ -18,7 +18,7 @@ function buildDownloadLink (id, version, os) {
   const osName = getOsName(os.family)
   const arch = getArch(osName, os.architecture)
 
-  return `${id}/${version}/${osName}-${arch}/${id}.zip`
+  return `${id}/${version}/${id}_${version}_${osName}-${arch}.zip`
 }
 
 module.exports = function run () {
