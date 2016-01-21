@@ -50,11 +50,11 @@ function doBuild() {
 	local goarch=$2
 	local target=$3
 	local output=$4
-  local version=$5
+	local version=$5
 
-  dir=$output
+	dir=$output
 	name=$(echo $target | awk -F'/' '{ print $3 }')
-  binname=${name}_${version}_${goos}-${goarch}
+	binname=${name}_${version}_${goos}-${goarch}
 
 	echo "==> building for $goos $goarch"
 
