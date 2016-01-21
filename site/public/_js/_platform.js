@@ -14,11 +14,17 @@ function getOsName (family) {
   return 'linux'
 }
 
+function getExt (os) {
+  if (os === 'windows') return 'zip'
+  return 'tar.gz'
+}
+
 function buildDownloadLink (id, version, os) {
   const osName = getOsName(os.family)
   const arch = getArch(osName, os.architecture)
+  const ext = getExt(osName)
 
-  return `${id}/${version}/${osName}-${arch}/${id}.zip`
+  return `${id}/${version}/${id}_${version}_${osName}-${arch}.${ext}`
 }
 
 module.exports = function run () {
