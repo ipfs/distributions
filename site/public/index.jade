@@ -5,11 +5,17 @@ include ./_header.jade
 
 .container
   .row
+    #about.d-about.col-md-8.col-md-offset-2
+      include:markdown ./_about.md
+  .row
     .d-sidebar-wrapper.col-md-2.sticky.navbar-offcanvas#d-navbar-offcanvas
       .d-sidebar
-        ul.nav#d-navbar: each value, key in public.releases
+        ul.nav#d-navbar
           li.d-sidebar-item.nav-item
-            a.d-sidebar-link.nav-link(href='##{key}')= key
+            a.d-sidebar-link.nav-link(href='#about') About
+          each value, key in public.releases
+            li.d-sidebar-item.nav-item
+              a.d-sidebar-link.nav-link(href='##{key}')= key
     .col-md-10: each value, key in public.releases
       .d-component(id='#{key}')
         - data = value._data
