@@ -5,6 +5,7 @@ const {join} = require('path')
 const mkdirp = require('mkdirp')
 const {series, each} = require('async')
 const del = require('del')
+const _ = require('lodash')
 
 const log = $.util.log
 
@@ -42,7 +43,7 @@ function writeSiteFiles (type, done) {
   fs.stat(join(RELEASE_PATH, type), (err, stats) => {
     if (err) return done(err)
 
-    if (stats.isDirectory()) {
+    if (stats.isDirectory() && !_.contains(['fonts'], type)) {
       getVersion(type, (err, version) => {
         if (err) return done(err)
 
