@@ -62,17 +62,24 @@
 }
 
 .d-component-actions {
+  margin: 0;
+  padding: 0;
   margin-top: @baseLineHeight;
+  list-style: none;
+
+  li {
+    padding: 0.25*@baseLineHeight 0;
+  }
 
   a {
     font-size: 14px;
-    margin-left: @baseLineHeight;
+    margin-left: 5px;
     .linkUnderlines(@white, @black);
-
-    &:first-child {
-      margin-left: 0;
-    }
   }
+}
+
+.d-component-actions-lower-row {
+  padding-top: 0.5 * @baseLineHeight;
 }
 
 .d-download-table {
@@ -83,10 +90,10 @@
   th {
     font-weight: 400;
     text-align: left;
-    padding-right: @baseLineHeight;
-    padding-left: 10px;
+    padding: 0 @baseLineHeight;
     border-bottom: 1px solid @borderGray;
     border-top: none;
+    line-height: 3 * @baseLineHeight;
   }
 
   td {
@@ -94,6 +101,7 @@
     padding: 0;
     border-bottom: 1px solid @borderGray;
     border-top: none;
+    width: 50px;
 
     a {
       background: none;
