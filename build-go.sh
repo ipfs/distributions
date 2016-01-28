@@ -79,12 +79,13 @@ function doBuild() {
 	fi
 	echo "    output to $dir/$binname"
 
-	mkdir -p tmp-build
+	local build_dir_name=$name
+	mkdir -p $build_dir_name
 
 	mkdir -p $dir
-	(cd tmp-build && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
+	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	if [ $? -ne 0 ]; then
-		cp tmp-build/build-log $dir/
+		cp $build_dir_name/build-log $dir/
 		warn "    failed. logfile at '$dir/build-log'"
 		return 1
 	fi
@@ -93,15 +94,15 @@ function doBuild() {
 
 	# copy dist assets if they exist
 	if [ -e $GOPATH/src/$target/dist ]; then
-		cp -r $GOPATH/src/$target/dist/* tmp-build/
+		cp -r $GOPATH/src/$target/dist/* $build_dir_name/
 	fi
 
 	# now package it all up
-	if bundleDist $dir/$binname $goos; then
+	if bundleDist $dir/$binname $goos $build_dir_name; then
 		printDistInfo $binname
-		rm -rf tmp-build
+		rm -rf $build_dir_name
 	else
-		cp tmp-build/build-log $dir/
+		cp $build_dir_name/build-log $dir/
 		warn "    failed to zip up output"
 		success=1
 	fi
@@ -114,13 +115,17 @@ function doBuild() {
 function bundleDist() {
 	local name=$1
 	local os=$2
+	local build_dir=$3
+
+	test -n "$build_dir" || fail "must specify dir to bundle!"
+
 	case `pkgType $os` in
 	zip)
-		zip -r $name.zip tmp-build/* > /dev/null
+		zip -r $name.zip $build_dir/* > /dev/null
 		return $?
 		;;
 	tar.gz)
-		tar czf $name.tar.gz tmp-build/*
+		tar czf $name.tar.gz $build_dir/*
 		return $?
 		;;
 	esac
