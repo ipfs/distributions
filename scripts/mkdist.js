@@ -6,6 +6,7 @@ function mkdist (opts, cb) {
   if (!opts) throw new Error('no options given')
   if (!opts.dist) throw new Error('no dist given')
   if (!opts.dist.id) throw new Error('no dist.id given')
+  if (!opts.dist.owner) throw new Error('no dist.owner given')
   if (!opts.dist.version) throw new Error('no dist.version given')
   if (!opts.path) throw new Error('no path given')
   if (!opts.platforms) throw new Error('no platforms given')

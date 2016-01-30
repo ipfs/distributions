@@ -43,7 +43,7 @@ include ./_header.jade
           .col-md-4
             h3.d-component-version= data.version
             h4.d-component-release-date January 1, 2016
-            +componentActions(data.id, data.version)
+            +componentActions(data.owner, data.id, data.version)
           .col-md-8
             table.table.d-download-table
               tbody

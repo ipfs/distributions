@@ -139,9 +139,10 @@ function printInitialDistfile() {
 	test -e description || fail "no description file found"
 
 	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"/$distname/$version\"}" |
-	jq ".name = \"$disname\"" |
-	jq ".platforms = {}" |
-	jq ".description = \"`cat description`\""
+	jq ".name = \"$distname\"" |
+	jq ".owner  = \"`cat repo-owner`\"" |
+	jq ".description = \"`cat description`\"" |
+	jq ".platforms = {}"
 }
 
 function printBuildInfo() {
