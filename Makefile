@@ -1,6 +1,6 @@
 all: all_dists site
 
-all_dists: go-ipfs ipfs-update fs-repo-migrations
+all_dists: go-ipfs ipfs-update fs-repo-migrations ipget
 
 %:
 	echo "** $@ **"
