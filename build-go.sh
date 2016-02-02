@@ -202,7 +202,7 @@ function checkoutVersion() {
 }
 
 function currentSha() {
-	(cd $1 && git show --pretty="%H")
+	(cd $1 && git show --no-patch --pretty="%H")
 }
 
 function printVersions() {
