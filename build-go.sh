@@ -107,15 +107,24 @@ function doBuild() {
 		success=1
 	fi
 
-  local sign_name=$dir/$binname.`pkgType $goos`
-  gpg --armor --output $sign_name.asc --detach-sig $sign_name
+	local sign_name=$binname.`pkgType $goos`
+	gpg --armor --output $dir/$sign_name.asc --detach-sig $dir/$sign_name
 
-  if [ $? -ne 0 ]; then
-      warn "    failed to sign release"
-		  success=1
-  else
-      notice "    signed release!"
-  fi
+	if [ $? -ne 0 ]; then
+		warn "    failed to sign release"
+		success=1
+	else
+		notice "    signed release!"
+	fi
+
+	(cd $dir && gpg --print-md SHA512 $sign_name > $sign_name.sha)
+
+	if [ $? -ne 0 ]; then
+		warn "    failed to generate sha512 checksum"
+		success=1
+	else
+		notice "    generated sha512 checksum!"
+	fi
 
 	# output results to results table
 	echo $target, $goos, $goarch, $success >> $output/results
