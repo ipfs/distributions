@@ -27,10 +27,13 @@ $ gpg --verify go-ipfs.tar.gz.asc go-ipfs.tar.gz
 
 You will need to download the public key of the release managers, which are currently,
 
-* Friedel Ziegelmayer <dignifiedquire@gmail.com> [`27F50659`](https://pgp.mit.edu/pks/lookup?search=0x27F50659&op=vindex&fingerprint=on).
+* Friedel Ziegelmayer <dignifiedquire@gmail.com> [`E2C5 3DFE 7CBA 9864 38B9  88D9 0741 3B8A 27F5 0659`](https://pgp.mit.edu/pks/lookup?search=0xE2C53DFE7CBA986438B988D907413B8A27F50659&op=index&fingerprint=on&exact=on).
 
 The command for this is
 
 ```bash
 $ gpg --keyserver pgpkeys.mit.edu --recv-key <keyid>
 ```
+
+There is also a `file.sha` file for every package that contains the `sha512` checksum
+as an additional integrity check.
