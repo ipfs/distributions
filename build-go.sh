@@ -107,6 +107,15 @@ function doBuild() {
 		success=1
 	fi
 
+  local sign_name=$dir/$binname.`pkgType $goos`
+  gpg --armor --output $sign_name.asc --detach-sig $sign_name
+
+  if [ $? -ne 0 ]; then
+      warn "    failed to sign release"
+		  success=1
+  else
+      notice "    signed release!"
+  fi
 
 	# output results to results table
 	echo $target, $goos, $goarch, $success >> $output/results

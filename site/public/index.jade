@@ -54,6 +54,8 @@ include ./_header.jade
                     for arch, target in p.archs
                       td(colspan='#{colspan}')
                         - link = data.releaseLink.replace(/^\//, '') + arch.link
-                        a(href='#{link}')= targetMap[target]
+                        a.download(href='#{link}')= targetMap[target]
+                        | &nbsp;
+                        a.signature(href='#{link}.asc') [sig]
 
 include ./_footer.jade

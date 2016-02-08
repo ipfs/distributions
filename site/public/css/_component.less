@@ -103,16 +103,22 @@
     border-top: none;
     width: 50px;
 
-    a {
+    a.download {
       background: none;
-      display: block;
-      height: 100%;
-      width: 100%;
       text-align: center;
       transition: background 0.2s ease-in-out;
       line-height: 3 * @baseLineHeight;
     }
 
+    a.signature {
+      display: inline;
+    }
+
+    a:hover {
+      .linkUnderlines(@baseBlue, @white);
+    }
+
+    &:hover,
     &:hover a,
     a:hover {
       color: @white;

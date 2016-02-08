@@ -16,3 +16,21 @@ page with,
 The `All Versions` link on each distribution shows directory listings for all the available versions, and a `versions` file ([example](http://dist.ipfs.io/go-ipfs/versions)). This file can be used by tools, such as [ipfs-update](#ipfs-update), to find all the available versions and download the latest.
 
 The directory listing of each version ([example](http://dist.ipfs.io/go-ipfs/v0.3.11)) has all the platform archives (`.zip` or `.tar.gz`), a `README.md` and a `dist.json` which describe the release for humans and machines. It is meant to be easily consumed and used by tools.
+
+##### Code Signing
+
+All releases are signed using [OpenPGP](http://www.openpgp.org/). You can verify this by running
+
+```bash
+$ gpg --verify go-ipfs.tar.gz.asc go-ipfs.tar.gz
+```
+
+You will need to download the public key of the release managers, which are currently,
+
+* Friedel Ziegelmayer <dignifiedquire@gmail.com> [`27F50659`](https://pgp.mit.edu/pks/lookup?search=0x27F50659&op=vindex&fingerprint=on).
+
+The command for this is
+
+```bash
+$ gpg --keyserver pgpkeys.mit.edu --recv-key <keyid>
+```
