@@ -43,7 +43,7 @@ function writeSiteFiles (type, done) {
   fs.stat(join(RELEASE_PATH, type), (err, stats) => {
     if (err) return done(err)
 
-    if (stats.isDirectory() && !_.contains(['fonts'], type)) {
+    if (stats.isDirectory() && !_.includes(['fonts'], type)) {
       getVersion(type, (err, version) => {
         if (err) return done(err)
 
@@ -64,7 +64,7 @@ gulp.task('clean:release:site', () => {
   ])
 })
 
-gulp.task('dist', ['clean:release:site'], done => {
+gulp.task('dist', ['clean:release:site'], (done) => {
   fs.readdir(RELEASE_PATH, (err, types) => {
     if (err) return fail(err.msg)
 

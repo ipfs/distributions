@@ -8,7 +8,7 @@ const _ = require('lodash')
 
 const config = require('./config')
 
-const tmpFiles = p => {
+const tmpFiles = (p) => {
   const file = _.last(p.split('/'))
   const emacsTmp = !!file.match(/^\.#/)
   const flycheck = !!file.match(/^flycheck/)
@@ -16,7 +16,7 @@ const tmpFiles = p => {
   return emacsTmp || flycheck
 }
 
-const makeGlob = ext => `site/public/**/*.${ext}`
+const makeGlob = (ext) => `site/public/**/*.${ext}`
 
 const styles = [
   'css',

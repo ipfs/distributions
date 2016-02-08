@@ -16,16 +16,16 @@ gulp.task('webpack:prod', () => {
     .pipe(gulp.dest('site/'))
 })
 
-gulp.task('harp:compile', done => {
+gulp.task('harp:compile', (done) => {
   harp.compile('./site', '../www', done)
 })
 
-gulp.task('copy:site', done => {
+gulp.task('copy:site', (done) => {
   return gulp.src(['./www/**/*'])
     .pipe(gulp.dest('./releases'))
 })
 
-gulp.task('build', done => {
+gulp.task('build', (done) => {
   runSequence(
     ['clean', 'dist'],
     'webpack:prod',
