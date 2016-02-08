@@ -26,7 +26,8 @@ module.exports = {
         warnings: false
       }
     }),
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
+    new webpack.optimize.OccurenceOrderPlugin()
   ],
   stats: {
     colors: true
