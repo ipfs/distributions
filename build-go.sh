@@ -83,10 +83,11 @@ function doBuild() {
 	mkdir -p $build_dir_name
 
 	mkdir -p $dir
-	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
+	buildlog="build-log-$goos-$goarch"
+	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> ${buildlog})
 	if [ $? -ne 0 ]; then
-		cp $build_dir_name/build-log $dir/
-		warn "    failed. logfile at '$dir/build-log'"
+		cp $build_dir_name/${buildlog} $dir/
+		warn "    failed. logfile at '$dir/${buildlog}'"
 		return 1
 	fi
 
@@ -102,7 +103,7 @@ function doBuild() {
 		printDistInfo $binname
 		rm -rf $build_dir_name
 	else
-		cp $build_dir_name/build-log $dir/
+		cp $build_dir_name/${buildlog} $dir/
 		warn "    failed to zip up output"
 		success=1
 	fi
