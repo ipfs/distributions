@@ -83,7 +83,7 @@ function doBuild() {
 	mkdir -p $build_dir_name
 
 	mkdir -p $dir
-  buildlog="build-log-$goos-$goarch"
+	buildlog="build-log-$goos-$goarch"
 	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> ${buildlog})
 	if [ $? -ne 0 ]; then
 		cp $build_dir_name/${buildlog} $dir/
