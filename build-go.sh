@@ -206,7 +206,7 @@ function installDeps() {
 
 	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
 
-	(cd "$reporoot" && make deps)
+	(cd "$reporoot" && make -n deps > /dev/null 2>&1 && make deps)
 }
 
 function currentSha() {
