@@ -201,6 +201,14 @@ function checkoutVersion() {
 	test $? -eq 0 || fail "failed to check out $ref in $reporoot"
 }
 
+function installDeps() {
+	local repopath=$1
+
+	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+
+	(cd "$reporoot" && make deps)
+}
+
 function currentSha() {
 	(cd $1 && git show --no-patch --pretty="%H")
 }
@@ -225,7 +233,7 @@ function startGoBuilds() {
 	export GOPATH=$(pwd)/gopath
 	if [ ! -e $GOPATH/src/$gpath ]; then
 		echo "fetching $distname code..."
-		go get $gpath 2> /dev/null
+		go get -d $gpath 2> /dev/null
 	fi
 
 	repopath="$GOPATH/src/$gpath"
@@ -239,6 +247,8 @@ function startGoBuilds() {
 	do
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
+		installDeps "$repopath"
+
 
 		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
 		echo ""
