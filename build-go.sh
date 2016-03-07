@@ -247,7 +247,7 @@ function startGoBuilds() {
 	do
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
-		installDeps "$repopath"
+		installDeps "$repopath" 2>&1 > deps-$version.log
 
 
 		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
