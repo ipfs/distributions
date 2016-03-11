@@ -219,8 +219,17 @@ function printVersions() {
 }
 
 function startGoBuilds() {
-	distname=$1
-	gpath=$2
+	distname="$1"
+	gpath="$2"
+	versions="$3"
+	existing="$4"
+
+	if [ -z "$existing" ]; then
+		existing="/ipns/dist.ipfs.io"
+	fi
+	echo "using $existing as a template."
+
+	ipfs ls "$existing/$distname" | awk '{ print $3 }' > toskip
 
 	outputDir="$releases/$distname"
 
@@ -228,6 +237,10 @@ function startGoBuilds() {
 	if [ -e $outputDir ]; then
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
+	fi
+
+	if [ ! -e $versions ]; then
+		fail "versions file $versions does not exist"
 	fi
 
 	export GOPATH=$(pwd)/gopath
@@ -242,19 +255,30 @@ function startGoBuilds() {
 
 	printVersions
 
+	curhash=$(ipfs resolve -r $existing)
 	echo ""
 	while read version
 	do
+		if grep "^$version/$" toskip; then
+			notice "Version $version already exists in $existing, skipping."
+			continue
+		fi
+
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
 		installDeps "$repopath" 2>&1 > deps-$version.log
 
-
 		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
+
+		versHash=$(ipfs add -r -q "$outputDir/$version" | tail -n1)
+
+		curhash=$(ipfs object patch add-link -p $curhash "$distname/$version" $versHash)
+		echo "patched $version into existing root"
+		echo "new hash is: $curhash"
 		echo ""
-	done < versions
+	done < $versions
 
 	notice "build complete!"
 }
 
-startGoBuilds $1 $2
+startGoBuilds $1 $2 $3 $4
