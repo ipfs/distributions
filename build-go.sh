@@ -214,7 +214,8 @@ function currentSha() {
 }
 
 function printVersions() {
-	versarr=$(tr \n ' ' < versions)
+	local versfile="$1"
+	versarr=$(tr \n ' ' < $versfile)
 	echo "building versions: $versarr"
 }
 
@@ -229,7 +230,6 @@ function startGoBuilds() {
 	fi
 	echo "using $existing as a template."
 
-	ipfs ls "$existing/$distname" | awk '{ print $3 }' > toskip
 
 	outputDir="$releases/$distname"
 
@@ -237,9 +237,13 @@ function startGoBuilds() {
 	if [ -e $outputDir ]; then
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
+		warn "to perform a fresh build, please delete $outputDir"
+	else
+		echo "fetching $existing to $outputDir"
+		ipfs get "$existing/$distname" -o "$outputDir"
 	fi
 
-	if [ ! -e $versions ]; then
+	if [ ! -e "$versions" ]; then
 		fail "versions file $versions does not exist"
 	fi
 
@@ -251,16 +255,15 @@ function startGoBuilds() {
 
 	repopath="$GOPATH/src/$gpath"
 
-	(cd "$repopath" && git reset --hard && git clean -df)
+	(cd "$repopath" && git reset --hard && git clean -df && git fetch)
 
-	printVersions
+	printVersions $versions
 
-	curhash=$(ipfs resolve -r $existing)
 	echo ""
 	while read version
 	do
-		if grep "^$version/$" toskip; then
-			notice "Version $version already exists in $existing, skipping."
+		if [ -e "$outputDir/$version" ]; then
+			echo "$version already exists, skipping..."
 			continue
 		fi
 
@@ -269,12 +272,6 @@ function startGoBuilds() {
 		installDeps "$repopath" 2>&1 > deps-$version.log
 
 		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
-
-		versHash=$(ipfs add -r -q "$outputDir/$version" | tail -n1)
-
-		curhash=$(ipfs object patch add-link -p $curhash "$distname/$version" $versHash)
-		echo "patched $version into existing root"
-		echo "new hash is: $curhash"
 		echo ""
 	done < $versions
 

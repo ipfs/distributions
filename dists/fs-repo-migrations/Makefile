@@ -4,9 +4,8 @@ releases=../../releases/fs-repo-migrations
 all: dist
 
 dist: versions
-	mkdir -p $(releases)
+	../../build-go.sh fs-repo-migrations github.com/ipfs/fs-repo-migrations versions
 	cp versions $(releases)/versions
-	../../build-go.sh fs-repo-migrations github.com/ipfs/fs-repo-migrations
 
 versions: filtered_versions
 	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | sort > tag_versions
