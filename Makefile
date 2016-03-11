@@ -7,6 +7,7 @@ all_dists: go-ipfs ipfs-update fs-repo-migrations ipget
 	echo "** $@ **"
 	cd dists/$@ && make
 
+.PHONY: site
 site:
 	echo "** Building site **"
 	npm run build
