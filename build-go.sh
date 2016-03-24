@@ -239,8 +239,12 @@ function startGoBuilds() {
 		warn "will skip building already existing binaries"
 		warn "to perform a fresh build, please delete $outputDir"
 	else
-		echo "fetching $existing to $outputDir"
-		ipfs get "$existing/$distname" -o "$outputDir"
+		local tmpdir=$(mktemp -d)
+		echo "fetching $existing to $tmpdir"
+		if ! ipfs get "$existing/$distname" -o "$tmpdir"; then
+			fail "failed to fetch existing distributions"
+		fi
+		mv "$tmpdir" "$outputDir"
 	fi
 
 	if [ ! -e "$versions" ]; then
