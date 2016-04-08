@@ -85,8 +85,9 @@ function doBuild() {
 	mkdir -p $dir
 	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
 	if [ $? -ne 0 ]; then
-		cp $build_dir_name/build-log $dir/
-		warn "    failed. logfile at '$dir/build-log'"
+		local logfi="$dir/build-log-$goos-$goarch"
+		cp $build_dir_name/build-log "$logfi"
+		warn "    failed. logfile at '$logfi'"
 		return 1
 	fi
 
@@ -102,7 +103,6 @@ function doBuild() {
 		printDistInfo $binname
 		rm -rf $build_dir_name
 	else
-		cp $build_dir_name/build-log $dir/
 		warn "    failed to zip up output"
 		success=1
 	fi
@@ -201,18 +201,35 @@ function checkoutVersion() {
 	test $? -eq 0 || fail "failed to check out $ref in $reporoot"
 }
 
+function installDeps() {
+	local repopath=$1
+
+	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+
+	(cd "$reporoot" && make -n deps > /dev/null 2>&1 && make deps)
+}
+
 function currentSha() {
 	(cd $1 && git show --no-patch --pretty="%H")
 }
 
 function printVersions() {
-	versarr=$(tr \n ' ' < versions)
+	local versfile="$1"
+	versarr=$(tr \n ' ' < $versfile)
 	echo "building versions: $versarr"
 }
 
 function startGoBuilds() {
-	distname=$1
-	gpath=$2
+	distname="$1"
+	gpath="$2"
+	versions="$3"
+	existing="$4"
+
+	if [ -z "$existing" ]; then
+		existing="/ipns/dist.ipfs.io"
+	fi
+	echo "using $existing as a template."
+
 
 	outputDir="$releases/$distname"
 
@@ -220,31 +237,49 @@ function startGoBuilds() {
 	if [ -e $outputDir ]; then
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
+		warn "to perform a fresh build, please delete $outputDir"
+	else
+		local tmpdir=$(mktemp -d)
+		echo "fetching $existing to $tmpdir"
+		if ! ipfs get "$existing/$distname" -o "$tmpdir"; then
+			fail "failed to fetch existing distributions"
+		fi
+		mv "$tmpdir" "$outputDir"
+	fi
+
+	if [ ! -e "$versions" ]; then
+		fail "versions file $versions does not exist"
 	fi
 
 	export GOPATH=$(pwd)/gopath
 	if [ ! -e $GOPATH/src/$gpath ]; then
 		echo "fetching $distname code..."
-		go get $gpath 2> /dev/null
+		go get -d $gpath 2> /dev/null
 	fi
 
 	repopath="$GOPATH/src/$gpath"
 
-	(cd "$repopath" && git reset --hard && git clean -df)
+	(cd "$repopath" && git reset --hard && git clean -df && git fetch)
 
-	printVersions
+	printVersions $versions
 
 	echo ""
 	while read version
 	do
+		if [ -e "$outputDir/$version" ]; then
+			echo "$version already exists, skipping..."
+			continue
+		fi
+
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
+		installDeps "$repopath" 2>&1 > deps-$version.log
 
 		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
 		echo ""
-	done < versions
+	done < $versions
 
 	notice "build complete!"
 }
 
-startGoBuilds $1 $2
+startGoBuilds $1 $2 $3 $4
