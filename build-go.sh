@@ -241,8 +241,10 @@ function startGoBuilds() {
 	else
 		local tmpdir=$(mktemp -d)
 		echo "fetching $existing to $tmpdir"
-		if ! ipfs get "$existing/$distname" -o "$tmpdir"; then
-			fail "failed to fetch existing distributions"
+		if ! ipfs get "$existing/$distname" -o "$tmpdir" 2> get_output; then
+			if ! grep "no link named" get_output > /dev/null; then
+				fail "failed to fetch existing distributions"
+			fi
 		fi
 		mv "$tmpdir" "$outputDir"
 	fi
@@ -275,7 +277,16 @@ function startGoBuilds() {
 		checkoutVersion $repopath $version
 		installDeps "$repopath" 2>&1 > deps-$version.log
 
-		buildWithMatrix matrices/$version $gpath $outputDir/$version $(currentSha $repopath) $version
+		matfile="matrices/$version"
+		if [ ! -e "$matfile" ]; then
+			if [ -e build_matrix ]; then
+				matfile=build_matrix
+			else
+				fail "no matrix file for version $version found, and no 'build_matrix' detected"
+			fi
+		fi
+
+		buildWithMatrix "$matfile" "$gpath" "$outputDir/$version" "$(currentSha $repopath)" "$version"
 		echo ""
 	done < $versions
 

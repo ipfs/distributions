@@ -1,6 +1,6 @@
-ghrepo = github.com/ipfs/ipfs-update
+ghrepo = ABCGHREPOXYZ
 repo = http://${ghrepo}
-distname = ipfs-update
+distname = ABCDISTNAMEXYZ
 
 releases = ../../releases/${distname}
 

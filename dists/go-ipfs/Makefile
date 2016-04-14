@@ -11,5 +11,9 @@ versions: filtered_versions
 	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | sort > tag_versions
 	comm -23 -- tag_versions filtered_versions > versions
 
+update_sources:
+	cd gopath/src/${ghrepo}
+	git fetch
+
 clean:
 	rm -rf $(releases)
