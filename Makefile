@@ -1,11 +1,16 @@
-all: all_dists site
+all: releases all_dists site
 
-.PHONY: all_dists
-all_dists: go-ipfs ipfs-update fs-repo-migrations ipget
+dists_to_build=$(shell ls dists | grep -v ipfs-app) 
+
+.PHONY: all all_dists
+all_dists: $(dists_to_build)
 
 %:
 	echo "** $@ **"
 	cd dists/$@ && make
+
+releases:
+	mkdir -p releases
 
 .PHONY: site
 site:
@@ -17,3 +22,4 @@ publish: all_dists site
 
 clean:
 	rm -rf releases
+	rm -rf dists/*/gopath
