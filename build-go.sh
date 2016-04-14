@@ -142,7 +142,7 @@ function printInitialDistfile() {
 	jq ".name = \"$distname\"" |
 	jq ".owner  = \"`cat repo-owner`\"" |
 	jq ".description = \"`cat description`\"" |
-	jq ".date = \"`date '+%B %d, %y'`\"" |
+	jq ".date = \"`date '+%B %d, %Y'`\"" |
 	jq ".platforms = {}"
 }
 
