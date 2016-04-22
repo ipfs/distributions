@@ -59,7 +59,7 @@ case $1 in
 		echo $nvers >> dists/$dist/versions
 
 		cd dists/$dist && make update_sources
-		make $dist
+		make
 		;;
 	*)
 		echo "unrecognized command $1"
