@@ -4,7 +4,7 @@ releases = ../../releases/go-ipfs
 all: dist
 
 dist: versions
-	../../build-go.sh go-ipfs github.com/ipfs/go-ipfs/cmd/ipfs versions
+	../../build-go.sh go-ipfs github.com/ipfs/go-ipfs/cmd/ipfs versions 
 	cp versions $(releases)/versions
 
 versions: filtered_versions
