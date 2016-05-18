@@ -8,3 +8,6 @@ linux amd64
 linux arm
 windows 386
 windows amd64
+netbsd 386
+netbsd amd64
+netbsd arm

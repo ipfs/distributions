@@ -17,6 +17,7 @@ mkdist({
       {id: 'linux',   name: 'Linux Binary (.zip)',   browser: 'Linux'},
       {id: 'openbsd', name: 'OpenBSD Binary (.zip)', browser: 'OpenBSD'},
       {id: 'freebsd', name: 'FreeBSD Binary (.zip)', browser: 'FreeBSD'},
+      {id: 'netbsd', name: 'NetBSD Binary (.zip)', browser: 'NetBSD'},
       {id: 'windows', name: 'Windows Binary (.zip)', browser: 'Windows'}
     ],
     archs: [
