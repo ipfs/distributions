@@ -1,7 +1,7 @@
 {
   "name": "dist.ipfs.io",
   "version": "1.0.0",
-  "description": "Script to build the dist.ipfs.io pages.",
+  "description": "Source for building https://dist.ipfs.io.",
   "main": "gulpfile.babel.js",
   "dependencies": {},
   "devDependencies": {

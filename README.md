@@ -1,13 +1,26 @@
 # IPFS distributions
 
-[![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](http://ipn.io) [![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/) [![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
+[![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](http://ipn.io)
+[![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
+[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
+[![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 [![Dependency Status](https://david-dm.org/ipfs/distributions.svg?style=flat-square)](https://david-dm.org/ipfs/distributions)
 [![Travis CI](https://travis-ci.org/ipfs/distributions.svg?branch=master)](https://travis-ci.org/ipfs/distributions)
 [![Circle CI](https://circleci.com/gh/ipfs/distributions.svg?style=svg)](https://circleci.com/gh/ipfs/distributions)
 
 > Source for building https://dist.ipfs.io
 
-## How this repo works
+## Table of Contents
+
+- [Background](#background)
+  - [distribution index versions / updates](#distribution-index-versions--updates)
+- [Install](#install)
+- [Usage](#usage)
+- [Contribute](#contribute)
+  - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
+- [License](#license)
+
+## Background
 
 The goal is to generate a file hierarchy that looks like this:
 
@@ -62,7 +75,22 @@ The **distribution index** changes over time, kind of like a git repository. [Si
 
 A site like `dist.ipfs.io` or `ipfs.io/dist` would just serve the _latest_ version of the index.
 
-### How assets are made
+## Install
+
+```sh
+https://github.com/ipfs/distributions
+```
+
+This project uses a makefile + scripts to build all the things.
+
+```sh
+make
+```
+
+should do everything.
+
+
+## Usage
 
 Each `<dist>` has a directory in the root of this repo. inside it there is a `Makefile` and other necessary scripts. Running
 
@@ -75,11 +103,14 @@ Should:
 - figure out what versions are missing from the index
 - construct the missing `<dist>/<version>` directories
 
-## Do it
+## Contribute
 
-This project uses a makefile + scripts to build all the things.
+Issues and PRs welcome! Please [check out the issues](https://github.com/ipfs/distributions/issues).
 
-```
-make
-```
-should do everything.
+### Want to hack on IPFS?
+
+[![](https://cdn.rawgit.com/jbenet/contribute-ipfs-gif/master/img/contribute.gif)](https://github.com/ipfs/community/blob/master/contributing.md)
+
+## License
+
+MIT © IPFS
