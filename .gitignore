@@ -8,3 +8,4 @@ www
 **/gopath
 **/tmp-build
 *.swp
+**/get_output
