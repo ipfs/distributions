@@ -1,7 +1,7 @@
 const $ = window.jQuery = require('jquery')
 window.Tether = require('tether')
-require('bootstrap')
-require('slicknav/jquery.slicknav.js')
+require('bootstrap/dist/js/bootstrap.js')
+require('slicknav/dist/jquery.slicknav.js')
 
 const handlePlatform = require('./_platform')
 
