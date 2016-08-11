@@ -1,0 +1,3 @@
+../gopath/src/github.com/noffle/ipget/Godeps/_workspace/src/github.com/cheggaaa/pb/pb_win.go:6:2: cannot find package "github.com/olekukonko/ts" in any of:
+	/usr/local/Cellar/go/1.5.3/libexec/src/github.com/olekukonko/ts (from $GOROOT)
+	/Users/dignifiedquire/opensource/ipfs/distributions/dists/ipget/gopath/src/github.com/olekukonko/ts (from $GOPATH)
