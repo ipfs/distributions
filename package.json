@@ -26,7 +26,7 @@
     "gulp-watch": "^4.3.9",
     "harp": "github:sintaxi/harp#3c283617c2fb89ee1e1f7f497511571def0ace34",
     "jquery": "^3.1.0",
-    "lodash": "^4.14.2",
+    "lodash": "^4.17.0",
     "mkdirp": "^0.5.1",
     "platform": "^1.3.1",
     "require-dir": "^0.3.0",
