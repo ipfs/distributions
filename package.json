@@ -22,7 +22,7 @@
     "gulp-batch": "^1.0.5",
     "gulp-eslint": "^3.0.1",
     "gulp-load-plugins": "^1.2.4",
-    "gulp-util": "^3.0.7",
+    "gulp-util": "^3.0.8",
     "gulp-watch": "^4.3.9",
     "harp": "github:sintaxi/harp#3c283617c2fb89ee1e1f7f497511571def0ace34",
     "jquery": "^3.1.0",
