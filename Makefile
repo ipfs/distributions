@@ -1,6 +1,6 @@
 all: releases all_dists site
 
-dists_to_build=$(shell ls dists | grep -v ipfs-app) 
+dists_to_build=$(shell ls dists | egrep -v '(ipfs-app|ipget)') 
 
 .PHONY: all all_dists
 all_dists: $(dists_to_build)

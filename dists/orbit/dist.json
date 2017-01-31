@@ -1,0 +1,9 @@
+{
+  "id": "orbit",
+  "version": "master",
+  "releaseLink": "/orbit/master",
+  "name": "Orbit",
+  "owner": "orbitdb",
+  "description": "A distributed, peer-to-peer chat application built on IPFS.",
+  "date": "February 6, 2017"
+}

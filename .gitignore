@@ -4,6 +4,7 @@ logs
 **/node_modules
 releases
 dists/ipfs-app/build
+dists/orbit/build
 www
 **/gopath
 **/tmp-build
