@@ -243,6 +243,9 @@ function startGoBuilds() {
 		local tmpdir=$(mktemp -d)
 		echo "fetching $existing to $tmpdir"
 		if ! ipfs get "$existing/$distname" -o "$tmpdir" 2> get_output; then
+			if grep "can't resolve ipns entry" get_output > /dev/null; then
+				fail "Your IPFS daemon is probably not running"
+			fi
 			if ! grep "no link named" get_output > /dev/null; then
 				fail "failed to fetch existing distributions"
 			fi
