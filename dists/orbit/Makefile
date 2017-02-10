@@ -8,7 +8,7 @@ release: versions
 	./app-release all
 
 versions:
-	echo 'master' > versions
+	echo 'v0.1.0' > versions
 
 x:
 	chmod +x app-release

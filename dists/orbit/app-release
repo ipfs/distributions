@@ -62,10 +62,14 @@ release_version() {
   make
   make build
   make dist
+  mkdir -p bin/dist
   cd bin/dist
 
   mkdir -p ../../../../../../../releases/orbit/$version
-  mv * ../../../../../../../releases/orbit/$version/
+  # mv * ../../../../../../../releases/orbit/$version/
+  # This solves the issue of naming the orbit releases for each version in the download
+  mv *darwin-amd64.tar.gz ../../../../../../../releases/orbit/"$version"/orbit_"$version"_darwin-amd64.tar.gz
+  mv *linux-amd64.tar.gz ../../../../../../../releases/orbit/"$version"/orbit_"$version"_linux-amd64.tar.gz
   cd ../../../../
   mv "$version.zip" ../../../releases/orbit/$version/orbit_"$version"_src.zip
 
