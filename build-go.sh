@@ -232,6 +232,10 @@ function startGoBuilds() {
 	echo "using $existing as a template."
 
 
+	if ! mkdir -p "$releases"; then
+		fail "failed to create releases directory"
+	fi
+
 	outputDir="$releases/$distname"
 
 	# if the output directory already exists, warn user
