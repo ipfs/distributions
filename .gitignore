@@ -12,3 +12,4 @@ www
 
 site/static/*.js
 site/static/*.css
+site/content/releases

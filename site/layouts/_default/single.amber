@@ -30,7 +30,7 @@ html[lang="en"]
         div.col-md-10
           each $key, $value in $.Site.Data.releases
             div.d-component[id=$key]
-              $data = $value._data
+              $data = $value.data
               div.d-component-desc.row
                 div.col-md-7
                   h1.d-component-desc-title #{$key}

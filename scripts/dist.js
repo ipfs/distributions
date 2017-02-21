@@ -1,7 +1,5 @@
 'use strict'
 
-const gulp = require('gulp')
-const $ = require('gulp-load-plugins')()
 const fs = require('fs')
 const {join} = require('path')
 const mkdirp = require('mkdirp')
@@ -9,15 +7,15 @@ const {series, each} = require('async')
 const del = require('del')
 const _ = require('lodash')
 
-const log = $.util.log
+const log = console.log.bind(console)
 
 function fail (msg) {
-  log($.util.colors.red(msg))
+  console.error(msg)
   process.exit(1)
 }
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
-const SITE_PATH = join(__dirname, '..', 'site', 'content', 'releases')
+const SITE_PATH = join(__dirname, '..', 'site', 'data', 'releases')
 const DIST_PATH = join(__dirname, '..', 'dists')
 
 function getVersion (type, done) {
@@ -56,21 +54,22 @@ function writeSiteFiles (type, done) {
   })
 }
 
-gulp.task('clean:release:site', () => {
-  return del([
-    './releases/*.html',
-    './releases/css',
-    './releases/build',
-    './releases/releases'
-  ])
-})
-
-gulp.task('dist', ['clean:release:site'], (done) => {
+del([
+  './releases/*.html',
+  './releases/css',
+  './releases/build',
+  './releases/releases'
+]).then(() => {
   fs.readdir(RELEASE_PATH, (err, types) => {
     if (err) {
-      return fail(err.msg || err)
+      return fail(err)
     }
 
-    each(types, writeSiteFiles, done)
+    each(types, writeSiteFiles, (err) => {
+      if (err) {
+        return fail(err)
+      }
+      log('done')
+    })
   })
 })
