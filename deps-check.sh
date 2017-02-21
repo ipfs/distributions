@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function fail() {
-	printf $txtred%s$txtnon\\n "$@"
+	printf $txtred%s$txtnon\\n "$*"
 	exit 1
 }
 
