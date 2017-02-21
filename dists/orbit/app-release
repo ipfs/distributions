@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# constants
+releases="../../releases/orbit"
+repo="http://github.com/orbitdb/orbit-electron"
+archive="$repo/archive/"
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: $0 <version>"
+  echo "construct the orbit release directory for given version"
+  echo ""
+  exit 1
+fi
+
+die() {
+  echo >&2 "error: $@"
+  exit 1
+}
+
+assert() {
+  eval $1 >/dev/null 2>&1 || die $2
+}
+
+# check we have things installed
+assert "stat versions" "please run: make versions"
+assert "node -v" "please make sure to have Node.js installed"
+assert "npm -v" "please make sure to npmjs installed"
+
+build_path="build"
+
+stat "$build_path" > /dev/null 2>&1
+if [ "$?" -ne 0 ]; then
+  mkdir $build_path
+fi
+
+cwd=`pwd`
+
+release_version() {
+  # get version from input
+  version=$1
+  dest_path="$releases/$version"
+
+  # check version is ok
+  cat versions | grep "$version" > /dev/null || die "versions not in listing"
+
+  stat "$build_path/$version.zip" > /dev/null 2>&1
+  if [ "$?" -eq 0 ]; then
+    echo "--> have $version in $build_path already"
+    return
+  fi
+
+  echo "--> downloading $version"
+  wget $repo"/archive/"$version".zip" -P build
+  cd $build_path
+  unzip "$version.zip" -d $version
+
+  echo "--> making $version"
+  cd $version
+  tmp=$(ls)
+  cd $tmp
+  npm i
+  make
+  make build
+  make dist
+  mkdir -p bin/dist
+  cd bin/dist
+
+  mkdir -p ../../../../../../../releases/orbit/$version
+  # mv * ../../../../../../../releases/orbit/$version/
+  # This solves the issue of naming the orbit releases for each version in the download
+  mv *darwin-amd64.tar.gz ../../../../../../../releases/orbit/"$version"/orbit_"$version"_darwin-amd64.tar.gz
+  mv *linux-amd64.tar.gz ../../../../../../../releases/orbit/"$version"/orbit_"$version"_linux-amd64.tar.gz
+  cd ../../../../
+  mv "$version.zip" ../../../releases/orbit/$version/orbit_"$version"_src.zip
+
+  cd ..
+
+  echo "--> making dist.json"
+  ./mkdist.js "$version"
+
+  cd "$cwd"
+}
+
+if [ "$1" = "all" ]; then
+  for version in $(cat versions); do
+    release_version $version || die "failed to make $version"
+  done
+else
+  release_version $1 || die "failed to make $version"
+fi
