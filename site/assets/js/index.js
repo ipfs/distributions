@@ -3,7 +3,7 @@ window.Tether = require('tether')
 require('bootstrap/dist/js/bootstrap.js')
 require('slicknav/dist/jquery.slicknav.js')
 
-const handlePlatform = require('./_platform')
+const handlePlatform = require('./platform')
 
 $(() => {
   handlePlatform()

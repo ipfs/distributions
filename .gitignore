@@ -9,3 +9,8 @@ www
 **/tmp-build
 *.swp
 **/get_output
+**/build-log
+
+site/static/*.js
+site/static/*.css
+site/content/releases

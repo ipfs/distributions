@@ -1,5 +1,5 @@
-const gulp = require('gulp')
-const $ = require('gulp-load-plugins')()
+'use strict'
+
 const fs = require('fs')
 const {join} = require('path')
 const mkdirp = require('mkdirp')
@@ -7,15 +7,15 @@ const {series, each} = require('async')
 const del = require('del')
 const _ = require('lodash')
 
-const log = $.util.log
+const log = console.log.bind(console)
 
 function fail (msg) {
-  log($.util.colors.red(msg))
+  console.error(msg)
   process.exit(1)
 }
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
-const SITE_PATH = join(__dirname, '..', 'site', 'public', 'releases')
+const SITE_PATH = join(__dirname, '..', 'site', 'data', 'releases')
 const DIST_PATH = join(__dirname, '..', 'dists')
 
 function getVersion (type, done) {
@@ -34,8 +34,7 @@ function writeData (type, version, done) {
   const dataTargetPath = join(SITE_PATH, type)
   series([
     mkdirp.bind(mkdirp, dataTargetPath),
-    fs.writeFile.bind(fs, join(dataTargetPath, '_data.json'), JSON.stringify(data, null, 2)),
-    fs.writeFile.bind(fs, join(dataTargetPath, 'index.md'), data.description)
+    fs.writeFile.bind(fs, join(dataTargetPath, 'data.json'), JSON.stringify(data, null, 2))
   ], done)
 }
 
@@ -55,19 +54,22 @@ function writeSiteFiles (type, done) {
   })
 }
 
-gulp.task('clean:release:site', () => {
-  return del([
-    './releases/*.html',
-    './releases/css',
-    './releases/build',
-    './releases/releases'
-  ])
-})
-
-gulp.task('dist', ['clean:release:site'], (done) => {
+del([
+  './releases/*.html',
+  './releases/css',
+  './releases/build',
+  './releases/releases'
+]).then(() => {
   fs.readdir(RELEASE_PATH, (err, types) => {
-    if (err) return fail(err.msg)
+    if (err) {
+      return fail(err)
+    }
 
-    each(types, writeSiteFiles, done)
+    each(types, writeSiteFiles, (err) => {
+      if (err) {
+        return fail(err)
+      }
+      log('done')
+    })
   })
 })

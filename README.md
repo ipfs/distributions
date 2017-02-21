@@ -78,13 +78,18 @@ A site like `dist.ipfs.io` or `ipfs.io/dist` would just serve the _latest_ versi
 ## Install
 
 ```sh
-https://github.com/ipfs/distributions
+$ git clone https://github.com/ipfs/distributions
+$ cd distributions
+# Install javascript dependencies
+$ yarn
+# Install dependency for make files
+$ npm install -g jq
 ```
 
 This project uses a makefile + scripts to build all the things.
 
 ```sh
-make
+$ make
 ```
 
 should do everything.
