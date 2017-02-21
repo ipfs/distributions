@@ -1,3 +1,9 @@
-../gopath/src/github.com/noffle/ipget/Godeps/_workspace/src/github.com/cheggaaa/pb/pb_win.go:6:2: cannot find package "github.com/olekukonko/ts" in any of:
-	/usr/local/Cellar/go/1.5.3/libexec/src/github.com/olekukonko/ts (from $GOROOT)
-	/Users/dignifiedquire/opensource/ipfs/distributions/dists/ipget/gopath/src/github.com/olekukonko/ts (from $GOPATH)
+../gopath/src/gx/ipfs/QmeUNjuZg7vSBPYHSF5VdSe9t3Y18g57ot2n6Wi3sJhtgN/go-ipfs-api/shell.go:16:2: cannot find package "github.com/jbenet/go-multiaddr" in any of:
+	/usr/local/Cellar/go/1.7.5/libexec/src/github.com/jbenet/go-multiaddr (from $GOROOT)
+	/Users/dignifiedquire/opensource/ipfs/distributions/dists/ipget/gopath/src/github.com/jbenet/go-multiaddr (from $GOPATH)
+../gopath/src/gx/ipfs/QmeUNjuZg7vSBPYHSF5VdSe9t3Y18g57ot2n6Wi3sJhtgN/go-ipfs-api/shell.go:17:2: cannot find package "github.com/jbenet/go-multiaddr-net" in any of:
+	/usr/local/Cellar/go/1.7.5/libexec/src/github.com/jbenet/go-multiaddr-net (from $GOROOT)
+	/Users/dignifiedquire/opensource/ipfs/distributions/dists/ipget/gopath/src/github.com/jbenet/go-multiaddr-net (from $GOPATH)
+../gopath/src/gx/ipfs/QmUDMGgMQuykb4883TugtGN4fWP1hUhc1uk3gSL2R5wgW9/ipfs-embedded-shell/add.go:6:2: cannot find package "gopkg.in/errgo.v1" in any of:
+	/usr/local/Cellar/go/1.7.5/libexec/src/gopkg.in/errgo.v1 (from $GOROOT)
+	/Users/dignifiedquire/opensource/ipfs/distributions/dists/ipget/gopath/src/gopkg.in/errgo.v1 (from $GOPATH)

@@ -1,6 +1,6 @@
-nav.d-header.navbar.navbar-fixed-top.navbar-dark.bg-inverse
-  .container
-    .row
+nav.d-header.navbar.fixed-top.navbar-dark.bg-inverse
+  div.container
+    div.row
       a.navbar-brand
         | IPFS
         span.d-header-light  distributions

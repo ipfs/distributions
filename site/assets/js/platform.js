@@ -27,7 +27,7 @@ function buildDownloadLink (id, version, os) {
   return `${id}/${version}/${id}_${version}_${osName}-${arch}.${ext}`
 }
 
-module.exports = function run () {
+module.exports = function handlePlatform () {
   $('.d-component-download-btn').each(function () {
     const elem = $(this)
     const version = elem.data('version')

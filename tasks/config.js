@@ -21,7 +21,7 @@ const base = {
     }]
   },
   plugins: [
-    new webpack.NoErrorsPlugin()
+    new webpack.NoEmitOnErrorsPlugin()
   ],
   stats: {
     colors: true
@@ -41,7 +41,7 @@ module.exports = {
             warnings: false
           }
         }),
-        new webpack.NoErrorsPlugin()
+        new webpack.NoEmitOnErrorsPlugin()
       ]
     })
   }

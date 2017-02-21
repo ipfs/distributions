@@ -1,3 +1,5 @@
+'use strict'
+
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
 const fs = require('fs')
@@ -15,7 +17,7 @@ function fail (msg) {
 }
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
-const SITE_PATH = join(__dirname, '..', 'site', 'public', 'releases')
+const SITE_PATH = join(__dirname, '..', 'site', 'content', 'releases')
 const DIST_PATH = join(__dirname, '..', 'dists')
 
 function getVersion (type, done) {
@@ -34,8 +36,7 @@ function writeData (type, version, done) {
   const dataTargetPath = join(SITE_PATH, type)
   series([
     mkdirp.bind(mkdirp, dataTargetPath),
-    fs.writeFile.bind(fs, join(dataTargetPath, '_data.json'), JSON.stringify(data, null, 2)),
-    fs.writeFile.bind(fs, join(dataTargetPath, 'index.md'), data.description)
+    fs.writeFile.bind(fs, join(dataTargetPath, 'data.json'), JSON.stringify(data, null, 2))
   ], done)
 }
 
@@ -66,7 +67,9 @@ gulp.task('clean:release:site', () => {
 
 gulp.task('dist', ['clean:release:site'], (done) => {
   fs.readdir(RELEASE_PATH, (err, types) => {
-    if (err) return fail(err.msg)
+    if (err) {
+      return fail(err.msg || err)
+    }
 
     each(types, writeSiteFiles, done)
   })
