@@ -11,7 +11,7 @@ dist: versions
 	cp versions $(releases)/versions
 
 versions: filtered_versions
-	git ls-remote -t $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "{}" | sort > tag_versions
+	git ls-remote -t --refs $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "{}" | sort > tag_versions
 	comm -23 -- tag_versions filtered_versions > versions
 
 update_sources:
