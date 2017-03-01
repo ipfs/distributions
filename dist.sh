@@ -2,7 +2,7 @@
 
 tagsForRepo() {
 	local repo="$1"
-	git ls-remote -t https://"$repo" | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
+	git ls-remote -t --refs https://"$repo" | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
 }
 
 sedEscapeArg() {
