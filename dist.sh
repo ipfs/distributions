@@ -63,6 +63,9 @@ case $1 in
 		;;
 	*)
 		echo "unrecognized command $1"
+		echo "Commands:"
+		echo "  add-version <dist> <version>"
+		echo "  new-go-dist <name> <repo>"
 		exit 1
 		;;
 esac
