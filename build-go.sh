@@ -68,7 +68,7 @@ function doBuild() {
 	local version=$5
 
 	dir=$output
-	name=$(echo $target | awk -F'/' '{ print $3 }')
+	name=$(basename `pwd`)
 	binname=${name}_${version}_${goos}-${goarch}
 
 	echo "==> building for $goos $goarch"
@@ -138,7 +138,12 @@ function printInitialDistfile() {
 	local version=$2
 	test -e description || fail "no description file found"
 
-	printf "{\"id\":\"$distname\",\"version\":\"$version\",\"releaseLink\":\"/$distname/$version\"}" |
+	local reponame="$distname"
+	if [ -e repo-name ]; then
+		reponame=$(cat repo-name)
+	fi
+
+	printf "{\"id\":\"$reponame\",\"version\":\"$version\",\"releaseLink\":\"/$distname/$version\"}" |
 	jq ".name = \"$distname\"" |
 	jq ".owner  = \"`cat repo-owner`\"" |
 	jq ".description = \"`cat description`\"" |

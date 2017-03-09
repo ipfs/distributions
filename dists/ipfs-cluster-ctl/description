@@ -1,0 +1,4 @@
+ipfs-cluster-ctl is a command-line interface to manage and perform
+operations on a ipfs-cluster peer. This build is experimental.
+The latest version of ipfs-cluster can built from the source
+repository.

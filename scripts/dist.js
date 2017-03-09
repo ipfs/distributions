@@ -1,9 +1,10 @@
 'use strict'
 
 const fs = require('fs')
-const {join} = require('path')
+const join = require('path').join
 const mkdirp = require('mkdirp')
-const {series, each} = require('async')
+const series = require('async').series
+const each = require('async').each
 const del = require('del')
 const _ = require('lodash')
 
