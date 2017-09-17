@@ -23,7 +23,7 @@ function notice() {
 }
 
 # dep checks
-reqbins="jq zip tar go"
+reqbins="jq zip tar go npm"
 for b in $reqbins
 do
 	if ! type $b > /dev/null; then
