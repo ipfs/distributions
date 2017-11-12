@@ -3,6 +3,9 @@ relativeurls = true
 languageCode = "en-us"
 title = "IPFS Distributions"
 
+# No tags/categories
+taxonomies = {}
+
 [params]
 [params.targetMap]
 386 = "32-bit"
