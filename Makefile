@@ -21,7 +21,7 @@ site: deps
 	npm run build
 
 publish: all_dists site
-	ipfs add -q -r releases | tail -n1 >>versions
+	ipfs add -q -r releases | tail -n1
 
 clean:
 	rm -rf releases
