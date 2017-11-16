@@ -10,103 +10,148 @@
 
 > Source for building https://dist.ipfs.io
 
-## Table of Contents
+**Table of Contents**
 
 - [Background](#background)
-  - [distribution index versions / updates](#distribution-index-versions--updates)
 - [Install](#install)
 - [Usage](#usage)
+    - [Adding a version](#adding-a-version)
+    - [Adding a new (go) distribution](#adding-a-new-go-distribution)
+    - [Publishing](#publishing)
 - [Contribute](#contribute)
-  - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
-- [License](#license)
 
 ## Background
 
 The goal is to generate a file hierarchy that looks like this:
 
-```
-dist/index.html -- listing of all bundles available
-dist/<dist> -- all versions of <dist>
-dist/<dist>/README.md -- simple readme for <dist>
-dist/<dist>/latest -- points to latest <version>
-dist/<dist>/<version> -- dist version
-dist/<dist>/<version>/README.md -- readme for <version> listing
-dist/<dist>/<version>/<platform>.tar.gz -- archive for <platform>
-```
+| **File**                                                       | **Description**                                    |
+| -------------------------------------------------------------- | -------------------------------------------------- |
+| `releases/index.html`                                          | listing of all bundles available                   |
+| `releases/<dist>`                                              | all versions of `<dist>`                           |
+| `releases/<dist>/versions`                                     | textual list of all versions of `<dist>`           |
+| `releases/<dist>/<version>`                                    | dist version                                       |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz` | archive for `<platform>`                           |
+| `releases/<dist>/<version>/dist.json`                          | json file describing all archives in this release. |
+| `releases/<dist>/<version>/build-info`                         | information about the build and build machine      |
+| `releases/<dist>/<version>/build-log-*`                        | logs from the platforms that failed to build.      |
+| `releases/<dist>/<version>/results`                            | list of platforms successfully built               |
 
 Definitions:
 - `<dist>` is a distribution, meaning a program or library we release.
-- `<version>` is the version of the `<dist>`
+- `<version>` is the version of the `<dist>`.
 - `<platform>` is a supported platform of `<dist>@<version>`
 
-So for example, if we had `<dist>` `go-ipfs` and `native-app`, we might see a hierarchy like:
+So for example, if we had `<dist>` `go-ipfs` and `fs-repo-migrations`, we might see a hierarchy like:
 
 ```
 .
+├── fs-repo-migrations
+│   ├── v1.3.0
+│   │   ├── build-info
+│   │   ├── dist.json
+│   │   ├── fs-repo-migrations_v1.3.0_darwin-386.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_darwin-amd64.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_freebsd-386.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_freebsd-amd64.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_freebsd-arm.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_linux-386.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_linux-amd64.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_linux-arm.tar.gz
+│   │   ├── fs-repo-migrations_v1.3.0_windows-386.zip
+│   │   ├── fs-repo-migrations_v1.3.0_windows-amd64.zip
+│   │   └── results
+│   └── versions
 ├── go-ipfs
-│   ├── latest -> v0.3.7
-│   ├── v0.3.6
-│   │   ├── README.md
-│   │   ├── go-ipfs_v0.3.6_darwin-386.tar.gz
-│   │   ├── go-ipfs_v0.3.6_darwin-amd64.tar.gz
-│   │   ├── go-ipfs_v0.3.6_linux-386.tar.gz
-│   │   ├── go-ipfs_v0.3.6_linux-amd64.tar.gz
-│   │   └── hashes
-│   └── v0.3.7
-├── index.html
-└── native-app
-    ├── latest -> v0.2.1
-    └── v0.2.1
-        ├── README.md
-        ├── hashes
-        ├── ipfs-native-app_v0.2.1_linux.tar.gz
-        └── ipfs-native-app_v0.2.1_osx.zip
-
-7 directories, 11 files
+│   ├── v0.4.9
+│   │   ├── build-info
+│   │   ├── build-log-freebsd-386
+│   │   ├── build-log-freebsd-arm
+│   │   ├── dist.json
+│   │   ├── go-ipfs_v0.4.9_darwin-386.tar.gz
+│   │   ├── go-ipfs_v0.4.9_darwin-amd64.tar.gz
+│   │   ├── go-ipfs_v0.4.9_freebsd-amd64.tar.gz
+│   │   ├── go-ipfs_v0.4.9_linux-386.tar.gz
+│   │   ├── go-ipfs_v0.4.9_linux-amd64.tar.gz
+│   │   ├── go-ipfs_v0.4.9_linux-arm.tar.gz
+│   │   ├── go-ipfs_v0.4.9_windows-386.zip
+│   │   ├── go-ipfs_v0.4.9_windows-amd64.zip
+│   │   └── results
+│   └── versions
+└── index.html
+85 directories, 943 files
 ```
 
 We call this the **distribution index**, the listing of all distributions, their versions, and platform assets.
 
-Note how they each describe `<platform>` differently. This is likely to be inevitable as different platform identifiers will be used by different communities.
-
-### distribution index versions / updates
-
-The **distribution index** changes over time, kind of like a git repository. [Since we don't yet have commits](https://github.com/ipfs/notes/issues/23), we will just do a poor-man's versioning for the index itself. We will write all version hashes to a file `versions` in this repository.
-
-A site like `dist.ipfs.io` or `ipfs.io/dist` would just serve the _latest_ version of the index.
-
 ## Install
 
+First, install the following dependencies via your favorite package manager:
+
+* yarn
+* hugo
+* npm
+* jq
+* ipfs
+* git (obviously)
+
+Then install the javsacript dependencies with yarn:
+
 ```sh
-$ git clone https://github.com/ipfs/distributions
-$ cd distributions
 # Install javascript dependencies
-$ yarn
-# Install dependency for make files
-$ npm install -g jq
+> yarn
 ```
 
-This project uses a makefile + scripts to build all the things.
+Finally, run `make` to build/download the existing distribution over IPFS. It will download everything published at dist.ipfs.io and then build anything missing.
 
 ```sh
-$ make
+> make
 ```
-
-should do everything.
-
 
 ## Usage
 
-Each `<dist>` has a directory in the root of this repo. inside it there is a `Makefile` and other necessary scripts. Running
+### Adding a version
 
-```
-make
+Run:
+
+```sh
+> ./dist.sh add-version <dist> <version>
 ```
 
-Should:
-- figure out what the latest released version is (from github tags)
-- figure out what versions are missing from the index
-- construct the missing `<dist>/<version>` directories
+This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
+
+### Adding a new (go) distribution
+
+Run:
+
+```sh
+> ./dist.sh new-go-dist <dist> <git-repo>
+```
+
+And follow the prompts.
+
+### Publishing 
+
+In the root of the repository, run:
+
+```sh
+> make publish
+```
+
+This will build (or download) anything that hasn't been built and build, compile the index in `releases`, and add releases to ipfs. Save the hash it spits out (we'll call it `<NEW_HASH>`), that's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
+
+Next, you should probably:
+
+1. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
+2. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
+
+If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask someone if you don't have permission to do so).
+
+Finally,
+
+1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
+2. File an issue on [ipfs/infrastructure](https://github.com/ipfs/infrastructure) with the hash you got from `make publish` and a link to the PR.
+
+If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
 ## Contribute
 
