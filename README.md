@@ -137,16 +137,14 @@ In the root of the repository, run:
 > make publish
 ```
 
-This will build (or download) anything that hasn't been built and build, compile the index in `releases`, and add releases to ipfs. Save the hash it spits out, that's the new hash for `dists.ipfs.io`.
+This will build (or download) anything that hasn't been built and build, compile the index in `releases`, and add releases to ipfs. Save the hash it spits out (we'll call it `<NEW_HASH>`), that's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
 
-Next, you should probably compare this with the current `dists.ipfs.io` to make sure nothing is amiss:
+Next, you should probably:
 
-```sh
-> ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>
-```
+1. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
+2. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
 
-If all looks well, pin the hash using pinbot (#ipfs-pinbot on Freenode, ask
-someone if you don't have permission to do so).
+If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask someone if you don't have permission to do so).
 
 Finally,
 
