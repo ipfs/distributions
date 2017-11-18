@@ -83,7 +83,7 @@ function doBuild() {
 	mkdir -p $build_dir_name
 
 	mkdir -p $dir
-	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build $target 2> build-log)
+	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build -asmflags -trimpath="$GOPATH/src" -gcflags -trimpath="$GOPATH/src" $target 2> build-log)
 	if [ $? -ne 0 ]; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp $build_dir_name/build-log "$logfi"
