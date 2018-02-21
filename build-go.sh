@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# normalize umask
+umask 022
+
 # globals
 releases=../../releases
 
