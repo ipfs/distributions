@@ -26,3 +26,5 @@ publish: all_dists site
 clean:
 	rm -rf releases
 	rm -rf dists/*/gopath
+
+.NOTPARALLEL:
