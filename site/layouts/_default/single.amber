@@ -51,7 +51,7 @@ html[lang="en"]
                 div.col-md-4
                   h3.d-component-version #{$data.version}
                   h4.d-component-release-date #{$data.date}
-                  +componentActions($data.owner, $data.id, $data.version)
+                  +componentActions($data.owner, $data.id, $data.version, $key)
                 div.col-md-8
                   table.table.d-download-table
                     tbody
