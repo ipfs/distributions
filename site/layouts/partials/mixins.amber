@@ -1,4 +1,4 @@
-mixin componentActions($owner, $id, $version)
+mixin componentActions($owner, $id, $version, $name)
   ul.d-component-actions
     li
       i.ion-ios-book-outline
@@ -14,7 +14,7 @@ mixin componentActions($owner, $id, $version)
         | Changelog
     li
       i.ion-ios-albums-outline
-      a.d-component-actions-versions[href=$id] All Versions
+      a.d-component-actions-versions[href=$name] All Versions
     li
       i.ion-bug
       a.d-component-actions-issues
