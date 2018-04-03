@@ -20,9 +20,10 @@ mkdist({
       {id: 'windows', name: 'Windows Binary (.zip)', browser: 'Windows'}
     ],
     archs: [
-      {id: '386',   name: '32 bit', browser: '32'},
-      {id: 'amd64', name: '64 bit', browser: '64'},
-      {id: 'arm',   name: 'ARM',    browser: 'ARM'}
+      {id: '386',     name: '32 bit',       browser: '32'},
+      {id: 'amd64',   name: '64 bit',       browser: '64'},
+      {id: 'arm',     name: 'ARM',          browser: 'ARM'},
+      {id: 'arm64',   name: 'ARM (64 bit)', browser: 'ARM64'}
     ]
   }
 })
