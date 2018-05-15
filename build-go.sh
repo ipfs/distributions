@@ -186,6 +186,9 @@ function buildWithMatrix() {
 		doBuild $line $gobin $output $version
 	done < $matfile
 
+	# build the source
+	buildSource "$distname" "$GOPATH/src/$gobin" "$output"
+
 	mv dist.json $output/dist.json
 }
 
@@ -216,6 +219,23 @@ function installDeps() {
 	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
 
 	(cd "$reporoot" && make -n deps > /dev/null 2>&1 && make deps)
+}
+
+function buildSource() {
+	local distname="$1"
+	local repopath="$2"
+	local output="$3"
+	local target="$distname-source.tar.gz"
+
+	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+
+	(cd "$reporoot" && make -n "$target" > /dev/null 2>&1 && make "$target") || return
+
+	cp "$reporoot/$target" "$output"
+
+	cp dist.json dist.json.temp
+	jq ".source = {\"link\": \"/$target\"}" dist.json.temp > dist.json
+	rm dist.json.temp
 }
 
 function currentSha() {
