@@ -94,7 +94,7 @@ First, install the following dependencies via your favorite package manager:
 * ipfs
 * git (obviously)
 
-Then install the javsacript dependencies with yarn:
+Then install the javascript dependencies with yarn:
 
 ```sh
 # Install javascript dependencies
