@@ -46,9 +46,9 @@ function pkgType() {
 	esac
 }
 
-function printDistInfo() {
+function buildDistInfo() {
 	local bundle="$1"
-	local version="$2"
+	local dir="$2"
 
 	# print json output
 	jq -e ".platforms[\"$goos\"]" dist.json > /dev/null
@@ -57,9 +57,15 @@ function printDistInfo() {
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
-	local linkname="$version/$bundle.`pkgType $goos`"
+	local linkname="$bundle.`pkgType $goos`"
+	# Calculate sha512 and write it to .sha512 file
+	shasum -a 512 $dir/$linkname | awk "{gsub(\"${dir}/\", \"\");print}" > $dir/$linkname.sha512
+	local linksha512=$(cat $dir/$linkname.sha512 | awk '{ print $1 }')
+	# Calculate CID and write it to .cid file
+	ipfs add --only-hash -Q $dir/$linkname > $dir/$linkname.cid
+	local linkcid=$(cat $dir/$linkname.cid)
 	cp dist.json dist.json.temp
-	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"$linkname\"}" dist.json.temp > dist.json
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -103,7 +109,7 @@ function doBuild() {
 
 	# now package it all up
 	if bundleDist $dir/$binname $goos $build_dir_name; then
-		printDistInfo $binname
+		buildDistInfo $binname $dir
 		rm -rf $build_dir_name
 	else
 		warn "    failed to zip up output"
@@ -233,8 +239,15 @@ function buildSource() {
 
 	cp "$reporoot/$target" "$output"
 
+	# Calculate sha512 and write it to .sha512 file
+	shasum -a 512 $output/$target | awk "{gsub(\"${output}/\", \"\");print}" > $output/$target.sha512
+	local linksha512=$(cat $output/$target.sha512 | awk '{ print $1 }')
+	# Calculate CID and write it to .cid file
+	ipfs add --only-hash -Q $output/$target > $output/$target.cid
+	local linkcid=$(cat $output/$target.cid)
+
 	cp dist.json dist.json.temp
-	jq ".source = {\"link\": \"/$target\"}" dist.json.temp > dist.json
+	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
