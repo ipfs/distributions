@@ -7,7 +7,7 @@ releases = ../../releases/${distname}
 all: dist
 
 dist: versions
-	../../build-go.sh ${distname} ${ghrepo}/ipfs-cluster-service versions
+	../../build-go.sh ${distname} ${ghrepo}/cmd/ipfs-cluster-service versions
 	cp versions $(releases)/versions
 
 versions: filtered_versions
