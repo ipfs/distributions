@@ -1,3 +1,1 @@
-ipfs-cluster-service runs a full IPFS Cluster peer. These builds are a
-preview and are considered experimental. The latest version of ipfs-cluster
-can be built from the source code repository.
+IPFS Cluster allows to allocate, replicate and track Pins across a cluster of IPFS daemons. ipfs-cluster-service runs a full Cluster peer.

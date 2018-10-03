@@ -1,4 +1,1 @@
-ipfs-cluster-ctl is a command-line interface to manage and perform
-operations on a ipfs-cluster peer. This build is experimental.
-The latest version of ipfs-cluster can built from the source
-repository.
+IPFS Cluster allows to allocate, replicate and track Pins across a cluster of IPFS daemons. ipfs-cluster-ctl is the command-line interface to manage a Cluster peer (run by ipfs-cluster-service).
