@@ -1,1 +1,1 @@
-IPFS Cluster allows to allocate, replicate and track Pins across a cluster of IPFS daemons. ipfs-cluster-ctl is the command-line interface to manage a Cluster peer (run by ipfs-cluster-ctl).
+IPFS Cluster allows to allocate, replicate and track Pins across a cluster of IPFS daemons. ipfs-cluster-ctl is the command-line interface to manage a Cluster peer (run by ipfs-cluster-service).
