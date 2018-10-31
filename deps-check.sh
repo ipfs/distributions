@@ -17,4 +17,6 @@ function fail() {
 
 (yarn --version > /dev/null 2>&1) || (fail "Missing yarn, please install with `npm i -g yarn`")
 
+(jq --version > /dev/null 2>&1) || (fail "Missing jq, please see https://stedolan.github.io/jq/")
+
 exec yarn
