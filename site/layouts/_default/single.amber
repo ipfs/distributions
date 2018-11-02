@@ -55,16 +55,17 @@ html[lang="en"]
                 div.col-md-8
                   table.table.d-download-table
                     tbody
-                      each $p in $data.platforms
-                        $colspan = 6 / len($p.archs)
-                        tr
-                          // th #{$.Site.Params.architectureMap[$p.name]}
-                          th #{$p.name}
-                          each $target, $arch in $p.archs
-                            td[colspan=$colspan]
-                              $link = replaceRE("^/", "", $data.releaseLink) + $arch.link
-                              a[href=$link] #{$target}
-                              // #{$.Site.Params.targetMap[$target]}
+                      each $k, $p in $data.platforms
+                        if $k != "source"
+                          $colspan = 6 / len($p.archs)
+                          tr
+                            // th #{$.Site.Params.architectureMap[$p.name]}
+                            th #{$p.name}
+                            each $target, $arch in $p.archs
+                              td[colspan=$colspan]
+                                $link = replaceRE("^/", "", $data.releaseLink) + $arch.link
+                                a[href=$link] #{$target}
+                                // #{$.Site.Params.targetMap[$target]}
 
     import ../partials/footer
     script[src="site.js"]
