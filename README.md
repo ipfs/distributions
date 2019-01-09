@@ -31,6 +31,8 @@ The goal is to generate a file hierarchy that looks like this:
 | `releases/<dist>/versions`                                     | textual list of all versions of `<dist>`           |
 | `releases/<dist>/<version>`                                    | dist version                                       |
 | `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz` | archive for `<platform>`                           |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.cid` | text file with CID of the archive              |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.sha512` | text file with SHA-512 of the archive       |
 | `releases/<dist>/<version>/dist.json`                          | json file describing all archives in this release. |
 | `releases/<dist>/<version>/build-info`                         | information about the build and build machine      |
 | `releases/<dist>/<version>/build-log-*`                        | logs from the platforms that failed to build.      |
