@@ -6,12 +6,12 @@ html[lang="en"]
     title #{Title}
     meta[name="viewport"][content="width=device-width, initial-scale=1, shrink-to-fit=no"]
     meta[name="description"][content=Description]
-    script[async][src="https://www.googletagmanager.com/gtag/js?id=UA-11"]
+    script[async][src="https://www.googletagmanager.com/gtag/js?id=UA-96910779-11"]
     script
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'UA-11');
+      gtag('config', 'UA-96910779-11');
     link[rel="stylesheet"][href="site.css"]
     link
     [href="https://code.cdn.mozilla.net/fonts/fira.css"]
