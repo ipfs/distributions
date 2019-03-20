@@ -134,6 +134,9 @@ function bundleDist() {
 		return $?
 		;;
 	tar.gz)
+		if [ -f "$build_dir/install.sh" ]; then
+			chmod +x $build_dir/install.sh
+		fi
 		tar czf $name.tar.gz $build_dir/*
 		return $?
 		;;
