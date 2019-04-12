@@ -1,13 +1,11 @@
 all: releases all_dists site
 
-dists_to_build=$(shell ls dists)
-
 .PHONY: all all_dists deps
-all_dists: $(dists_to_build)
+all_dists: $(notdir $(wildcard dists/*))
 
 %:
-	echo "** $@ **"
-	cd dists/$@ && make
+	@echo "** $@ **"
+	$(MAKE) -C dists/$@
 
 deps:
 	./deps-check.sh
@@ -17,7 +15,7 @@ releases:
 
 .PHONY: site
 site: deps
-	echo "** Building site **"
+	@echo "** Building site **"
 	npm run build
 
 publish: all_dists site

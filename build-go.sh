@@ -336,12 +336,12 @@ function startGoBuilds() {
 	fi
 
 	export GOPATH=$(pwd)/gopath
-	if [ ! -e $GOPATH/src/$package ]; then
+	if [ ! -e "$GOPATH/src/$repo/$package" ]; then
 		echo "fetching $distname code..."
 		git clone "https://$repo" "$GOPATH/src/$repo"
 	fi
 
-	repopath="$GOPATH/src/$package"
+	repopath="$GOPATH/src/$repo/$package"
 
 	cleanRepo "$repopath"
 	printVersions $versions
@@ -368,11 +368,11 @@ function startGoBuilds() {
 			fi
 		fi
 
-		buildWithMatrix "$matfile" "$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
 		echo ""
 	done < $versions
 
 	notice "build complete!"
 }
 
-startGoBuilds $1 $2 $3 $4 $5
+startGoBuilds "$1" "$2" "$3" "$4" "$5"
