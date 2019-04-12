@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 # normalize umask
 umask 022
 
@@ -51,8 +53,7 @@ function buildDistInfo() {
 	local dir="$2"
 
 	# print json output
-	jq -e ".platforms[\"$goos\"]" dist.json > /dev/null
-	if [ ! $? -eq 0 ]; then
+	if ! jq -e ".platforms[\"$goos\"]" dist.json > /dev/null; then
 		cp dist.json dist.json.temp
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
@@ -67,6 +68,24 @@ function buildDistInfo() {
 	cp dist.json dist.json.temp
 	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
 	rm dist.json.temp
+}
+
+function goBuild() {
+	local package="$1"
+	local goos="$2"
+	local goarch="$3"
+	(
+		export GOOS=$goos
+		export GOARCH=$goarch
+
+		local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+
+		cd "$GOPATH/src/${package}"
+		go build \
+			 -o "$output" \
+			 -asmflags=all=-trimpath="$GOPATH" \
+			 -gcflags=all=-trimpath="$GOPATH"
+	)
 }
 
 function doBuild() {
@@ -92,8 +111,8 @@ function doBuild() {
 	mkdir -p $build_dir_name
 
 	mkdir -p $dir
-	(cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build -asmflags -trimpath="$GOPATH/src" -gcflags -trimpath="$GOPATH/src" $target 2> build-log)
-	if [ $? -ne 0 ]; then
+
+	if ! (cd "$build_dir_name" && goBuild "$target" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp $build_dir_name/build-log "$logfi"
 		warn "    failed. logfile at '$logfi'"
@@ -201,9 +220,8 @@ function buildWithMatrix() {
 function cleanRepo() {
 	local repopath=$1
 
-	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
-	(cd "$reporoot" && git clean -df)
-	(cd "$reporoot" && git reset --hard)
+	git -C "$repopath" clean -df
+	git -C "$repopath" reset --hard
 }
 
 function checkoutVersion() {
@@ -214,17 +232,26 @@ function checkoutVersion() {
 
 	echo "==> checking out version $ref in $repopath"
 	cleanRepo "$repopath"
-	(cd "$repopath" && git checkout $ref > /dev/null)
-
-	test $? -eq 0 || fail "failed to check out $ref in $reporoot"
+	git -C "$repopath" checkout $ref > /dev/null || fail "failed to check out $ref in $reporoot"
 }
 
 function installDeps() {
 	local repopath=$1
 
-	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+	reporoot=$(git -C "$repopath" rev-parse --show-toplevel)
 
-	(cd "$reporoot" && make -n deps > /dev/null 2>&1 && make deps)
+	if make -C "$reporoot" -n deps > /dev/null 2>&1; then
+		make -C "$reporoot" deps
+	fi
+}
+
+function autoGoMod() {
+	local repopath=$1
+	if test -e "$(git -C "$repopath" rev-parse --show-toplevel)/go.mod"; then
+		export GO111MODULE=on
+	else
+		export GO111MODULE=off
+	fi
 }
 
 function buildSource() {
@@ -233,9 +260,14 @@ function buildSource() {
 	local output="$3"
 	local target="$distname-source.tar.gz"
 
-	reporoot=$(cd "$repopath" && git rev-parse --show-toplevel)
+	reporoot=$(git -C "$repopath" rev-parse --show-toplevel)
 
-	(cd "$reporoot" && make -n "$target" > /dev/null 2>&1 && make "$target") || return
+	if ! make -C "$reporoot" -n "$target" > /dev/null 2>&1; then
+		# Nothing to do, fail silently.
+		return 0
+	fi
+
+	make -C "$reporoot" "$target"
 
 	cp "$reporoot/$target" "$output"
 
@@ -252,7 +284,7 @@ function buildSource() {
 }
 
 function currentSha() {
-	(cd $1 && git show --no-patch --pretty="%H")
+	git -C "$1" rev-parse HEAD
 }
 
 function printVersions() {
@@ -263,9 +295,10 @@ function printVersions() {
 
 function startGoBuilds() {
 	distname="$1"
-	gpath="$2"
-	versions="$3"
-	existing="$4"
+	repo="$2"
+	package="$3"
+	versions="$4"
+	existing="$5"
 
 	if [ -z "$existing" ]; then
 		existing="/ipns/dist.ipfs.io"
@@ -303,15 +336,14 @@ function startGoBuilds() {
 	fi
 
 	export GOPATH=$(pwd)/gopath
-	if [ ! -e $GOPATH/src/$gpath ]; then
+	if [ ! -e "$GOPATH/src/$repo/$package" ]; then
 		echo "fetching $distname code..."
-		go get -d $gpath 2> /dev/null
+		git clone "https://$repo" "$GOPATH/src/$repo"
 	fi
 
-	repopath="$GOPATH/src/$gpath"
+	repopath="$GOPATH/src/$repo/$package"
 
-	(cd "$repopath" && git reset --hard && git clean -df && git fetch)
-
+	cleanRepo "$repopath"
 	printVersions $versions
 
 	echo ""
@@ -324,6 +356,7 @@ function startGoBuilds() {
 
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
+		autoGoMod "$repopath"
 		installDeps "$repopath" 2>&1 > deps-$version.log
 
 		matfile="matrices/$version"
@@ -335,11 +368,11 @@ function startGoBuilds() {
 			fi
 		fi
 
-		buildWithMatrix "$matfile" "$gpath" "$outputDir/$version" "$(currentSha $repopath)" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
 		echo ""
 	done < $versions
 
 	notice "build complete!"
 }
 
-startGoBuilds $1 $2 $3 $4
+startGoBuilds "$1" "$2" "$3" "$4" "$5"
