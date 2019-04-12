@@ -344,6 +344,7 @@ function startGoBuilds() {
 	repopath="$GOPATH/src/$repo/$package"
 
 	cleanRepo "$repopath"
+	git -C "$repopath" fetch
 	printVersions $versions
 
 	echo ""
