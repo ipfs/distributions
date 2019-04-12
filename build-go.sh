@@ -70,6 +70,24 @@ function buildDistInfo() {
 	rm dist.json.temp
 }
 
+function goBuild() {
+	local package="$1"
+	local goos="$2"
+	local goarch="$3"
+	(
+		export GOOS=$goos
+		export GOARCH=$goarch
+
+		local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+
+		cd "$GOPATH/src/${package}"
+		go build \
+			 -o "$output" \
+			 -asmflags=all=-trimpath="$GOPATH" \
+			 -gcflags=all=-trimpath="$GOPATH"
+	)
+}
+
 function doBuild() {
 	local goos=$1
 	local goarch=$2
@@ -94,7 +112,7 @@ function doBuild() {
 
 	mkdir -p $dir
 
-	if ! (cd $build_dir_name && GOOS=$goos GOARCH=$goarch go build -asmflags -trimpath="$GOPATH/src" -gcflags -trimpath="$GOPATH/src" $target) 2> build-log; then
+	if ! (cd "$build_dir_name" && goBuild "$target" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp $build_dir_name/build-log "$logfi"
 		warn "    failed. logfile at '$logfi'"
@@ -227,6 +245,13 @@ function installDeps() {
 	fi
 }
 
+function autoGoMod() {
+	local repopath=$1
+	if test -e "$(git -C "$repopath" rev-parse --show-toplevel)/go.mod"; then
+		export GO111MODULE=on
+	else
+		export GO111MODULE=off
+	fi
 }
 
 function buildSource() {
@@ -270,9 +295,10 @@ function printVersions() {
 
 function startGoBuilds() {
 	distname="$1"
-	gpath="$2"
-	versions="$3"
-	existing="$4"
+	repo="$2"
+	package="$3"
+	versions="$4"
+	existing="$5"
 
 	if [ -z "$existing" ]; then
 		existing="/ipns/dist.ipfs.io"
@@ -310,12 +336,12 @@ function startGoBuilds() {
 	fi
 
 	export GOPATH=$(pwd)/gopath
-	if [ ! -e $GOPATH/src/$gpath ]; then
+	if [ ! -e $GOPATH/src/$package ]; then
 		echo "fetching $distname code..."
-		go get -d $gpath 2> /dev/null
+		git clone "https://$repo" "$GOPATH/src/$repo"
 	fi
 
-	repopath="$GOPATH/src/$gpath"
+	repopath="$GOPATH/src/$package"
 
 	cleanRepo "$repopath"
 	printVersions $versions
@@ -330,6 +356,7 @@ function startGoBuilds() {
 
 		notice "Building version $version binaries"
 		checkoutVersion $repopath $version
+		autoGoMod "$repopath"
 		installDeps "$repopath" 2>&1 > deps-$version.log
 
 		matfile="matrices/$version"
@@ -341,11 +368,11 @@ function startGoBuilds() {
 			fi
 		fi
 
-		buildWithMatrix "$matfile" "$gpath" "$outputDir/$version" "$(currentSha $repopath)" "$version"
+		buildWithMatrix "$matfile" "$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
 		echo ""
 	done < $versions
 
 	notice "build complete!"
 }
 
-startGoBuilds $1 $2 $3 $4
+startGoBuilds $1 $2 $3 $4 $5

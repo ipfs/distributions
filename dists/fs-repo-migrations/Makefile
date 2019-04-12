@@ -1,21 +1,22 @@
-repo=http://github.com/ipfs/fs-repo-migrations
-releases=../../releases/fs-repo-migrations
+package = github.com/ipfs/fs-repo-migrations
+repo = ${package}
+distname = fs-repo-migrations
+
+releases = ../../releases/${distname}
 
 all: dist
 
 dist: versions
-	../../build-go.sh fs-repo-migrations github.com/ipfs/fs-repo-migrations versions
+	../../build-go.sh ${distname} ${repo} ${package} versions
 	cp versions $(releases)/versions
 
 versions: filtered_versions
-	git ls-remote -t --refs $(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | sort > tag_versions
+	git ls-remote -t --refs https://$(repo) | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | sort > tag_versions
 	comm -23 -- tag_versions filtered_versions > versions
 
-filtered_versions:
-	touch filtered_versions
+update_sources:
+	cd gopath/src/${package}
+	git fetch
 
 clean:
-	rm -rf ./gopath
 	rm -rf $(releases)
-	rm versions tag_versions
-
