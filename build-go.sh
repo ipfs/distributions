@@ -284,7 +284,7 @@ function buildSource() {
 }
 
 function currentSha() {
-	git -C "$1" show --no-patch --pretty="%H"
+	git -C "$1" rev-parse HEAD
 }
 
 function printVersions() {
