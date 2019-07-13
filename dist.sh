@@ -55,7 +55,11 @@ case $1 in
 			exit 1
 		fi
 
-		echo $nvers > dists/$dist/current
+		case "$nvers" in
+			*-*) echo "WARNING: not marking pre-release $dist $nvers as the current version." ;;
+			*) echo $nvers > dists/$dist/current ;;
+		esac
+
 		echo $nvers >> dists/$dist/versions
 
 		cd dists/$dist && make update_sources
