@@ -88,18 +88,17 @@ We call this the **distribution index**, the listing of all distributions, their
 
 First, install the following dependencies via your favorite package manager:
 
-* yarn
 * hugo
 * npm
 * jq
 * ipfs
 * git (obviously)
 
-Then install the javascript dependencies with yarn:
+Then install the javascript dependencies with npm:
 
 ```sh
 # Install javascript dependencies
-> yarn
+> npm install
 ```
 
 Finally, run `make` to build/download the existing distribution over IPFS. It will download everything published at dist.ipfs.io and then build anything missing.

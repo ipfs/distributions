@@ -13,13 +13,13 @@ module.exports = {
     filename: 'site.js'
   },
   module: {
-    loaders: [{
+    rules: [{
       test: /\.js$/,
       exclude: /node_modules/,
       loader: 'babel-loader',
-      query: {
+      options: {
         cacheDirectory: true,
-        presets: ['es2015']
+        presets: ['@babel/preset-env']
       }
     }]
   },
