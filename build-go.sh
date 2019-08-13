@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# settings
+export GOPATH="$(go env GOPATH)"
+
 # normalize umask
 umask 022
 
@@ -74,24 +77,19 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
-	(
-		export GOOS=$goos
-		export GOARCH=$goarch
+  local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
 
-		local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-
-		cd "$GOPATH/src/${package}"
-		go build \
-			 -o "$output" \
-			 -asmflags=all=-trimpath="$GOPATH" \
-			 -gcflags=all=-trimpath="$GOPATH"
-	)
+  GOOS="$goos" GOARCH="$goarch"
+  go build -o "$output" \
+     -asmflags=all=-trimpath="$GOPATH" \
+     -gcflags=all=-trimpath="$GOPATH"  \
+     "${package}"
 }
 
 function doBuild() {
 	local goos=$1
 	local goarch=$2
-	local target=$3
+	local package=$3
 	local output=$4
 	local version=$5
 
@@ -112,7 +110,7 @@ function doBuild() {
 
 	mkdir -p $dir
 
-	if ! (cd "$build_dir_name" && goBuild "$target" "$goos" "$goarch") > build-log; then
+	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp $build_dir_name/build-log "$logfi"
 		warn "    failed. logfile at '$logfi'"
@@ -122,8 +120,8 @@ function doBuild() {
 	notice "    build succeeded!"
 
 	# copy dist assets if they exist
-	if [ -e $GOPATH/src/$target/dist ]; then
-		cp -r $GOPATH/src/$target/dist/* $build_dir_name/
+	if [ -e "$GOPATH/src/$package/dist" ]; then
+		cp -r "$GOPATH/src/$package/dist/"* $build_dir_name/
 	fi
 
 	# now package it all up
@@ -190,7 +188,7 @@ function printBuildInfo() {
 
 function buildWithMatrix() {
 	local matfile=$1
-	local gobin=$2
+	local package=$2
 	local output=$3
 	local commit=$4
 	local version=$5
@@ -208,11 +206,11 @@ function buildWithMatrix() {
 	# build each os/arch combo
 	while read line
 	do
-		doBuild $line $gobin $output $version
+		doBuild $line "$package" "$output" "$version"
 	done < $matfile
 
 	# build the source
-	buildSource "$distname" "$GOPATH/src/$gobin" "$output"
+	buildSource "$distname" "$GOPATH/src/$package" "$output"
 
 	mv dist.json $output/dist.json
 }
@@ -369,7 +367,14 @@ function startGoBuilds() {
 			fi
 		fi
 
-		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
+    rm -f "go.mod"
+    if [ "$GO111MODULE" == "on" ]; then
+        # Setup version information so we can build with go mod
+        go mod init "ipfs-distributions"
+        go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
+    fi
+
+    buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
 		echo ""
 	done < $versions
 
