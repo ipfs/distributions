@@ -77,13 +77,17 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
-  local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+  (
+      export GOOS="$goos"
+      export GOARCH="$goarch"
 
-  GOOS="$goos" GOARCH="$goarch"
-  go build -o "$output" \
-     -asmflags=all=-trimpath="$GOPATH" \
-     -gcflags=all=-trimpath="$GOPATH"  \
-     "${package}"
+      local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+
+      go build -o "$output" \
+         -asmflags=all=-trimpath="$GOPATH" \
+         -gcflags=all=-trimpath="$GOPATH"  \
+         "${package}"
+  )
 }
 
 function doBuild() {
