@@ -43,7 +43,7 @@ module.exports = function handlePlatform () {
       arch = '32bit'
     }
 
-    if (osName === 'darwin') osName = 'OS X'
+    if (osName === 'darwin') osName = 'macOS'
 
     elem.attr('href', link)
     elem.parent().find('.d-component-arch').text(`Version ${version} for ${osName} ${arch}`)

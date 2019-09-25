@@ -14,6 +14,9 @@ html[lang="en"]
     import ../partials/mixins
     import ../partials/header
 
+    $architectureMap = $.Site.Params.architectureMap
+    $targetMap = $.Site.Params.targetMap
+
     div.container
       div.row
         #about.d-about.col-md-8.offset-md-2
@@ -58,14 +61,13 @@ html[lang="en"]
                       each $k, $p in $data.platforms
                         if $k != "source"
                           $colspan = 6 / len($p.archs)
+                          $name = index(split($p.name, " "), 0)
                           tr
-                            // th #{$.Site.Params.architectureMap[$p.name]}
-                            th #{$p.name}
+                            th #{index($architectureMap, $name)}
                             each $target, $arch in $p.archs
                               td[colspan=$colspan]
                                 $link = replaceRE("^/", "", $data.releaseLink) + $arch.link
-                                a[href=$link] #{$target}
-                                // #{$.Site.Params.targetMap[$target]}
+                                a[href=$link] #{index($targetMap, $target)}
 
     import ../partials/footer
     script[src="site.js"]
