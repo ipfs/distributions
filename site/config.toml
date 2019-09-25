@@ -11,9 +11,10 @@ taxonomies = {}
 386 = "32-bit"
 amd64 = "64-bit"
 arm = "ARM"
+arm64 = "ARM-64"
 
 [params.architectureMap]
-"darwin Binary" = "Mac OS X Binary"
-"freebsd Binary" = "FreeBSD Binary"
-"linux Binary" = "Linux Binary"
-"windows Binary" = "Windows Binary"
+darwin = "macOS Binary"
+freebsd = "FreeBSD Binary"
+linux = "Linux Binary"
+windows = "Windows Binary"
