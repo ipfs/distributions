@@ -343,7 +343,7 @@ function startGoBuilds() {
 		git clone "https://$repo" "$GOPATH/src/$repo"
 	fi
 
-	repopath="$GOPATH/src/$repo/$package"
+	repopath="$GOPATH/src/$repo"
 
 	cleanRepo "$repopath"
 	git -C "$repopath" fetch
