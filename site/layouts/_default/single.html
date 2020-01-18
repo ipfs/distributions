@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ $.Title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Description">
+    <link rel="stylesheet" href="site.css">
+    <link href="https://code.cdn.mozilla.net/fonts/fira.css" rel="stylesheet">
+  </head>
+  <body data-spy="scroll" data-target="#d-navbar" data-offset="40">
+    {{ partial "header.html" }}
+    <div class="container">
+      <div id="about" class="row d-about col-md-8 offset-md-2">
+        {{ partial "about.md" | markdownify }}
+      </div>
+      <div class="row">
+        <div class="d-sidebar-wrapper col-md-2 sticky navbar-offcanvas" id="d-navbar-offcanvas">
+          <div class="d-sidebar">
+            <ul class="nav" id="d-navbar">
+              <li class="d-sidebar-item nav-item">
+                <a class="d-sidebar-link nav-link" href="#about">About</a>
+              </li>
+              {{ range $key, $value := $.Site.Data.releases }}
+                <li class="d-sidebar-item nav-item">
+                  <a class="d-sidebar-link nav-link" href="#{{ $key }}">{{ $key }}</a>
+                </li>
+              {{ end }}
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-10">
+          {{ range $key, $value := $.Site.Data.releases }}
+            {{ $data := $value.data }}
+            <div class="d-component" id="{{ $key }}">
+              <div class="d-component-desc row">
+                <div class="col-md-7">
+                  <h1 class="d-component-desc-title">{{ $key }}</h1>
+                  <h2 class="d-component-desc-sub-title">{{ $data.tagline }}</h2>
+                  <div class="d-component-desc-body">{{ $data.description | markdownify }}</div>
+                </div>
+                <div class="d-component-asset col-md-4 offset-md-1">
+                  <a href="" data-id="{{ $key }}" data-version="{{ $data.version }}" class="d-component-download-btn btn btn-primary">Download {{ $key }}</a>
+                  <div class="d-component-download-alternative">
+                    <div class="d-component-arch"></div>
+                    <div class="d-component-not">Not your platform? See below for alternatives</div>
+                  </div>
+                </div>
+              </div>
+              <div class="d-component-release row">
+                <div class="col-md-4">
+                  <h3 class="d-component-version">{{ $data.version }}</h3>
+                  <h4 class="d-component-release-date">{{ $data.date }}</h4>
+                  <ul class="d-component-actions">
+                    <li>
+                      <i class="ion-ios-book-outline"></i>
+                      <a class="d-component-actions-docs"
+                         href="https://github.com/{{ $data.owner }}/{{ $data.id }}/tree/{{ $data.version }}/README.md"
+                         target="_blank">Docs</a>
+                    </li>
+                    <li>
+                      <i class="ion-document"></i>
+                      <a class="d-component-actions-changelog"
+                         href="https://github.com/{{ $data.owner }}/{{ $data.id }}/tree/{{ $data.version }}/CHANGELOG.md"
+                         target="_blank">Changelog</a>
+                    </li>
+                    <li>
+                      <i class="ion-ios-albums-outline"></i>
+                      <a class="d-component-actions-versions" href="{{ $key }}">All Versions</a>
+                    </li>
+                    <li>
+                      <i class="ion-bug"></i>
+                      <a class="d-component-actions-issues"
+                         href="https://github.com/{{ $data.owner }}/{{ $data.id }}/issues"
+                         target="_blank">Issues</a>
+                    </li>
+                    <li>
+                      <i class="ion-social-github"></i>
+                      <a class="d-component-actions-repo"
+                         href="https://github.com/{{ $data.owner }}/{{ $data.id }}"
+                         target="_blank">Repository</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-8">
+                  <table class="table d-download-table">
+                    <tbody>
+                      {{ range $k, $p := $data.platforms }}
+                        {{ if ne $k "source" }}
+                          {{ $colspan := div 6 (len $p.archs) }}
+                          {{ $name := index (split $p.name " ") 0 }}
+                          <tr>
+                            <th>{{ index $.Site.Params.architectureMap $name }}</th>
+                            {{ range $target, $arch := $p.archs }}
+                              <td colspan="{{ $colspan }}">
+                                {{ $link := print (replaceRE "^/" "" $data.releaseLink) ($arch.link) }}
+                                <a href="{{ $link }}">{{ index $.Site.Params.targetMap $target }}</a>
+                              </td>
+                            {{ end }}
+                          </tr>
+                        {{ end }}
+                      {{ end }}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+    {{ partial "footer.html" }}
+    <script src="site.js"></script>
+  </body>
+</html>
