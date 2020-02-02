@@ -2,11 +2,11 @@
 
 tagsForRepo() {
 	local repo="$1"
-	git ls-remote -t --refs https://"$repo" | egrep -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
+	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
 }
 
 sedEscapeArg() {
-	echo $@ | sed 's/\//\\\//g'
+	echo "$@" | sed 's/\//\\\//g'
 }
 
 case $1 in
@@ -24,12 +24,12 @@ case $1 in
 		fi
 
 		echo "enter a description for this package"
-		read description
-		latest_tag=$(tagsForRepo $repo | tail -n1)
+		read -r description
+		latest_tag=$(tagsForRepo "$repo" | tail -n1)
 		echo "detected $latest_tag as the current version."
 		echo "press enter to confirm, or type the correct version"
-		read actual_latest
-		if [ ! -z "$actual_latest" ]; then
+		read -r actual_latest
+		if [ -n "$actual_latest" ]; then
 			latest_tag=$actual_latest
 		fi
 
@@ -37,15 +37,15 @@ case $1 in
 		mkdir -p "dists/$name"
 
 		cp templates/build_matrix "dists/$name/"
-		sed "s/ABCGHREPOXYZ/$(sedEscapeArg $repo)/g" templates/Makefile | sed "s/ABCDISTNAMEXYZ/$name/g" > dists/$name/Makefile
-		echo $description > dists/$name/description
-		echo $latest_tag > dists/$name/current
-		echo $latest_tag > dists/$name/versions
-		echo "" > dists/$name/filtered_versions
+		sed "s/ABCGHREPOXYZ/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/ABCDISTNAMEXYZ/$name/g" > "dists/$name/Makefile"
+		echo "$description" > "dists/$name/description"
+		echo "$latest_tag" > "dists/$name/current"
+		echo "$latest_tag" > "dists/$name/versions"
+		echo "" > "dists/$name/filtered_versions"
 
 		echo "distribution $name created successfully! starting build..."
 
-		make $name
+		make "$name"
 		;;
 	add-version)
 		dist="$2"
@@ -57,12 +57,12 @@ case $1 in
 
 		case "$nvers" in
 			*-*) echo "WARNING: not marking pre-release $dist $nvers as the current version." ;;
-			*) echo $nvers > dists/$dist/current ;;
+			*) echo "$nvers" > "dists/$dist/current" ;;
 		esac
 
-		echo $nvers >> dists/$dist/versions
+		echo "$nvers" >> "dists/$dist/versions"
 
-		cd dists/$dist && make update_sources
+		cd "dists/$dist" && make update_sources
 		make
 		;;
 	*)
