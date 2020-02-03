@@ -3,7 +3,8 @@
 set -eo pipefail
 
 # settings
-export GOPATH="$(go env GOPATH)"
+GOPATH="$(go env GOPATH)"
+export GOPATH
 
 # normalize umask
 umask 022
@@ -18,23 +19,23 @@ txtgrn='\e[0;32m' # Green
 txtylw='\e[0;33m' # Yellow
 
 function fail() {
-	printf $txtred%s$txtnon\\n "$@"
+	printf "$txtred%s$txtnon\n" "$@"
 	exit 1
 }
 
 function warn() {
-	printf $txtylw%s$txtnon\\n "$@"
+	printf "$txtylw%s$txtnon\n" "$@"
 }
 
 function notice() {
-	printf $txtgrn%s$txtnon\\n "$@"
+	printf "$txtgrn%s$txtnon\n" "$@"
 }
 
 # dep checks
 reqbins="jq zip tar go npm"
 for b in $reqbins
 do
-	if ! type $b > /dev/null; then
+	if ! type "$b" > /dev/null; then
 		fail "must have '$b' installed"
 	fi
 done
@@ -61,13 +62,15 @@ function buildDistInfo() {
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
-	local linkname="$bundle.`pkgType $goos`"
+	local linkname linksha512 linkcid
+
+	linkname="$bundle.$(pkgType "$goos")"
 	# Calculate sha512 and write it to .sha512 file
-	shasum -a 512 $dir/$linkname | awk "{gsub(\"${dir}/\", \"\");print}" > $dir/$linkname.sha512
-	local linksha512=$(cat $dir/$linkname.sha512 | awk '{ print $1 }')
+	shasum -a 512 "$dir/$linkname" | awk "{gsub(\"${dir}/\", \"\");print}" > "$dir/$linkname.sha512"
+	linksha512=$(awk '{ print $1 }' < "$dir/$linkname.sha512")
 	# Calculate CID and write it to .cid file
-	ipfs add --only-hash -Q $dir/$linkname > $dir/$linkname.cid
-	local linkcid=$(cat $dir/$linkname.cid)
+	ipfs add --only-hash -Q "$dir/$linkname" > "$dir/$linkname.cid"
+	linkcid=$(< "$dir/$linkname.cid")
 	cp dist.json dist.json.temp
 	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
 	rm dist.json.temp
@@ -81,12 +84,13 @@ function goBuild() {
       export GOOS="$goos"
       export GOARCH="$goarch"
 
-      local output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+      local output
+      output="$(pwd)/$(basename "$package")$(go env GOEXE)"
 
       go build -o "$output" \
-         -asmflags=all=-trimpath="$GOPATH" \
-         -gcflags=all=-trimpath="$GOPATH"  \
-         "${package}"
+	 -asmflags=all=-trimpath="$GOPATH" \
+	 -gcflags=all=-trimpath="$GOPATH"  \
+	 "${package}"
   )
 }
 
@@ -97,26 +101,28 @@ function doBuild() {
 	local output=$4
 	local version=$5
 
-	dir=$output
-	name=$(basename `pwd`)
-	binname=${name}_${version}_${goos}-${goarch}
+  local dir name binname
+
+	dir="$output"
+	name="$(basename "$(pwd)")"
+	binname="${name}_${version}_${goos}-${goarch}"
 
 	echo "==> building for $goos $goarch"
 
-	if [ -e $dir/$binname ]; then
+	if [ -e "$dir/$binname" ]; then
 		echo "    $dir/$binname exists, skipping build"
 		return
 	fi
 	echo "    output to $dir/$binname"
 
 	local build_dir_name=$name
-	mkdir -p $build_dir_name
+	mkdir -p "$build_dir_name"
 
-	mkdir -p $dir
+	mkdir -p "$dir"
 
 	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
-		cp $build_dir_name/build-log "$logfi"
+		cp "$build_dir_name/build-log" "$logfi"
 		warn "    failed. logfile at '$logfi'"
 		return 1
 	fi
@@ -125,13 +131,13 @@ function doBuild() {
 
 	# copy dist assets if they exist
 	if [ -e "$GOPATH/src/$package/dist" ]; then
-		cp -r "$GOPATH/src/$package/dist/"* $build_dir_name/
+		cp -r "$GOPATH/src/$package/dist/"* "$build_dir_name/"
 	fi
 
 	# now package it all up
-	if bundleDist $dir/$binname $goos $build_dir_name; then
-		buildDistInfo $binname $dir
-		rm -rf $build_dir_name
+	if bundleDist "$dir/$binname" "$goos" "$build_dir_name"; then
+		buildDistInfo "$binname" "$dir"
+		rm -rf "$build_dir_name"
 	else
 		warn "    failed to zip up output"
 		success=1
@@ -139,7 +145,7 @@ function doBuild() {
 
 
 	# output results to results table
-	echo $target, $goos, $goarch, $success >> $output/results
+	echo "$target, $goos, $goarch, $success" >> "$output/results"
 }
 
 function bundleDist() {
@@ -149,13 +155,13 @@ function bundleDist() {
 
 	test -n "$build_dir" || fail "must specify dir to bundle!"
 
-	case `pkgType $os` in
+	case $(pkgType "$os") in
 	zip)
-		zip -r $name.zip $build_dir/* > /dev/null
+		zip -r "$name.zip" "$build_dir"/* > /dev/null
 		return $?
 		;;
 	tar.gz)
-		tar czf $name.tar.gz $build_dir/*
+		tar czf "$name.tar.gz" "$build_dir"/*
 		return $?
 		;;
 	esac
@@ -173,12 +179,18 @@ function printInitialDistfile() {
 		reponame=$(cat repo-name)
 	fi
 
-	printf "{\"id\":\"$reponame\",\"version\":\"$version\",\"releaseLink\":\"/$distname/$version\"}" |
-	jq ".name = \"$distname\"" |
-	jq ".owner  = \"`cat repo-owner`\"" |
-	jq ".description = \"`cat description`\"" |
-	jq ".date = \"`date '+%B %d, %Y'`\"" |
-	jq ".platforms = {}"
+  jq <<EOF
+{
+  "id": "$reponame",
+  "version": "$version",
+  "releaseLink": "$distname/$version",
+  "name": "$distname",
+  "owner": "$(< repo-owner)",
+  "description": "$(< description)",
+  "date": "$(date '+%B %d, %Y')",
+  "platforms": {}
+}
+EOF
 }
 
 function printBuildInfo() {
@@ -187,7 +199,7 @@ function printBuildInfo() {
 	go version
 	echo "git sha of code: $commit"
 	uname -a
-	echo built on `date`
+	echo "built on $(date)"
 }
 
 function buildWithMatrix() {
@@ -202,21 +214,22 @@ function buildWithMatrix() {
 
 	mkdir -p "$output"
 
-	local distname=$(basename `pwd`)
+	local distname
+  distname=$(basename "$(pwd)")
 
-	printInitialDistfile $distname $version > dist.json
-	printBuildInfo $commit > $output/build-info
+	printInitialDistfile "$distname" "$version" > dist.json
+	printBuildInfo "$commit" > "$output/build-info"
 
 	# build each os/arch combo
-	while read line
+	while read -r line
 	do
-		doBuild $line "$package" "$output" "$version"
-	done < $matfile
+		doBuild "$line" "$package" "$output" "$version"
+	done < "$matfile"
 
 	# build the source
 	buildSource "$distname" "$GOPATH/src/$package" "$output"
 
-	mv dist.json $output/dist.json
+	mv dist.json "$output/dist.json"
 }
 
 function cleanRepo() {
@@ -234,7 +247,7 @@ function checkoutVersion() {
 
 	echo "==> checking out version $ref in $repopath"
 	cleanRepo "$repopath"
-	git -C "$repopath" checkout $ref > /dev/null || fail "failed to check out $ref in $reporoot"
+	git -C "$repopath" checkout "$ref" > /dev/null || fail "failed to check out $ref in $reporoot"
 }
 
 function installDeps() {
@@ -274,11 +287,12 @@ function buildSource() {
 	cp "$reporoot/$target" "$output"
 
 	# Calculate sha512 and write it to .sha512 file
-	shasum -a 512 $output/$target | awk "{gsub(\"${output}/\", \"\");print}" > $output/$target.sha512
-	local linksha512=$(cat $output/$target.sha512 | awk '{ print $1 }')
+	local linksha512 linkcid
+	shasum -a 512 "$output/$target" | awk "{gsub(\"${output}/\", \"\");print}" > "$output/$target.sha512"
+	linksha512=$(awk '{ print $1 }' < "$output/$target.sha512")
 	# Calculate CID and write it to .cid file
-	ipfs add --only-hash -Q $output/$target > $output/$target.cid
-	local linkcid=$(cat $output/$target.cid)
+	ipfs add --only-hash -Q "$output/$target" > "$output/$target.cid"
+	linkcid=$(< "$output/$target.cid")
 
 	cp dist.json dist.json.temp
 	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
@@ -291,7 +305,7 @@ function currentSha() {
 
 function printVersions() {
 	local versfile="$1"
-	versarr=$(tr \n ' ' < $versfile)
+	versarr=$(tr "\n" ' ' < "$versfile")
 	echo "building versions: $versarr"
 }
 
@@ -315,12 +329,13 @@ function startGoBuilds() {
 	outputDir="$releases/$distname"
 
 	# if the output directory already exists, warn user
-	if [ -e $outputDir ]; then
+	if [ -e "$outputDir" ]; then
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
 		warn "to perform a fresh build, please delete $outputDir"
 	else
-		local tmpdir=$(mktemp -d)
+		  local tmpdir
+      tmpdir=$(mktemp -d)
 		echo "fetching $existing to $tmpdir"
 		if ! ipfs get "$existing/$distname" -o "$tmpdir" 2> get_output; then
 			if grep "can't resolve ipns entry" get_output > /dev/null; then
@@ -337,7 +352,8 @@ function startGoBuilds() {
 		fail "versions file $versions does not exist"
 	fi
 
-	export GOPATH=$(pwd)/gopath
+	export GOPATH
+	GOPATH="$(pwd)/gopath"
 	if [ ! -e "$GOPATH/src/$repo/$package" ]; then
 		echo "fetching $distname code..."
 		git clone "https://$repo" "$GOPATH/src/$repo"
@@ -347,10 +363,10 @@ function startGoBuilds() {
 
 	cleanRepo "$repopath"
 	git -C "$repopath" fetch
-	printVersions $versions
+	printVersions "$versions"
 
 	echo ""
-	while read version
+	while read -r version
 	do
 		if [ -e "$outputDir/$version" ]; then
 			echo "$version already exists, skipping..."
@@ -358,9 +374,9 @@ function startGoBuilds() {
 		fi
 
 		notice "Building version $version binaries"
-		checkoutVersion $repopath $version
+		checkoutVersion "$repopath" "$version"
 		autoGoMod "$repopath"
-		installDeps "$repopath" 2>&1 > deps-$version.log
+		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
 		if [ ! -e "$matfile" ]; then
@@ -371,16 +387,16 @@ function startGoBuilds() {
 			fi
 		fi
 
-    rm -f "go.mod"
-    if [ "$GO111MODULE" == "on" ]; then
-        # Setup version information so we can build with go mod
-        go mod init "ipfs-distributions"
-        go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
-    fi
+		rm -f "go.mod"
+		if [ "$GO111MODULE" == "on" ]; then
+		    # Setup version information so we can build with go mod
+		    go mod init "ipfs-distributions"
+		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
+		fi
 
-    buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha $repopath)" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
 		echo ""
-	done < $versions
+	done < "$versions"
 
 	notice "build complete!"
 }

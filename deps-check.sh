@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# init colors
+txtnon='\e[0m'    # color reset
+txtred='\e[0;31m' # Red
+
 function fail() {
-	printf $txtred%s$txtnon\\n "$*"
+	printf "$txtred%s$txtnon\n" "$*"
 	exit 1
 }
 
