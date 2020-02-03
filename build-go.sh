@@ -62,7 +62,7 @@ function buildDistInfo() {
 		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
 	fi
 
-  local linkname linksha512 linkcid
+	local linkname linksha512 linkcid
 
 	linkname="$bundle.$(pkgType "$goos")"
 	# Calculate sha512 and write it to .sha512 file
@@ -88,9 +88,9 @@ function goBuild() {
       output="$(pwd)/$(basename "$package")$(go env GOEXE)"
 
       go build -o "$output" \
-         -asmflags=all=-trimpath="$GOPATH" \
-         -gcflags=all=-trimpath="$GOPATH"  \
-         "${package}"
+	 -asmflags=all=-trimpath="$GOPATH" \
+	 -gcflags=all=-trimpath="$GOPATH"  \
+	 "${package}"
   )
 }
 
@@ -287,7 +287,7 @@ function buildSource() {
 	cp "$reporoot/$target" "$output"
 
 	# Calculate sha512 and write it to .sha512 file
-  local linksha512 linkcid
+	local linksha512 linkcid
 	shasum -a 512 "$output/$target" | awk "{gsub(\"${output}/\", \"\");print}" > "$output/$target.sha512"
 	linksha512=$(awk '{ print $1 }' < "$output/$target.sha512")
 	# Calculate CID and write it to .cid file
@@ -353,7 +353,7 @@ function startGoBuilds() {
 	fi
 
 	export GOPATH
-  GOPATH="$(pwd)/gopath"
+	GOPATH="$(pwd)/gopath"
 	if [ ! -e "$GOPATH/src/$repo/$package" ]; then
 		echo "fetching $distname code..."
 		git clone "https://$repo" "$GOPATH/src/$repo"
@@ -387,14 +387,14 @@ function startGoBuilds() {
 			fi
 		fi
 
-    rm -f "go.mod"
-    if [ "$GO111MODULE" == "on" ]; then
-        # Setup version information so we can build with go mod
-        go mod init "ipfs-distributions"
-        go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
-    fi
+		rm -f "go.mod"
+		if [ "$GO111MODULE" == "on" ]; then
+		    # Setup version information so we can build with go mod
+		    go mod init "ipfs-distributions"
+		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
+		fi
 
-    buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
 		echo ""
 	done < "$versions"
 
