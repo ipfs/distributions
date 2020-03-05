@@ -101,7 +101,7 @@ function doBuild() {
 	local output=$4
 	local version=$5
 
-  local dir name binname
+	local dir name binname
 
 	dir="$output"
 	name="$(basename "$(pwd)")"
@@ -223,7 +223,7 @@ function buildWithMatrix() {
 	# build each os/arch combo
 	while read -r line
 	do
-		doBuild "$line" "$package" "$output" "$version"
+		doBuild ${line} "$package" "$output" "$version"
 	done < "$matfile"
 
 	# build the source
