@@ -101,7 +101,7 @@ function doBuild() {
 	local output=$4
 	local version=$5
 
-  local dir name binname
+	local dir name binname
 
 	dir="$output"
 	name="$(basename "$(pwd)")"
@@ -221,9 +221,9 @@ function buildWithMatrix() {
 	printBuildInfo "$commit" > "$output/build-info"
 
 	# build each os/arch combo
-	while read -r line
+	while read -r goos goarch
 	do
-		doBuild "$line" "$package" "$output" "$version"
+		doBuild "$goos" "$goarch" "$package" "$output" "$version"
 	done < "$matfile"
 
 	# build the source
