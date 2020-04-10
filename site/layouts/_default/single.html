@@ -13,11 +13,11 @@
   <body data-spy="scroll" data-target="#d-navbar" data-offset="40">
     {{ partial "header.html" }}
     <div class="container">
-      <div id="about" class="row d-about col-md-8 offset-md-2">
+      <div id="about" class="row d-about col-md-9 offset-md-3">
         {{ partial "about.md" | markdownify }}
       </div>
       <div class="row">
-        <div class="d-sidebar-wrapper col-md-2 sticky navbar-offcanvas" id="d-navbar-offcanvas">
+        <div class="d-sidebar-wrapper col-md-3 sticky navbar-offcanvas" id="d-navbar-offcanvas">
           <div class="d-sidebar">
             <ul class="nav" id="d-navbar">
               <li class="d-sidebar-item nav-item">
@@ -31,7 +31,7 @@
             </ul>
           </div>
         </div>
-        <div class="col-md-10">
+        <div class="col-md-9">
           {{ range $key, $value := $.Site.Data.releases }}
             {{ $data := $value.data }}
             <div class="d-component" id="{{ $key }}">
