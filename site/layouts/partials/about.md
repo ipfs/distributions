@@ -1,8 +1,8 @@
-#### Welcome to IPFS distributions
+#### Welcome to IPFS Distributions
 
 This is the downloads website for all the official software distributions of the
 [IPFS Project](https://ipfs.io). You can find all the apps, binaries, and
-packages here. Every distribution has a section on this page with,
+packages here. Every distribution has a section on this page with ...
 
 * the distribution name and a short description
 * the current version number and release date

@@ -1,12 +1,45 @@
-a:not([href]):not([tabindex]).navbar-brand {
-  color: white;
-}
-
-.d-header-light {
-  font-weight: 300;
-}
-
 #d-toggle {
   background: transparent;
   padding: 0;
+}
+
+#d-header-menu {
+    width: 100%;
+}
+
+.d-header {
+    background-color: @navy;
+    border-bottom: solid .5rem @aqua;
+    color: @aqua;
+    font-size: 32px;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 1rem;
+    img {
+      height: 50px;
+    }
+}
+
+.header-menu-title {
+  display: flex;
+  align-items: center;
+  float: left;
+}
+
+.header-menu-subtitle {
+  margin-left: 6px;
+  padding-bottom: 1px;
+}
+
+@media (max-width: 768px) {
+  .d-header {
+    font-size: 20px;
+    img {
+      height: 32px;
+    }
+    .header-menu-subtitle {
+      margin-left: 4px;
+      padding-bottom: 1px;
+    }
+  }
 }
