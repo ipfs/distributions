@@ -2,7 +2,13 @@
   padding-top: 4 * @baseLineHeight;
   padding-bottom: 3 * @baseLineHeight;
   border-bottom: 1px solid @borderGray;
-  min-height: 80vh;
+  min-height: 50vh;
+}
+
+.d-component:before {
+    height: 54px;
+    content: "";
+    display:block;
 }
 
 .d-component-desc-title {
@@ -137,5 +143,13 @@
 
   .d-download-table {
     margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .d-component:before {
+    height: 30px;
+    content: "";
+    display:block;
   }
 }
