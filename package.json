@@ -41,7 +41,6 @@
     "bootstrap": "^4.3.1",
     "browser-sync": "^2.26.7",
     "del": "^5.1.0",
-    "jq": "^1.7.2",
     "jquery": "^3.4.1",
     "less": "^3.10.3",
     "less-plugin-clean-css": "^1.5.1",
