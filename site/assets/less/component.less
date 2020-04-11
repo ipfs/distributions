@@ -1,7 +1,8 @@
 .d-component {
   padding-top: 3 * @baseLineHeight;
   padding-bottom: 3 * @baseLineHeight;
-  border-bottom: 1px solid @borderGray;
+  border-bottom: 2px solid @aqua;
+  min-height: 50vh;
 }
 
 .d-component:before {
@@ -155,12 +156,23 @@
 }
 
 @media (max-width: 768px) {
+  .d-component {
+    padding-top: 0;
+    padding-bottom: 1em;
+    border-bottom: 3px solid @aqua;
+  }
+  .d-component-release {
+    margin-top: 2em;
+  }
   .d-component:before {
     height: 30px;
     content: "";
     display:block;
   }
   .d-component-download-btn {
+    margin-top: 1em;
+  }
+  .d-download-table {
     margin-top: 1em;
   }
 }
