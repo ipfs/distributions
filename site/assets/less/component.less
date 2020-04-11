@@ -89,22 +89,25 @@
 
 .d-download-table {
   font-size: 14px;
-  line-height: 36px;
+  line-height: 1.5;
   margin-top: 2 * @baseLineHeight;
   border-bottom: 1px solid @borderGray;
 
   th {
     font-weight: 400;
     text-align: left;
-    padding: 0;
+    padding: 15px 0 0 0;
     border-top: none;
-    line-height: 3 * @baseLineHeight;
     width: 110px;
+  }
+
+  tr {
+    height: 1.5em;
   }
 
   td {
     text-align: center;
-    padding: 0;
+    padding: 15px 0 0 0;
     border-top: none;
     width: 56px;
 
@@ -115,7 +118,7 @@
       width: 100%;
       text-align: center;
       transition: background 0.2s ease-in-out;
-      line-height: 3 * @baseLineHeight;
+      // line-height: 3 * @baseLineHeight;
     }
 
     &:hover a,
