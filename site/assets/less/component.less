@@ -1,7 +1,7 @@
 .d-component {
   padding-top: 3 * @baseLineHeight;
   padding-bottom: 3 * @baseLineHeight;
-  border-bottom: 2px solid @aqua;
+  border-top: 2px solid @aqua;
   min-height: 50vh;
 }
 
@@ -9,6 +9,10 @@
     height: 70px;
     content: "";
     display:block;
+}
+
+.d-component:last-child {
+    min-height: calc(100vh - 136px);
 }
 
 .d-component-desc-title {
