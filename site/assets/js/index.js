@@ -11,6 +11,6 @@ $(() => {
   $('#d-navbar').slicknav({
     label: '',
     closeOnClick: true,
-    prependTo: '#d-header-menu'
+    appendTo: '#d-header-menu'
   })
 })

@@ -1,18 +1,34 @@
 body {
-  font-family: 'Fira Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
   line-height: @baseLineHeight;
   position: relative;
   color: @black;
-}
-
-.bg-inverse {
-  background-color: @baseBlue !important;
 }
 
 a {
   color: @linkBlue;
 }
 
+a:hover {
+  color: @linkBlue;
+}
+
 .pull-right {
   float: right;
+}
+
+code {
+  color: @redMuted;
+  font-size: 95%;
+}
+
+i {
+  color: @charcoalMuted;
+}
+
+@media (max-width: 768px) {
+  html, body {
+  scroll-padding-top: 68px; /* height of sticky header */
+  }
 }

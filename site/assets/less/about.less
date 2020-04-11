@@ -1,6 +1,11 @@
 .d-about {
-  padding-top: 5 * @baseLineHeight;
+  padding-top: calc(5 * @baseLineHeight + 40px);
   padding-bottom: 3 * @baseLineHeight;
   line-height: 1.5 * @baseLineHeight;
-  border-bottom: 1px solid @borderGray;
+}
+
+@media (max-width: 768px) {
+  .d-about {
+    padding-top: calc(5 * @baseLineHeight + 10px);
+  }
 }

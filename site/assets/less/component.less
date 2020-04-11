@@ -1,8 +1,18 @@
 .d-component {
-  padding-top: 4 * @baseLineHeight;
+  padding-top: 3 * @baseLineHeight;
   padding-bottom: 3 * @baseLineHeight;
-  border-bottom: 1px solid @borderGray;
-  min-height: 80vh;
+  border-top: 2px solid @aqua;
+  min-height: 50vh;
+}
+
+.d-component:before {
+    height: 70px;
+    content: "";
+    display:block;
+}
+
+.d-component:last-child {
+    min-height: calc(100vh - 136px);
 }
 
 .d-component-desc-title {
@@ -22,14 +32,16 @@
 }
 
 .d-component-download-btn {
-  background-color: @baseBlue;
-  font-size: 13px;
+  background-color: @aqua;
+  color: @black;
+  font-size: 18px;
+  line-height: 1.2;
   width: 100%;
   border: none;
   transition: background .2s linear;
 
   &:hover {
-    background-color: lighten(@baseBlue, 5%);
+    background-color: lighten(@navy, 5%);
     border: none;
   }
 }
@@ -84,24 +96,27 @@
 
 .d-download-table {
   font-size: 14px;
-  line-height: 36px;
+  line-height: 1.5;
   margin-top: 2 * @baseLineHeight;
+  border-bottom: 1px solid @borderGray;
 
   th {
     font-weight: 400;
     text-align: left;
-    padding: 0 @baseLineHeight;
-    border-bottom: 1px solid @borderGray;
+    padding: 15px 0 0 0;
     border-top: none;
-    line-height: 3 * @baseLineHeight;
+    width: 110px;
+  }
+
+  tr {
+    height: 1.5em;
   }
 
   td {
     text-align: center;
-    padding: 0;
-    border-bottom: 1px solid @borderGray;
+    padding: 15px 0 0 0;
     border-top: none;
-    width: 50px;
+    width: 56px;
 
     a {
       background: none;
@@ -110,13 +125,13 @@
       width: 100%;
       text-align: center;
       transition: background 0.2s ease-in-out;
-      line-height: 3 * @baseLineHeight;
+      // line-height: 3 * @baseLineHeight;
     }
 
     &:hover a,
     a:hover {
-      color: @white;
-      background-color: @baseBlue;
+      color: @black;
+      background-color: @aqua;
       cursor: pointer;
       text-decoration: none;
     }
@@ -130,6 +145,10 @@
   }
 }
 
+.d-download-table-border {
+  border-bottom: 1px solid @borderGray;
+}
+
 @media (min-width: 768px) {
   .d-component:first-child {
     padding-top: 5 * @baseLineHeight;
@@ -137,5 +156,25 @@
 
   .d-download-table {
     margin-top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .d-component {
+    padding-top: 0;
+    padding-bottom: 40px;
+    border-top: 3px solid @aqua;
+  }
+  .d-component-release {
+    margin-top: 2em;
+  }
+  .d-component:before {
+    height: 2em;
+  }
+  .d-component-download-btn {
+    margin-top: 1em;
+  }
+  .d-download-table {
+    margin-top: 1em;
   }
 }

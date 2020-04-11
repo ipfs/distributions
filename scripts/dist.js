@@ -59,7 +59,8 @@ del([
   './releases/*.html',
   './releases/css',
   './releases/build',
-  './releases/releases'
+  './releases/releases',
+  './releases/img'
 ]).then(() => {
   fs.readdir(RELEASE_PATH, (err, types) => {
     if (err) {
