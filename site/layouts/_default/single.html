@@ -89,12 +89,11 @@
                     <tbody>
                       {{ range $k, $p := $data.platforms }}
                         {{ if ne $k "source" }}
-                          {{ $colspan := div 6 (len $p.archs) }}
                           {{ $name := index (split $p.name " ") 0 }}
                           <tr>
                             <th>{{ index $.Site.Params.architectureMap $name }}</th>
                             {{ range $target, $arch := $p.archs }}
-                              <td colspan="{{ $colspan }}">
+                              <td>
                                 {{ $link := print (replaceRE "^/" "" $data.releaseLink) ($arch.link) }}
                                 <a href="{{ $link }}">{{ index $.Site.Params.targetMap $target }}</a>
                               </td>
