@@ -91,18 +91,15 @@
   font-size: 14px;
   line-height: 36px;
   margin-top: 2 * @baseLineHeight;
+  border-bottom: 1px solid @borderGray;
 
   th {
     font-weight: 400;
     text-align: left;
-    padding: 0 @baseLineHeight;
-    border-bottom: 1px solid @borderGray;
+    padding: 0;
     border-top: none;
     line-height: 3 * @baseLineHeight;
-  }
-
-  tr {
-    border-bottom: 1px solid @borderGray;
+    width: 100px;
   }
 
   td {
@@ -136,6 +133,10 @@
       border-bottom: none;
     }
   }
+}
+
+.d-download-table-border {
+  border-bottom: 1px solid @borderGray;
 }
 
 @media (min-width: 768px) {
