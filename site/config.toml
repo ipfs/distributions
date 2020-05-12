@@ -16,5 +16,6 @@ arm64 = "ARM-64"
 [params.architectureMap]
 darwin = "macOS Binary"
 freebsd = "FreeBSD Binary"
+openbsd = "OpenBSD Binary"
 linux = "Linux Binary"
 windows = "Windows Binary"
