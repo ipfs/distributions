@@ -179,7 +179,7 @@ function printInitialDistfile() {
 		reponame=$(cat repo-name)
 	fi
 
-  jq <<EOF
+  jq . <<EOF
 {
   "id": "$reponame",
   "version": "$version",
