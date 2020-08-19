@@ -12,8 +12,15 @@
   <body data-spy="scroll" data-target="#d-navbar" data-offset="40">
     {{ partial "header.html" }}
     <div class="container">
-      <div id="about" class="row d-about col-md-9 offset-md-3">
-        {{ partial "about.md" | markdownify }}
+      <div class="row">
+        <div id="about" class="d-about col-md-9 offset-md-3">
+          <div class="d-rss pb-3 pb-sm-0 pl-sm-2 float-sm-right text-right">
+            <a href="index.xml">
+              <img style="height: 1em" src="./img/icon-rss.svg">
+              Available as RSS</a>
+          </div>
+          {{ partial "about.md" | markdownify }}
+        </div>
       </div>
       <div class="row">
         <div class="d-sidebar-wrapper col-md-3 sticky navbar-offcanvas" id="d-navbar-offcanvas">

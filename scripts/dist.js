@@ -31,6 +31,9 @@ function getVersion (type, done) {
 function writeData (type, version, done) {
   const dataPath = join(RELEASE_PATH, type, version, 'dist.json')
   const data = JSON.parse(fs.readFileSync(dataPath).toString())
+  if (!data.dateUTC && data.date) {
+    data.dateUTC = new Date(data.date).toUTCString()
+  }
 
   const dataTargetPath = join(SITE_PATH, type)
   series([
