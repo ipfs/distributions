@@ -88,8 +88,7 @@ function goBuild() {
       output="$(pwd)/$(basename "$package")$(go env GOEXE)"
 
       go build -o "$output" \
-	 -asmflags=all=-trimpath="$GOPATH" \
-	 -gcflags=all=-trimpath="$GOPATH"  \
+	 -trimpath \
 	 "${package}"
   )
 }
