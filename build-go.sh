@@ -126,7 +126,7 @@ function doBuild() {
 		return 1
 	fi
 
-	notice "    build succeeded!"
+	notice "    $goos $goarch build succeeded!"
 
 	# copy dist assets if they exist
 	if [ -e "$GOPATH/src/$package/dist" ]; then
@@ -303,9 +303,9 @@ function currentSha() {
 }
 
 function printVersions() {
-	local versfile="$1"
-	versarr=$(tr "\n" ' ' < "$versfile")
-	echo "building versions: $versarr"
+	local versions="$1"
+	versarr=$(tr "\n" ' ' <<< "$versions")
+	notice "Building versions: $versarr"
 }
 
 function startGoBuilds() {
@@ -315,15 +315,24 @@ function startGoBuilds() {
 	versions="$4"
 	existing="$5"
 
-	if [ -z "$existing" ]; then
-		existing="/ipns/dist.ipfs.io"
+	if [ ! -e "$versions" ]; then
+		fail "versions file $versions does not exist"
 	fi
-	echo "using $existing as a template."
-
 
 	if ! mkdir -p "$releases"; then
 		fail "failed to create releases directory"
 	fi
+
+	if [ -z "$existing" ]; then
+		existing="/ipns/dist.ipfs.io"
+	fi
+	echo "Comparing $versions with $existing/$distname/versions"
+	newVersions=$(comm -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+	if [ -z "$newVersions" ]; then
+		notice "Skipping $distname - all versions published at $existing"
+		return
+	fi
+	printVersions "$newVersions"
 
 	outputDir="$releases/$distname"
 
@@ -332,39 +341,20 @@ function startGoBuilds() {
 		warn "dirty output directory"
 		warn "will skip building already existing binaries"
 		warn "to perform a fresh build, please delete $outputDir"
-	else
-		  local tmpdir
-      tmpdir=$(mktemp -d)
-		echo "fetching $existing to $tmpdir"
-		if ! ipfs get "$existing/$distname" -o "$tmpdir" 2> get_output; then
-			if grep "can't resolve ipns entry" get_output > /dev/null; then
-				fail "Your IPFS daemon is probably not running"
-			fi
-			if ! grep "no link named" get_output > /dev/null; then
-				fail "failed to fetch existing distributions"
-			fi
-		fi
-		mv "$tmpdir" "$outputDir"
-	fi
-
-	if [ ! -e "$versions" ]; then
-		fail "versions file $versions does not exist"
 	fi
 
 	export GOPATH
 	GOPATH="$(pwd)/gopath"
-	if [ ! -e "$GOPATH/src/$repo/$package" ]; then
-		echo "fetching $distname code..."
-		git clone "https://$repo" "$GOPATH/src/$repo"
-	fi
-
 	repopath="$GOPATH/src/$repo"
+
+	if [ ! -e "$repopath/$package" ]; then
+		echo "fetching $distname code..."
+		git clone "https://$repo" "$repopath"
+	fi
 
 	cleanRepo "$repopath"
 	git -C "$repopath" fetch
-	printVersions "$versions"
 
-	echo ""
 	while read -r version
 	do
 		if [ -e "$outputDir/$version" ]; then
@@ -395,7 +385,7 @@ function startGoBuilds() {
 
 		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
 		echo ""
-	done < "$versions"
+	done <<< "$newVersions"
 
 	notice "build complete!"
 }

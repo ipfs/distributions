@@ -62,8 +62,9 @@ case $1 in
 
 		echo "$nvers" >> "dists/$dist/versions"
 
-		cd "dists/$dist" && make update_sources
-		make
+		# cd "dists/$dist" && make update_sources
+		# build-go will update sources as needed
+		cd "dists/$dist" && make
 		;;
 	*)
 		echo "unrecognized command $1"

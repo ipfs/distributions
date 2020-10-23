@@ -6,6 +6,7 @@ all_dists: $(notdir $(wildcard dists/*))
 %:
 	@echo "** $@ **"
 	$(MAKE) -C dists/$@
+	@echo ""
 
 deps:
 	./deps-check.sh

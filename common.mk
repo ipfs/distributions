@@ -11,8 +11,8 @@ releases ?= $(relpath)releases/${distname}
 all: dist
 
 dist:
-	${relpath}build-go.sh "${distname}" "${repo}" "${package}" versions
-	cp versions "${releases}/versions"
+	${relpath}build-go.sh "${distname}" "${repo}" "${package}" versions /ipfs/QmQmCxMoGhSpTaCNp2pKWnuQoe1khVLm4wwLLByPSbZgJz
+	# cp versions "${releases}/versions"
 
 update_sources:
 	cd gopath/src/${repo}
