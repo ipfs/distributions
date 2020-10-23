@@ -33,31 +33,29 @@
     "npm": ">=5.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/preset-env": "^7.6.2",
-    "async": "^3.1.0",
-    "babel-loader": "^8.0.0",
-    "babel-polyfill": "^6.26.0",
     "bootstrap": "^4.3.1",
-    "browser-sync": "^2.26.7",
-    "del": "^5.1.0",
     "jquery": "^3.4.1",
-    "less": "^3.10.3",
-    "less-plugin-clean-css": "^1.5.1",
-    "lodash": "^4.17.15",
-    "mkdirp": "^0.5.1",
     "platform": "^1.3.5",
     "popper.js": "^1.15.0",
-    "require-dir": "^1.2.0",
     "slicknav": "^1.0.8",
-    "standard": "^13.1.0",
-    "tether": "^1.4.7",
-    "webpack": "^4.41.0"
+    "tether": "^1.4.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "babel-loader": "^8.0.0",
+    "babel-polyfill": "^6.26.0",
+    "browser-sync": "^2.26.7",
+    "del": "^5.1.0",
+    "node-fetch": "^2.6.1",
+    "chalk": "^4.1.0",
     "concurrently": "^4.1.2",
+    "less": "^3.10.3",
+    "less-plugin-clean-css": "^1.5.1",
     "onchange": "^6.1.0",
     "shellcheck": "^0.4.2",
+    "standard": "^13.1.0",
+    "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9"
   }
 }

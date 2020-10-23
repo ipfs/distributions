@@ -305,7 +305,7 @@ function currentSha() {
 function printVersions() {
 	local versions="$1"
 	versarr=$(tr "\n" ' ' <<< "$versions")
-	notice "Building versions: $versarr"
+	notice "building versions: $versarr"
 }
 
 function startGoBuilds() {
@@ -326,10 +326,12 @@ function startGoBuilds() {
 	if [ -z "$existing" ]; then
 		existing="/ipns/dist.ipfs.io"
 	fi
-	echo "Comparing $versions with $existing/$distname/versions"
+
+	echo "comparing $versions with $existing/$distname/versions"
 	newVersions=$(comm -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+
 	if [ -z "$newVersions" ]; then
-		notice "Skipping $distname - all versions published at $existing"
+		notice "skipping $distname - all versions published at $existing"
 		return
 	fi
 	printVersions "$newVersions"
@@ -362,7 +364,7 @@ function startGoBuilds() {
 			continue
 		fi
 
-		notice "Building version $version binaries"
+		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
 		autoGoMod "$repopath"
 		installDeps "$repopath" > "deps-$version.log" 2>&1
@@ -386,6 +388,8 @@ function startGoBuilds() {
 		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
 		echo ""
 	done <<< "$newVersions"
+
+	cp "$versions" "$outputDir/versions"
 
 	notice "build complete!"
 }
