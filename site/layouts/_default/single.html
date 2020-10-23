@@ -48,7 +48,9 @@
                   <div class="d-component-desc-body">{{ $data.description | markdownify }}</div>
                 </div>
                 <div class="d-component-asset col-md-4 offset-md-1">
-                  <a href="" data-id="{{ $key }}" data-version="{{ $data.version }}" class="d-component-download-btn btn btn-primary">Download {{ $key }}</a>
+                  <a href="" data-id="{{ $key }}" data-version="{{ $data.version }}" class="d-component-download-btn btn btn-primary">Download 
+                    <span class="nowrap">{{ $key }}</span>
+                  </a>
                   <div class="d-component-download-alternative">
                     <div class="d-component-arch"></div>
                     <div class="d-component-not">Not your platform? See below for alternatives</div>
