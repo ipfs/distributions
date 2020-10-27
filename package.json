@@ -4,7 +4,8 @@
   "description": "Source for building https://dist.ipfs.io.",
   "main": "",
   "scripts": {
-    "lint": "standard scripts/*.js site/assets/js/*.js && shellcheck *.sh",
+    "standard": "standard scripts/*.js site/assets/js/*.js",
+    "lint": "npm run standard && shellcheck *.sh",
     "clean": "rm -rf site/static/*.js site/static/*.css site/data/releases",
     "dist": "node scripts/dist.js",
     "webpack:build": "webpack -p",

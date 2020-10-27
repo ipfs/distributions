@@ -8,10 +8,10 @@
  *   - if it exists and has the same cid, skip it.
  *   - if it exists and is a file, update it.
  *   - it it exists and is a dir, recurse.
- * 
+ *
  * Builds an array of operations required to patch the local files into distRoot,
  * then applies those changes.
- * 
+ *
  * Prints the CID of the patched dist site, for pinning to cluster  and publishing.
  */
 
@@ -36,7 +36,7 @@ async function calculatePatch (patchRoot, distRoot, path = '', ops = []) {
     const itemPath = `${path}/${item.name}`
     const target = distList.find(({ name }) => name === item.name)
     if (!target) {
-      ops.push({ action: 'add', path: itemPath})
+      ops.push({ action: 'add', path: itemPath })
       continue
     }
     if (item.cid.equals(target.cid)) {
@@ -45,7 +45,7 @@ async function calculatePatch (patchRoot, distRoot, path = '', ops = []) {
     if (item.type === 'dir') {
       await calculatePatch(patchRoot, distRoot, itemPath, ops)
     } else {
-      ops.push({ action: 'update', path: itemPath})
+      ops.push({ action: 'update', path: itemPath })
     }
   }
   return ops
