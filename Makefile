@@ -20,10 +20,11 @@ site: deps
 	npm run build
 
 publish: all_dists site
-	ipfs add -q -r releases | tail -n1 | tee -a versions
+	./scripts/patch.js
 
 clean:
 	rm -rf releases
 	rm -rf dists/*/gopath
+	npm run clean
 
 .NOTPARALLEL:

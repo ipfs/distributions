@@ -1,9 +1,10 @@
+#!/usr/bin/env node
 'use strict'
 
 /*
  * Copy dist.json for the current version of each distribution to the hugo data dir.
  * Looks for a local releases/<dist>/<ver>/dist.json and fallsback to fetching the
- * current publised one from dist.ipfs.io/<dist>/<ver>/dist.json
+ * current published one from dist.ipfs.io/<dist>/<ver>/dist.json
  */
 
 const fs = require('fs')
@@ -49,8 +50,6 @@ async function writetoHugoDataDir (distName, data) {
 }
 
 async function updateHugoDataFiles () {
-  console.time('Done')
-
   await del([
     './releases/*.html',
     './releases/css',
@@ -66,8 +65,6 @@ async function updateHugoDataFiles () {
     const data = await fetchDistData(distName)
     await writetoHugoDataDir(distName, data)
   }
-
-  console.timeEnd('Done')
 }
 
 updateHugoDataFiles()
