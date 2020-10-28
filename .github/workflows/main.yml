@@ -21,9 +21,11 @@ jobs:
           go-version: '1.14'
       - run: sudo snap install ipfs jq
       - run: ipfs init --profile server
-      - run: ipfs daemon &
+      - run: ipfs daemon > ipfs.log &
       - name: wait for ipfs daemon
-        run: wget -q --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 60 http://127.0.0.1:5001/api/v0/version
+        run: tail -f ipfs.log | sed '/Daemon is ready/ q'
+      - name: connect to ipfs cluster
+        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
       # todo: add $(cat versions) to cluster (and wait)
       # todo: update dist dnslink if changed.
