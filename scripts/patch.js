@@ -97,9 +97,9 @@ async function addFiles (localPath) {
   logOps(ops)
   const newRoot = await applyPatch(ops, patchRoot, distRoot)
 
-  console.log('New root CID:')
-  console.log(chalk.green(newRoot))
-
   console.log(`Appending CID to ${VERSIONS}`)
   await fs.promises.appendFile(VERSIONS, `${newRoot}\n`)
+
+  console.log('New root CID:')
+  console.log(chalk.green(newRoot))
 })()

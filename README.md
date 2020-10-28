@@ -11,13 +11,70 @@
 
 **Table of Contents**
 
-- [Background](#background)
 - [Install](#install)
 - [Usage](#usage)
     - [Adding a version](#adding-a-version)
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
     - [Publishing](#publishing)
+- [Background](#background)
 - [Contribute](#contribute)
+
+## Install
+
+Clone the repo and install the following dependencies via your favorite package manager:
+
+* `go`
+* `npm`
+* `jq`
+* `ipfs`
+
+## Usage
+
+Add a new version or a new distribution with `./dist.sh` then run `make publish` to get the new CID to publish as dist.ipfs.io.
+
+### Adding a version
+
+Run:
+
+```sh
+> ./dist.sh add-version <dist> <version>
+```
+
+This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
+
+### Adding a new (go) distribution
+
+Run:
+
+```sh
+> ./dist.sh new-go-dist <dist> <git-repo>
+```
+
+And follow the prompts.
+
+### Publishing
+
+In the root of the repository, run:
+
+```sh
+> make publish
+```
+
+This will build any new binaries defined by dist and the website to the `releases` dir, add it to ipfs and patch it into the existing dag for the published dist.ipfs.io. Save the hash it spits out (we'll call it `<NEW_HASH>`), that's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
+
+Next, you should probably:
+
+1. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
+2. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
+
+If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask someone if you don't have permission to do so).
+
+Finally,
+
+1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
+2. File an issue on [ipfs/infrastructure](https://github.com/ipfs/infrastructure) with the hash you got from `make publish` and a link to the PR.
+
+If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
 ## Background
 
@@ -83,75 +140,6 @@ So for example, if we had `<dist>` `go-ipfs` and `fs-repo-migrations`, we might 
 ```
 
 We call this the **distribution index**, the listing of all distributions, their versions, and platform assets.
-
-## Install
-
-First, install the following dependencies via your favorite package manager:
-
-* hugo
-* npm
-* jq
-* ipfs
-* git (obviously)
-
-Then install the javascript dependencies with npm:
-
-```sh
-# Install javascript dependencies
-> npm install
-```
-
-Finally, run `make` to build/download the existing distribution over IPFS. It will download everything published at dist.ipfs.io and then build anything missing.
-
-```sh
-> make
-```
-
-## Usage
-
-### Adding a version
-
-Run:
-
-```sh
-> ./dist.sh add-version <dist> <version>
-```
-
-This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
-
-### Adding a new (go) distribution
-
-Run:
-
-```sh
-> ./dist.sh new-go-dist <dist> <git-repo>
-```
-
-And follow the prompts.
-
-### Publishing 
-
-In the root of the repository, run:
-
-```sh
-> make publish
-```
-
-This will build (or download) anything that hasn't been built and build, compile the index in `releases`, and add releases to ipfs. Save the hash it spits out (we'll call it `<NEW_HASH>`), that's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
-
-Next, you should probably:
-
-1. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
-2. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
-
-If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask someone if you don't have permission to do so).
-
-Finally,
-
-1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
-2. File an issue on [ipfs/infrastructure](https://github.com/ipfs/infrastructure) with the hash you got from `make publish` and a link to the PR.
-
-If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
 ## Contribute
 

@@ -51,6 +51,7 @@
     "chalk": "^4.1.0",
     "concurrently": "^4.1.2",
     "del": "^5.1.0",
+    "hugo-bin": "^0.64.5",
     "ipfs-http-client": "^47.0.1",
     "it-all": "^1.0.4",
     "less": "^3.10.3",
