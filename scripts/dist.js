@@ -9,9 +9,9 @@
 
 const fs = require('fs')
 const del = require('del')
-const all = require('it-all')
 const join = require('path').join
 const chalk = require('chalk')
+const concat = require('it-concat')
 const IpfsHttpClient = require('ipfs-http-client')
 require('make-promises-safe') // exit on error
 
@@ -39,7 +39,7 @@ async function fetchDistData (distName) {
     jsonStr = await fs.promises.readFile(dataPath, 'utf8')
   } else {
     console.log(`- Fetching dist.json for ${distName} ${version} from ${DIST_ROOT}`)
-    jsonStr = await all(ipfs.cat(`${DIST_ROOT}/${distName}/${version}/dist.json`))
+    jsonStr = await concat(ipfs.cat(`${DIST_ROOT}/${distName}/${version}/dist.json`))
   }
   const data = JSON.parse(jsonStr)
   if (!data.dateUTC && data.date) {
