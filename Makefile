@@ -1,4 +1,4 @@
-all: releases all_dists site
+all: deps releases all_dists site
 
 .PHONY: all all_dists deps
 all_dists: $(notdir $(wildcard dists/*))
