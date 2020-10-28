@@ -21,10 +21,10 @@ jobs:
           go-version: '1.14'
       - run: sudo snap install ipfs jq
       - run: ipfs init --profile server
-      - run: ipfs daemon > ipfs.log &
-      - name: wait for ipfs daemon
-        run: tail -f ipfs.log | sed '/Daemon is ready/ q'
-      - name: connect to ipfs cluster
+      - run: ipfs daemon &
+      - name: Wait for ipfs daemon
+        run: npx wait-port http://127.0.0.1:8080/api/v0/version
+      - name: Connect to ipfs cluster
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
       # todo: add $(cat versions) to cluster (and wait)
