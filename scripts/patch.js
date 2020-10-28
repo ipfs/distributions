@@ -21,6 +21,7 @@ const all = require('it-all')
 const chalk = require('chalk')
 const IpfsHttpClient = require('ipfs-http-client')
 const { globSource } = IpfsHttpClient
+require('make-promises-safe') // exit on error
 
 const ipfs = IpfsHttpClient()
 const pathTo = (file) => path.join(__dirname, '..', file)

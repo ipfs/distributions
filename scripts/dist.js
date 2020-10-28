@@ -13,6 +13,7 @@ const all = require('it-all')
 const join = require('path').join
 const chalk = require('chalk')
 const IpfsHttpClient = require('ipfs-http-client')
+require('make-promises-safe') // exit on error
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
 const SITE_PATH = join(__dirname, '..', 'site', 'data', 'releases')
