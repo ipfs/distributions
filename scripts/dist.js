@@ -9,13 +9,17 @@
 
 const fs = require('fs')
 const del = require('del')
+const all = require('it-all')
 const join = require('path').join
 const chalk = require('chalk')
-const fetch = require('node-fetch')
+const IpfsHttpClient = require('ipfs-http-client')
 
 const RELEASE_PATH = join(__dirname, '..', 'releases')
 const SITE_PATH = join(__dirname, '..', 'site', 'data', 'releases')
 const DIST_PATH = join(__dirname, '..', 'dists')
+const DIST_ROOT = '/ipns/dist.ipfs.io'
+
+const ipfs = IpfsHttpClient()
 
 async function getCurrentVersion (distName) {
   const pathToCurrent = join(DIST_PATH, distName, 'current')
@@ -28,22 +32,22 @@ async function getCurrentVersion (distName) {
 async function fetchDistData (distName) {
   const version = await getCurrentVersion(distName)
   const dataPath = join(RELEASE_PATH, distName, version, 'dist.json')
-  let data = null
+  let jsonStr = null
   if (fs.existsSync(dataPath)) {
-    console.log(chalk.green(`- Using local dist.json for ${distName} ${version}`))
-    data = JSON.parse(fs.readFileSync(dataPath).toString())
+    console.log(chalk.green(`- Using local dist.json for ${distName} ${version} from ${dataPath}`))
+    jsonStr = await fs.promises.readFile(dataPath, 'utf8')
   } else {
-    console.log(`- Fetching published dist.json for ${distName} ${version}`)
-    const res = await fetch(`https://ipfs.io/ipns/dist.ipfs.io/${distName}/${version}/dist.json`)
-    data = await res.json()
+    console.log(`- Fetching dist.json for ${distName} ${version} from ${DIST_ROOT}`)
+    jsonStr = await all(ipfs.cat(`${DIST_ROOT}/${distName}/${version}/dist.json`))
   }
+  const data = JSON.parse(jsonStr)
   if (!data.dateUTC && data.date) {
     data.dateUTC = new Date(data.date).toUTCString()
   }
   return data
 }
 
-async function writetoHugoDataDir (distName, data) {
+async function writeToHugoDataDir (distName, data) {
   const dataTargetPath = join(SITE_PATH, distName)
   await fs.promises.mkdir(dataTargetPath, { recursive: true })
   return fs.promises.writeFile(join(dataTargetPath, 'data.json'), JSON.stringify(data, null, 2))
@@ -63,7 +67,7 @@ async function updateHugoDataFiles () {
 
   for (const distName of items) {
     const data = await fetchDistData(distName)
-    await writetoHugoDataDir(distName, data)
+    await writeToHugoDataDir(distName, data)
   }
 }
 
