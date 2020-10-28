@@ -19,7 +19,7 @@ site: deps
 	@echo "** Building site **"
 	npm run build
 
-publish: all_dists site
+publish: deps all_dists site
 	./scripts/patch.js
 
 clean:

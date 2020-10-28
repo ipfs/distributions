@@ -8,12 +8,13 @@
     "lint": "npm run standard && shellcheck *.sh",
     "clean": "rm -rf site/static/*.js site/static/*.css site/data/releases",
     "dist": "node scripts/dist.js",
-    "webpack:build": "webpack -p",
+    "webpack:build": "webpack -p --display minimal",
     "webpack:watch": "webpack --watch-stdin",
     "less:watch": "onchange 'site/assets/less/**/*.less' -- npm run less:build",
     "less:build": "lessc site/assets/less/main.less --clean-css site/static/site.css",
+    "build:hugo": "hugo --quiet -s site -d ../releases",
     "build:assets": "npm run clean && npm run less:build && npm run webpack:build",
-    "build": "npm run dist && npm run build:assets && hugo -s site -d ../releases",
+    "build": "npm run dist && npm run build:assets && npm run build:hugo",
     "start": "npm run clean && npm run dist && npm run less:build && npm run webpack:build && concurrently --kill-others 'npm run less:watch' 'npm run webpack:watch' 'hugo serve -s site'"
   },
   "repository": {
