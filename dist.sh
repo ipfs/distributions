@@ -13,8 +13,9 @@ case $1 in
 	new-go-dist)
 		name="$2"
 		repo="$3"
+		subpkg="$4"
 		if [ -z "$name" ] || [ -z "$repo" ]; then
-			echo "usage: dist.sh new-go-dist <distname> <repo>"
+			echo "usage: dist.sh new-go-dist <distname> <repo> [<sub-package>]"
 			exit 1
 		fi
 
@@ -37,15 +38,13 @@ case $1 in
 		mkdir -p "dists/$name"
 
 		cp templates/build_matrix "dists/$name/"
-		sed "s/ABCGHREPOXYZ/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/ABCDISTNAMEXYZ/$name/g" > "dists/$name/Makefile"
+		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$subpkg/g" > "dists/$name/Makefile"
 		echo "$description" > "dists/$name/description"
 		echo "$latest_tag" > "dists/$name/current"
 		echo "$latest_tag" > "dists/$name/versions"
 		echo "" > "dists/$name/filtered_versions"
 
-		echo "distribution $name created successfully! starting build..."
-
-		make "$name"
+		echo "distribution $name created successfully! To start build: make $name"
 		;;
 	add-version)
 		dist="$2"
