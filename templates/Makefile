@@ -1,4 +1,5 @@
 repo = github.com/foo/bar
-package = cmd/bar # the sub-package to build (omit when building the main package)
+# sub-package to build (omit when building the main package)
+package = cmd/bar
 
 include ../../common.mk
