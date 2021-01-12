@@ -24,6 +24,7 @@ publish: deps all_dists site
 
 clean:
 	rm -rf releases
+	chmod -f -R u+w dists/*/gopath || true
 	rm -rf dists/*/gopath
 	npm run clean
 
