@@ -42,7 +42,6 @@ case $1 in
 		echo "$description" > "dists/$name/description"
 		echo "$latest_tag" > "dists/$name/current"
 		echo "$latest_tag" > "dists/$name/versions"
-		echo "" > "dists/$name/filtered_versions"
 
 		echo "distribution $name created successfully! To start build: make $name"
 		;;
