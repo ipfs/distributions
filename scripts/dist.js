@@ -69,10 +69,10 @@ async function updateHugoDataFiles () {
   for (const distName of items) {
     const noSite = join(DIST_PATH, distName, 'no-site')
     if (fs.existsSync(noSite)) {
-      console.log(`- Skipping site generations for ${distName}`)      
+      console.log(`- Skipping site generations for ${distName}`)
       continue
     }
-    console.log(`- Generating site for ${distName}`)      
+    console.log(`- Generating site for ${distName}`)
     const data = await fetchDistData(distName)
     await writeToHugoDataDir(distName, data)
   }
