@@ -57,9 +57,9 @@ function buildDistInfo() {
 	local dir="$2"
 
 	# print json output
-	if ! jq -e ".platforms[\"$goos\"]" dist.json > /dev/null; then
+	if ! jq -e ".platforms[\"$goos\"]" < dist.json > /dev/null; then
 		cp dist.json dist.json.temp
-		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
+		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" < dist.json.temp > dist.json
 	fi
 
 	local linkname linksha512 linkcid
@@ -72,7 +72,7 @@ function buildDistInfo() {
 	ipfs add --only-hash -Q "$dir/$linkname" > "$dir/$linkname.cid"
 	linkcid=$(< "$dir/$linkname.cid")
 	cp dist.json dist.json.temp
-	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" < dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -294,7 +294,7 @@ function buildSource() {
 	linkcid=$(< "$output/$target.cid")
 
 	cp dist.json dist.json.temp
-	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
+	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" < dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
