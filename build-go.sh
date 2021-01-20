@@ -6,6 +6,9 @@ set -eo pipefail
 GOPATH="$(go env GOPATH)"
 export GOPATH
 
+DIST_PATH=${DIST_PATH:-/ipns/dist.ipfs.io}
+DIST_PATH=$(ipfs resolve "$DIST_PATH")
+
 # normalize umask
 umask 022
 
@@ -324,7 +327,7 @@ function startGoBuilds() {
 	fi
 
 	if [ -z "$existing" ]; then
-		existing="/ipns/dist.ipfs.io"
+		existing="$DIST_PATH"
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
