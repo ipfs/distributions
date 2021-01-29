@@ -12,7 +12,6 @@ all: dist
 
 dist:
 	${relpath}build-go.sh "${distname}" "${repo}" "${package}" versions
-	cp versions "${releases}/versions"
 
 update_sources:
 	cd gopath/src/${repo}
