@@ -26,7 +26,7 @@ require('make-promises-safe') // exit on error
 const ipfs = IpfsHttpClient()
 const pathTo = (file) => path.join(__dirname, '..', file)
 
-const event = new Date();
+const event = new Date()
 const DIST_DOMAIN = 'dist.ipfs.io'
 const MFS_DIR = `/${DIST_DOMAIN}` + '_' + event.toISOString()
 const PATCH_SRC = pathTo('releases')
