@@ -328,7 +328,7 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
-	newVersions=$(comm -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+	newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
 
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
