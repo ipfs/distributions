@@ -28,7 +28,7 @@ const pathTo = (file) => path.join(__dirname, '..', file)
 
 const event = new Date()
 const DIST_DOMAIN = 'dist.ipfs.io'
-const MFS_DIR = `/${DIST_DOMAIN}` + '_' + event.toISOString()
+const MFS_DIR = `/${DIST_DOMAIN}/${DIST_DOMAIN}` + '_' + event.toISOString()
 const PATCH_SRC = pathTo('releases')
 const VERSIONS = pathTo('versions')
 
@@ -55,6 +55,7 @@ async function calculatePatch (patchRoot, distRoot, path = '', ops = []) {
 
 async function applyPatch (ops, patchRoot, distRoot) {
   await ipfs.files.rm(MFS_DIR, { recursive: true, force: true })
+  await ipfs.files.mkdir(`/${DIST_DOMAIN}`, { parents: true })
   await ipfs.files.cp(distRoot, MFS_DIR)
   for (const op of ops) {
     const src = `${patchRoot}${op.path}`
