@@ -6,6 +6,9 @@ set -eo pipefail
 GOPATH="$(go env GOPATH)"
 export GOPATH
 
+# Always use go modules
+export GO111MODULE=on
+
 DIST_PATH=${DIST_PATH:-/ipns/dist.ipfs.io}
 DIST_PATH=$(ipfs resolve "$DIST_PATH")
 
@@ -83,13 +86,13 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
+	local builddir="$4"
   (
       export GOOS="$goos"
       export GOARCH="$goarch"
 
       local output
-      output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-
+      output="${builddir}/$(basename "$package")$(go env GOEXE)"
       go build -o "$output" \
 	 -trimpath \
 	 "${package}"
@@ -121,8 +124,10 @@ function doBuild() {
 	mkdir -p "$build_dir_name"
 
 	mkdir -p "$dir"
+	local src_dir="${GOPATH}/src/${package}"
+	local build_dir="$(pwd)/${build_dir_name}"
 
-	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
+	if ! (cd "$src_dir" && goBuild "$package" "$goos" "$goarch" "$build_dir") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp "$build_dir_name/build-log" "$logfi"
 		warn "    failed. logfile at '$logfi'"
@@ -217,7 +222,7 @@ function buildWithMatrix() {
 	mkdir -p "$output"
 
 	local distname
-  distname=$(basename "$(pwd)")
+	distname=$(basename "$(pwd)")
 
 	printInitialDistfile "$distname" "$version" > dist.json
 	printBuildInfo "$commit" > "$output/build-info"
@@ -259,15 +264,6 @@ function installDeps() {
 
 	if make -C "$reporoot" -n deps > /dev/null 2>&1; then
 		make -C "$reporoot" deps
-	fi
-}
-
-function autoGoMod() {
-	local repopath=$1
-	if test -e "$(git -C "$repopath" rev-parse --show-toplevel)/go.mod"; then
-		export GO111MODULE=on
-	else
-		export GO111MODULE=off
 	fi
 }
 
@@ -369,7 +365,6 @@ function startGoBuilds() {
 
 		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
-		autoGoMod "$repopath"
 		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
