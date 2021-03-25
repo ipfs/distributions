@@ -356,15 +356,18 @@ function startGoBuilds() {
 	cleanRepo "$repopath"
 	git -C "$repopath" fetch
 
-	while read -r version
+	while read -r tag_version
 	do
+		# If version is a tag (e.g. "fs-repo-1-to-2/v1.0.0") then get version part
+		version="$(echo $tag_version | cut -d '/' -f 2)"
+
 		if [ -e "$outputDir/$version" ]; then
 			echo "$version already exists, skipping..."
 			continue
 		fi
 
 		notice "building version $version binaries"
-		checkoutVersion "$repopath" "$version"
+		checkoutVersion "$repopath" "$tag_version"
 		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
