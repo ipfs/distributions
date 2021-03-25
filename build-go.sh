@@ -86,14 +86,13 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
-	local builddir="$4"
   (
       export GOOS="$goos"
       export GOARCH="$goarch"
 
       local output
-      output="${builddir}/$(basename "$package")$(go env GOEXE)"
-      go build -o "$output" \
+      output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+      go build -mod=mod -o "$output" \
 	 -trimpath \
 	 "${package}"
   )
@@ -124,10 +123,8 @@ function doBuild() {
 	mkdir -p "$build_dir_name"
 
 	mkdir -p "$dir"
-	local src_dir="${GOPATH}/src/${package}"
-	local build_dir="$(pwd)/${build_dir_name}"
 
-	if ! (cd "$src_dir" && goBuild "$package" "$goos" "$goarch" "$build_dir") > build-log; then
+	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp "$build_dir_name/build-log" "$logfi"
 		warn "    failed. logfile at '$logfi'"
