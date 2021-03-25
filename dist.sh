@@ -5,6 +5,12 @@ tagsForRepo() {
 	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
 }
 
+tagsForSubpkg() {
+	local repo="$1"
+    local subpkg="$2"
+	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/$subpkg/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
+}
+
 sedEscapeArg() {
 	echo "$@" | sed 's/\//\\\//g'
 }
@@ -26,7 +32,10 @@ case $1 in
 
 		echo "enter a description for this package"
 		read -r description
-		latest_tag=$(tagsForRepo "$repo" | tail -n1)
+        latest_tag=$(tagsForSubpkg "$repo" "$subpkg" | tail -n1)
+        if [ -z "$latest_tag" ]; then
+		    latest_tag=$(tagsForRepo "$repo" | tail -n1)
+        fi
 		echo "detected $latest_tag as the current version."
 		echo "press enter to confirm, or type the correct version"
 		read -r actual_latest

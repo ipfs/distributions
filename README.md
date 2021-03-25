@@ -42,15 +42,25 @@ Run:
 
 This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
 
+If the distribution is versioned using a tag that is separate from the repo tag, then specify the tag as the version.  Example:
+```sh
+> ./dist.sh add-version fs-repo-99-to-100 fs-repo-99-to-100/v1.0.0
+```
+
 ### Adding a new (go) distribution
 
 Run:
 
 ```sh
-> ./dist.sh new-go-dist <dist> <git-repo>
+> ./dist.sh new-go-dist <dist> <git-repo> [sub_package]
 ```
 
 And follow the prompts.
+
+The optional `sub_package` argument is used to specify a module within a repo.  The script looks to see if the subpackage is tagged separately from the repo by looking for `sub_package/version` tags. Example:
+```sh
+> ./dist.sh fs-repo-99-to-100 github.com/ipfs/fs-repo-migrations fs-repo-99-to-100
+```
 
 ### Publishing
 
