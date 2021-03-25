@@ -254,6 +254,12 @@ function checkoutVersion() {
 
 	echo "==> checking out version $ref in $repopath"
 	cleanRepo "$repopath"
+
+	# If there is a vtag, then checkout using <vtag>/<version>
+	if [ -e vtag ]; then
+		ref="$(cat vtag)/${ref}"
+	fi
+
 	git -C "$repopath" checkout "$ref" > /dev/null || fail "failed to check out $ref in $reporoot"
 }
 
@@ -312,7 +318,7 @@ function startGoBuilds() {
 	repo="$2"
 	package="$3"
 	versions="$4"
-	existing="$5"
+	existing="$6"
 
 	if [ ! -e "$versions" ]; then
 		fail "versions file $versions does not exist"
@@ -356,18 +362,15 @@ function startGoBuilds() {
 	cleanRepo "$repopath"
 	git -C "$repopath" fetch
 
-	while read -r tag_version
+	while read -r version
 	do
-		# If version is a tag (e.g. "fs-repo-1-to-2/v1.0.0") then get version part
-		version="$(echo $tag_version | cut -d '/' -f 2)"
-
 		if [ -e "$outputDir/$version" ]; then
 			echo "$version already exists, skipping..."
 			continue
 		fi
 
 		notice "building version $version binaries"
-		checkoutVersion "$repopath" "$tag_version"
+		checkoutVersion "$repopath" "$version"
 		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
