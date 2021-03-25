@@ -42,9 +42,9 @@ Run:
 
 This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
 
-If the distribution is versioned using a tag that is separate from the repo tag, then specify the tag as the version.  Example:
+Example:
 ```sh
-> ./dist.sh add-version fs-repo-99-to-100 fs-repo-99-to-100/v1.0.0
+> ./dist.sh add-version fs-repo-99-to-100 v1.0.1
 ```
 
 ### Adding a new (go) distribution

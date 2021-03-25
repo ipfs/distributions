@@ -46,17 +46,27 @@ case $1 in
 		echo "choosing $latest_tag as current version of $name"
 		mkdir -p "dists/$name"
 
+		# If latest_tag is a sub-package tag (e.g. "fs-repo-1-to-2/v1.0.0") then get parts
+		version="$(basename $latest_tag)"
+		tag="$(dirname $latest_tag)"
+
 		cp templates/build_matrix "dists/$name/"
 		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$subpkg/g" > "dists/$name/Makefile"
 		echo "$description" > "dists/$name/description"
-		echo "$latest_tag" > "dists/$name/current"
-		echo "$latest_tag" > "dists/$name/versions"
+		echo "$version" > "dists/$name/current"
+		echo "$version" > "dists/$name/versions"
+
+		# Create vtag file that contains version tag prefix
+		if [ "$tag" != "." ]; then
+			echo "$tag" > "dists/${name}/vtag"
+		fi
 
 		echo "distribution $name created successfully! To start build: make $name"
 		;;
 	add-version)
 		dist="$2"
 		nvers="$3"
+
 		if [ -z "$dist" ] || [ -z "$nvers" ]; then
 			echo "usage: dist.sh add-version <dist> <version>"
 			exit 1
