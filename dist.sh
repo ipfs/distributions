@@ -7,7 +7,7 @@ tagsForRepo() {
 
 tagsForSubpkg() {
 	local repo="$1"
-    local subpkg="$2"
+	local subpkg="$2"
 	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/$subpkg/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
 }
 
@@ -32,10 +32,10 @@ case $1 in
 
 		echo "enter a description for this package"
 		read -r description
-        latest_tag=$(tagsForSubpkg "$repo" "$subpkg" | tail -n1)
-        if [ -z "$latest_tag" ]; then
-		    latest_tag=$(tagsForRepo "$repo" | tail -n1)
-        fi
+		latest_tag=$(tagsForSubpkg "$repo" "$subpkg" | tail -n1)
+		if [ -z "$latest_tag" ]; then
+			latest_tag=$(tagsForRepo "$repo" | tail -n1)
+		fi
 		echo "detected $latest_tag as the current version."
 		echo "press enter to confirm, or type the correct version"
 		read -r actual_latest
@@ -48,7 +48,7 @@ case $1 in
 
 		# If latest_tag is a sub-package tag (e.g. "fs-repo-1-to-2/v1.0.0") then get parts
 		version="$(basename $latest_tag)"
-		tag="$(dirname $latest_tag)"
+		tag_prefix="$(dirname $latest_tag)"
 
 		cp templates/build_matrix "dists/$name/"
 		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$subpkg/g" > "dists/$name/Makefile"
@@ -57,8 +57,8 @@ case $1 in
 		echo "$version" > "dists/$name/versions"
 
 		# Create vtag file that contains version tag prefix
-		if [ "$tag" != "." ]; then
-			echo "$tag" > "dists/${name}/vtag"
+		if [ "$tag_prefix" != "." ]; then
+			echo "$tag_prefix" > "dists/${name}/vtag"
 		fi
 
 		echo "distribution $name created successfully! To start build: make $name"
