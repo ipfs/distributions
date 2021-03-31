@@ -5,6 +5,12 @@ tagsForRepo() {
 	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
 }
 
+tagsForSubpkg() {
+	local repo="$1"
+	local subpkg="$2"
+	git ls-remote -t --refs https://"$repo" | grep -E -o "refs/tags/$subpkg/v(.*)" | sed 's/refs\/tags\///' | grep -v "-"
+}
+
 sedEscapeArg() {
 	echo "$@" | sed 's/\//\\\//g'
 }
@@ -13,8 +19,9 @@ case $1 in
 	new-go-dist)
 		name="$2"
 		repo="$3"
+		subpkg="$4"
 		if [ -z "$name" ] || [ -z "$repo" ]; then
-			echo "usage: dist.sh new-go-dist <distname> <repo>"
+			echo "usage: dist.sh new-go-dist <distname> <repo> [<sub-package>]"
 			exit 1
 		fi
 
@@ -25,7 +32,10 @@ case $1 in
 
 		echo "enter a description for this package"
 		read -r description
-		latest_tag=$(tagsForRepo "$repo" | tail -n1)
+		latest_tag=$(tagsForSubpkg "$repo" "$subpkg" | tail -n1)
+		if [ -z "$latest_tag" ]; then
+			latest_tag=$(tagsForRepo "$repo" | tail -n1)
+		fi
 		echo "detected $latest_tag as the current version."
 		echo "press enter to confirm, or type the correct version"
 		read -r actual_latest
@@ -36,20 +46,27 @@ case $1 in
 		echo "choosing $latest_tag as current version of $name"
 		mkdir -p "dists/$name"
 
+		# If latest_tag is a sub-package tag (e.g. "fs-repo-1-to-2/v1.0.0") then get parts
+		version="$(basename "$latest_tag")"
+		tag_prefix="$(dirname "$latest_tag")"
+
 		cp templates/build_matrix "dists/$name/"
-		sed "s/ABCGHREPOXYZ/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/ABCDISTNAMEXYZ/$name/g" > "dists/$name/Makefile"
+		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$subpkg/g" > "dists/$name/Makefile"
 		echo "$description" > "dists/$name/description"
-		echo "$latest_tag" > "dists/$name/current"
-		echo "$latest_tag" > "dists/$name/versions"
-		echo "" > "dists/$name/filtered_versions"
+		echo "$version" > "dists/$name/current"
+		echo "$version" > "dists/$name/versions"
 
-		echo "distribution $name created successfully! starting build..."
+		# Create vtag file that contains version tag prefix
+		if [ "$tag_prefix" != "." ]; then
+			echo "$tag_prefix" > "dists/${name}/vtag"
+		fi
 
-		make "$name"
+		echo "distribution $name created successfully! To start build: make $name"
 		;;
 	add-version)
 		dist="$2"
 		nvers="$3"
+
 		if [ -z "$dist" ] || [ -z "$nvers" ]; then
 			echo "usage: dist.sh add-version <dist> <version>"
 			exit 1

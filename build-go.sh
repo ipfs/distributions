@@ -6,6 +6,12 @@ set -eo pipefail
 GOPATH="$(go env GOPATH)"
 export GOPATH
 
+# Always use go modules
+export GO111MODULE=on
+
+DIST_PATH=${DIST_PATH:-/ipns/dist.ipfs.io}
+DIST_PATH=$(ipfs resolve "$DIST_PATH")
+
 # normalize umask
 umask 022
 
@@ -57,9 +63,9 @@ function buildDistInfo() {
 	local dir="$2"
 
 	# print json output
-	if ! jq -e ".platforms[\"$goos\"]" dist.json > /dev/null; then
+	if ! jq -e ".platforms[\"$goos\"]" < dist.json > /dev/null; then
 		cp dist.json dist.json.temp
-		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" dist.json.temp > dist.json
+		jq ".platforms[\"$goos\"] = {\"name\":\"$goos Binary\",\"archs\":{}}" < dist.json.temp > dist.json
 	fi
 
 	local linkname linksha512 linkcid
@@ -72,7 +78,7 @@ function buildDistInfo() {
 	ipfs add --only-hash -Q "$dir/$linkname" > "$dir/$linkname.cid"
 	linkcid=$(< "$dir/$linkname.cid")
 	cp dist.json dist.json.temp
-	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
+	jq ".platforms[\"$goos\"].archs[\"$goarch\"] = {\"link\":\"/$linkname\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" < dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -86,8 +92,7 @@ function goBuild() {
 
       local output
       output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-
-      go build -o "$output" \
+      go build -mod=mod -o "$output" \
 	 -trimpath \
 	 "${package}"
   )
@@ -214,7 +219,7 @@ function buildWithMatrix() {
 	mkdir -p "$output"
 
 	local distname
-  distname=$(basename "$(pwd)")
+	distname=$(basename "$(pwd)")
 
 	printInitialDistfile "$distname" "$version" > dist.json
 	printBuildInfo "$commit" > "$output/build-info"
@@ -246,6 +251,12 @@ function checkoutVersion() {
 
 	echo "==> checking out version $ref in $repopath"
 	cleanRepo "$repopath"
+
+	# If there is a vtag, then checkout using <vtag>/<version>
+	if [ -e vtag ]; then
+		ref="$(cat vtag)/${ref}"
+	fi
+
 	git -C "$repopath" checkout "$ref" > /dev/null || fail "failed to check out $ref in $reporoot"
 }
 
@@ -256,15 +267,6 @@ function installDeps() {
 
 	if make -C "$reporoot" -n deps > /dev/null 2>&1; then
 		make -C "$reporoot" deps
-	fi
-}
-
-function autoGoMod() {
-	local repopath=$1
-	if test -e "$(git -C "$repopath" rev-parse --show-toplevel)/go.mod"; then
-		export GO111MODULE=on
-	else
-		export GO111MODULE=off
 	fi
 }
 
@@ -294,7 +296,7 @@ function buildSource() {
 	linkcid=$(< "$output/$target.cid")
 
 	cp dist.json dist.json.temp
-	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" dist.json.temp > dist.json
+	jq ".source = {\"link\": \"/$target\",\"cid\":\"$linkcid\",\"sha512\":\"$linksha512\"}" < dist.json.temp > dist.json
 	rm dist.json.temp
 }
 
@@ -313,7 +315,7 @@ function startGoBuilds() {
 	repo="$2"
 	package="$3"
 	versions="$4"
-	existing="$5"
+	existing="$6"
 
 	if [ ! -e "$versions" ]; then
 		fail "versions file $versions does not exist"
@@ -324,7 +326,7 @@ function startGoBuilds() {
 	fi
 
 	if [ -z "$existing" ]; then
-		existing="/ipns/dist.ipfs.io"
+		existing="$DIST_PATH"
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
@@ -366,7 +368,6 @@ function startGoBuilds() {
 
 		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
-		autoGoMod "$repopath"
 		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
