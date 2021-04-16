@@ -24,6 +24,14 @@ txtred='\e[0;31m' # Red
 txtgrn='\e[0;32m' # Green
 txtylw='\e[0;33m' # Yellow
 
+if which sha512sum >/dev/null 2>&1; then
+	:
+elif which shasum >/dev/null 2>&1; then
+	function sha512sum() {
+		shasum -a 512 "$@"
+	}
+fi
+
 function fail() {
 	printf "$txtred%s$txtnon\n" "$@"
 	exit 1
@@ -72,7 +80,7 @@ function buildDistInfo() {
 
 	linkname="$bundle.$(pkgType "$goos")"
 	# Calculate sha512 and write it to .sha512 file
-	shasum -a 512 "$dir/$linkname" | awk "{gsub(\"${dir}/\", \"\");print}" > "$dir/$linkname.sha512"
+	sha512sum "$dir/$linkname" | awk "{gsub(\"${dir}/\", \"\");print}" > "$dir/$linkname.sha512"
 	linksha512=$(awk '{ print $1 }' < "$dir/$linkname.sha512")
 	# Calculate CID and write it to .cid file
 	ipfs add --only-hash -Q "$dir/$linkname" > "$dir/$linkname.cid"
@@ -289,7 +297,7 @@ function buildSource() {
 
 	# Calculate sha512 and write it to .sha512 file
 	local linksha512 linkcid
-	shasum -a 512 "$output/$target" | awk "{gsub(\"${output}/\", \"\");print}" > "$output/$target.sha512"
+	sha512sum "$output/$target" | awk "{gsub(\"${output}/\", \"\");print}" > "$output/$target.sha512"
 	linksha512=$(awk '{ print $1 }' < "$output/$target.sha512")
 	# Calculate CID and write it to .cid file
 	ipfs add --only-hash -Q "$output/$target" > "$output/$target.cid"
