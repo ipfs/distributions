@@ -24,9 +24,10 @@
 Clone the repo and install the following dependencies via your favorite package manager:
 
 * `go`
-* `npm`
-* `jq`
+* `npm` (v7.13.0+ with npm v16.2.0+)
+* `jq`  (v1.6+)
 * `ipfs`
+* `awk`
 
 ## Usage
 
