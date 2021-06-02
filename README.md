@@ -11,13 +11,16 @@
 
 **Table of Contents**
 
-- [Install](#install)
-- [Usage](#usage)
+- [IPFS distributions](#ipfs-distributions)
+  - [Install](#install)
+  - [Usage](#usage)
     - [Adding a version](#adding-a-version)
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
     - [Publishing](#publishing)
-- [Background](#background)
-- [Contribute](#contribute)
+  - [Background](#background)
+  - [Contribute](#contribute)
+    - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
+  - [License](#license)
 
 ## Install
 
@@ -91,19 +94,19 @@ If you have permission, you can just merge the PR, update the DNS, and then imme
 
 The goal is to generate a file hierarchy that looks like this:
 
-| **File**                                                       | **Description**                                    |
-| -------------------------------------------------------------- | -------------------------------------------------- |
-| `releases/index.html`                                          | listing of all bundles available                   |
-| `releases/<dist>`                                              | all versions of `<dist>`                           |
-| `releases/<dist>/versions`                                     | textual list of all versions of `<dist>`           |
-| `releases/<dist>/<version>`                                    | dist version                                       |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz` | archive for `<platform>`                           |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.cid` | text file with CID of the archive              |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.sha512` | text file with SHA-512 of the archive       |
-| `releases/<dist>/<version>/dist.json`                          | json file describing all archives in this release. |
-| `releases/<dist>/<version>/build-info`                         | information about the build and build machine      |
-| `releases/<dist>/<version>/build-log-*`                        | logs from the platforms that failed to build.      |
-| `releases/<dist>/<version>/results`                            | list of platforms successfully built               |
+| **File**                                                              | **Description**                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------- |
+| `releases/index.html`                                                 | listing of all bundles available                   |
+| `releases/<dist>`                                                     | all versions of `<dist>`                           |
+| `releases/<dist>/versions`                                            | textual list of all versions of `<dist>`           |
+| `releases/<dist>/<version>`                                           | dist version                                       |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz`        | archive for `<platform>`                           |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.cid`    | text file with CID of the archive                  |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.sha512` | text file with SHA-512 of the archive              |
+| `releases/<dist>/<version>/dist.json`                                 | json file describing all archives in this release. |
+| `releases/<dist>/<version>/build-info`                                | information about the build and build machine      |
+| `releases/<dist>/<version>/build-log-*`                               | logs from the platforms that failed to build.      |
+| `releases/<dist>/<version>/results`                                   | list of platforms successfully built               |
 
 Definitions:
 - `<dist>` is a distribution, meaning a program or library we release.
