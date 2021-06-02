@@ -13,6 +13,8 @@
 
 - [IPFS distributions](#ipfs-distributions)
   - [Install](#install)
+  - [Managing `golang` and `nodejs` versions](#managing-golang-and-nodejs-versions)
+  - [Running in Docker](#running-in-docker)
   - [Usage](#usage)
     - [Adding a version](#adding-a-version)
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
@@ -27,10 +29,43 @@
 Clone the repo and install the following dependencies via your favorite package manager:
 
 * `go`
-* `npm` (v7.13.0+ with npm v16.2.0+)
+* `npm` (v7.13.0+ with nodejs v16.2.0+)
 * `jq`  (v1.6+)
 * `ipfs`
 * `awk`
+
+## Managing `golang` and `nodejs` versions
+
+There is a `.tool-versions` file for the [asdf](https://asdf-vm.com/#/) version
+manager, which the Docker build environment will also use.
+
+## Running in Docker
+
+There is a `./dockerise` script, you can run it without arguements and be in a
+shell with the correct software installed in an Ubuntu 20.04 in a directory
+thats mapped to the present working directory
+
+You can also do `./dockerized <COMAND>`, for instance:
+
+```
+./dockerized make clean
+./dockerized ./dist.sh go-ipfs 0.9.0
+./dockerized make publish
+```
+
+Note that you can't use bash in the command, so 
+
+```
+./dockerized make clean && ./dist.sh go-ipfs 0.9.0
+# Does not work
+```
+and
+
+```
+./dockerized "make clean && ./dist.sh go-ipfs 0.9.0"
+# Does not work
+```
+
 
 ## Usage
 
