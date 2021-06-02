@@ -45,6 +45,9 @@ There is a `./dockerise` script, you can run it without arguements and be in a
 shell with the correct software installed in an Ubuntu 20.04 in a directory
 thats mapped to the present working directory
 
+Note that we use host networking as the build process assumes a fairly
+long-lived ipfs node has the CIDs (we give them to the collab cluster to pin)
+
 You can also do `./dockerized <COMAND>`, for instance:
 
 ```
@@ -121,7 +124,7 @@ If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask 
 Finally,
 
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
-2. File an issue on [ipfs/infrastructure](https://github.com/ipfs/infrastructure) with the hash you got from `make publish` and a link to the PR.
+2. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with the hash you got from `make publish` and a link to the PR above.
 
 If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
