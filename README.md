@@ -45,8 +45,9 @@ There is a `./dockerise` script, you can run it without arguements and be in a
 shell with the correct software installed in an Ubuntu 20.04 in a directory
 thats mapped to the present working directory
 
-Note that we use host networking as the build process assumes a fairly
-long-lived ipfs node has the CIDs (we give them to the collab cluster to pin)
+Note that we use host networking so you must run an IPFS daemon locally as the
+build process assumes a fairly long-lived ipfs node has the CIDs (we give them
+to the collab cluster to pin)
 
 You can also do `./dockerized <COMAND>`, for instance:
 
