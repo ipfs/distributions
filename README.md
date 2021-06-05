@@ -66,7 +66,7 @@ Note that you can't use bash in the command, so
 and
 
 ```
-./dockerized "make clean && ./dist.sh go-ipfs 0.9.0"
+./dockerized "make clean && ./dist.sh go-ipfs add-version v0.9.0"
 # Does not work
 ```
 
