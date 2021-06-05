@@ -60,7 +60,7 @@ You can also do `./dockerized <COMAND>`, for instance:
 Note that you can't use bash in the command, so 
 
 ```
-./dockerized make clean && ./dist.sh go-ipfs 0.9.0
+./dockerized make clean && ./dist.sh go-ipfs add-version v0.9.0
 # Does not work
 ```
 and
