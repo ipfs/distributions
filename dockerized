@@ -5,7 +5,7 @@ set -euxo pipefail
 docker pull ubuntu:20.04
 
 # CACHEBUST means this will apply the updates once a day
-docker build . -t distributions --build-arg CACHEBUST=`date --iso-8601=date` 
+docker build . -t distributions --build-arg CACHEBUST=`date --iso-8601=date` --build-arg USER_UID=$(id -u "$USER")
 
 # We use host networking as the build process assumes a fairly long-lived ipfs
 # node has the CIDs (we give them to the collab cluster to pin) 
