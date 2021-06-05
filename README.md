@@ -53,7 +53,7 @@ You can also do `./dockerized <COMAND>`, for instance:
 
 ```
 ./dockerized make clean
-./dockerized ./dist.sh go-ipfs 0.9.0
+./dockerized ./dist.sh add-version go-ipfs v0.9.0
 ./dockerized make publish
 ```
 
