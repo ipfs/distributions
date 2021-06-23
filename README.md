@@ -41,7 +41,7 @@ manager, which the Docker build environment will also use.
 
 ## Running in Docker
 
-There is a `./dockerise` script, you can run it without arguements and be in a
+There is a `./dockerize` script, you can run it without arguements and be in a
 shell with the correct software installed in an Ubuntu 20.04 in a directory
 thats mapped to the present working directory
 
