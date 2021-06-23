@@ -11,23 +11,65 @@
 
 **Table of Contents**
 
-- [Install](#install)
-- [Usage](#usage)
+- [IPFS distributions](#ipfs-distributions)
+  - [Install](#install)
+  - [Managing `golang` and `nodejs` versions](#managing-golang-and-nodejs-versions)
+  - [Running in Docker](#running-in-docker)
+  - [Usage](#usage)
     - [Adding a version](#adding-a-version)
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
     - [Publishing](#publishing)
-- [Background](#background)
-- [Contribute](#contribute)
+  - [Background](#background)
+  - [Contribute](#contribute)
+    - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
+  - [License](#license)
 
 ## Install
 
 Clone the repo and install the following dependencies via your favorite package manager:
 
 * `go`
-* `npm` (v7.13.0+ with npm v16.2.0+)
+* `npm` (v7.13.0+ with nodejs v16.2.0+)
 * `jq`  (v1.6+)
 * `ipfs`
 * `awk`
+
+## Managing `golang` and `nodejs` versions
+
+There is a `.tool-versions` file for the [asdf](https://asdf-vm.com/#/) version
+manager, which the Docker build environment will also use.
+
+## Running in Docker
+
+There is a `./dockerize` script, you can run it without arguements and be in a
+shell with the correct software installed in an Ubuntu 20.04 in a directory
+thats mapped to the present working directory
+
+Note that we use host networking so you must run an IPFS daemon locally as the
+build process assumes a fairly long-lived ipfs node has the CIDs (we give them
+to the collab cluster to pin)
+
+You can also do `./dockerized <COMAND>`, for instance:
+
+```
+./dockerized make clean
+./dockerized ./dist.sh add-version go-ipfs v0.9.0
+./dockerized make publish
+```
+
+Note that you can't use bash in the command, so 
+
+```
+./dockerized make clean && ./dist.sh go-ipfs add-version v0.9.0
+# Does not work
+```
+and
+
+```
+./dockerized "make clean && ./dist.sh go-ipfs add-version v0.9.0"
+# Does not work
+```
+
 
 ## Usage
 
@@ -83,7 +125,7 @@ If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask 
 Finally,
 
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
-2. File an issue on [ipfs/infrastructure](https://github.com/ipfs/infrastructure) with the hash you got from `make publish` and a link to the PR.
+2. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with the hash you got from `make publish` and a link to the PR above.
 
 If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
@@ -91,19 +133,19 @@ If you have permission, you can just merge the PR, update the DNS, and then imme
 
 The goal is to generate a file hierarchy that looks like this:
 
-| **File**                                                       | **Description**                                    |
-| -------------------------------------------------------------- | -------------------------------------------------- |
-| `releases/index.html`                                          | listing of all bundles available                   |
-| `releases/<dist>`                                              | all versions of `<dist>`                           |
-| `releases/<dist>/versions`                                     | textual list of all versions of `<dist>`           |
-| `releases/<dist>/<version>`                                    | dist version                                       |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz` | archive for `<platform>`                           |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.cid` | text file with CID of the archive              |
-| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.sha512` | text file with SHA-512 of the archive       |
-| `releases/<dist>/<version>/dist.json`                          | json file describing all archives in this release. |
-| `releases/<dist>/<version>/build-info`                         | information about the build and build machine      |
-| `releases/<dist>/<version>/build-log-*`                        | logs from the platforms that failed to build.      |
-| `releases/<dist>/<version>/results`                            | list of platforms successfully built               |
+| **File**                                                              | **Description**                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------- |
+| `releases/index.html`                                                 | listing of all bundles available                   |
+| `releases/<dist>`                                                     | all versions of `<dist>`                           |
+| `releases/<dist>/versions`                                            | textual list of all versions of `<dist>`           |
+| `releases/<dist>/<version>`                                           | dist version                                       |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz`        | archive for `<platform>`                           |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.cid`    | text file with CID of the archive                  |
+| `releases/<dist>/<version>/<dist>_<version>_<platform>.tar.gz.sha512` | text file with SHA-512 of the archive              |
+| `releases/<dist>/<version>/dist.json`                                 | json file describing all archives in this release. |
+| `releases/<dist>/<version>/build-info`                                | information about the build and build machine      |
+| `releases/<dist>/<version>/build-log-*`                               | logs from the platforms that failed to build.      |
+| `releases/<dist>/<version>/results`                                   | list of platforms successfully built               |
 
 Definitions:
 - `<dist>` is a distribution, meaning a program or library we release.
