@@ -1,6 +1,12 @@
 FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND noninteractive
 ARG USER_UID
-RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip 
+
+RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip tzdata && \
+    ln -fs /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && \
+    dpkg-reconfigure --frontend noninteractive tzdata
+    
 RUN curl -s https://dist.ipfs.io/go-ipfs/v0.8.0/go-ipfs_v0.8.0_linux-amd64.tar.gz | tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
 
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
