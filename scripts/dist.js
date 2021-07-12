@@ -18,7 +18,7 @@ require('make-promises-safe') // exit on error
 const RELEASE_PATH = join(__dirname, '..', 'releases')
 const SITE_PATH = join(__dirname, '..', 'site', 'data', 'releases')
 const DIST_PATH = join(__dirname, '..', 'dists')
-const DIST_ROOT = '/ipns/dist.ipfs.io'
+const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.io'
 
 const ipfs = IpfsHttpClient()
 
