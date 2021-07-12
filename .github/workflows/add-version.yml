@@ -1,0 +1,35 @@
+name: add-version
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        required: true
+        description: 'name (eg. go-ipfs)'
+      app_version:
+        required: true
+        description: 'version (eg. v1.0.0)'
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.16'
+      - run: sudo snap install ipfs jq
+      - run: ipfs init --profile server
+      - run: ipfs daemon &
+      - name: Wait for ipfs daemon
+        run: npx wait-port http://127.0.0.1:8080/api/v0/version
+      - name: Connect to ipfs cluster
+        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
+      - run: make clean
+      - run: ./dist add-version ${{ github.event.inputs.app_name }} ${{ github.event.inputs.app_version }}
+      - run: make publish
+      - run: git status
+      # todo: pin new root to cluster + update PR status with preview link (needs cid_to_add support in https://github.com/ipfs-shipyard/ipfs-github-action) 
