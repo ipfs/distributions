@@ -90,6 +90,9 @@ Example:
 > ./dist.sh add-version fs-repo-99-to-100 v1.0.1
 ```
 
+**Official build:** If you want to build official signed binaries for added version, commit changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
+Github Action workflow for a PR builds and signs new version using deterministic toolchain and spits out updated root CID at the end.
+
 ### Adding a new (go) distribution
 
 Run:
@@ -107,25 +110,26 @@ The optional `sub_package` argument is used to specify a module within a repo.  
 
 ### Publishing
 
-In the root of the repository, run:
+To produce a CID (`<NEW_HASH>`) that includes binaries for all versions defined in `./dists/`, in the root of the repository, run:
 
 ```sh
 > make publish
 ```
 
-This will build any new binaries defined by dist and the website to the `releases` dir, add it to ipfs and patch it into the existing dag for the published dist.ipfs.io. Save the hash it spits out (we'll call it `<NEW_HASH>`), that's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
+- This will build any new binaries defined by dist and the website to the `releases` dir, add it to ipfs and patch it into the existing dag for the published `/ipns/dist.ipfs.io`.
+- Versions that are already present on the website will be reused, speeding up the build.
+- Updated CID (`<NEW_HASH>`) will be printed at the end. That's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
 
-Next, you should probably:
+After the local build is done, make a quick inspection:
 
-1. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
-2. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
-
-If all looks well, **pin the hash using pinbot** (#ipfs-pinbot on Freenode, ask someone if you don't have permission to do so).
+2. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
+3. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
 
 Finally,
 
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
-2. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with the hash you got from `make publish` and a link to the PR above.
+2. Wait for [Github Action](https://github.com/ipfs/distributions/actions/) on your PR to build and **signed** binaries. `<NEW_SIGNED_HASH>` will be different than one from local build.
+3. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with `<NEW_SIGNED_HASH>` you got from the Github Action output and a link to the PR above.
 
 If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 

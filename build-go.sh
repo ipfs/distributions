@@ -338,8 +338,12 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
-	# TODO: restore after poc work is done: newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
-	newVersions="v1.0.0"
+	newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+
+	# TODO: remove after poc work is done
+	if [ "$distname" == "ipfs-update" ]; then
+        newVersions="v1.7.1"
+	fi
 
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"

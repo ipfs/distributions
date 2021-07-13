@@ -1,35 +1,202 @@
 name: add-version
 
 on:
+  push: # TODO: remove after testing
   workflow_dispatch:
     inputs:
-      app_name:
+      dist_name:
         required: true
         description: 'name (eg. go-ipfs)'
-      app_version:
+      dist_version:
         required: true
         description: 'version (eg. v1.0.0)'
+
+env:
+  # TODO: remove after testing
+  dist_name: ${{ github.event.inputs.dist_name || 'ipfs-update' }}
+  dist_version: ${{ github.event.inputs.dist_version || 'v1.7.1' }}
 
 jobs:
   build:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.16'
       - run: sudo snap install ipfs jq
       - run: ipfs init --profile server
-      - run: ipfs daemon &
       - name: Wait for ipfs daemon
-        run: npx wait-port http://127.0.0.1:8080/api/v0/version
-      - name: Connect to ipfs cluster
+        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
+      - name: Connect to cluster.ipfs.io
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make clean
-      - run: ./dist add-version ${{ github.event.inputs.app_name }} ${{ github.event.inputs.app_version }}
+      - run: ./dockerized ./dist.sh add-version ${{ env.dist_name }} ${{ env.dist_version }}
+      - run: git status
+      - name: List ./releases
+        run: ls -Rhl ./releases
+      - name: Temporarily save ./releases artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: releases-unsigned-diff
+          path: releases
+          retention-days: 1
+      - name: Temporarily save ./dists changes
+        uses: actions/upload-artifact@v2
+        with:
+          name: dists-diff
+          path: dists
+          retention-days: 1
+
+  sign-macos:
+    runs-on: "macos-latest"
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve unsigned artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: releases-unsigned-diff
+          path: releases
+      - name: List ./releases before
+        run: ls -Rhl ./releases
+      - name: Install gon via HomeBrew for code signing and app notarization
+        run: |
+          brew tap mitchellh/gon
+          brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
+          ipfs init --profile server # needed for calculating NEW_CID later
+      - name: Import Keychain Certs
+        uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTS_PASS }}
+      - name: Verify identity used for signing
+        run: security find-identity -v
+      - name: Unpack arm64 and amd64 binaries to ./tmp
+        run: |
+          for arch in "amd64" "arm64"; do
+            mkdir -p "./tmp/${arch}-unsigned"
+            tar -zxvf "./releases/${{ env.dist_name }}/${{ env.dist_version }}/${{ env.dist_name }}_${{ env.dist_version }}_darwin-${arch}.tar.gz" -C "./tmp/${arch}-unsigned/"
+          done
+          ls -Rhl ./tmp
+      - name: Sign and notarize the mac binaries
+        env:
+          AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }} # implicitly read from env by gon
+          AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD }}
+        run: |
+          find ./tmp/ -perm +111 -type f || true
+          for arch in "amd64" "arm64"; do
+            # TODO: find a way to only process actual binaries
+            EXECUTABLES=$(jq -nc '$ARGS.positional' --args $(find "./tmp/${arch}-unsigned" -type f -print))
+            echo "{
+                \"source\" : $EXECUTABLES,
+                \"bundle_id\" : \"io.ipfs.dist.${{ env.dist_name }}\",
+                \"apple_id\": {
+                  \"password\":  \"@env:AC_PASSWORD\"
+                },
+                \"sign\" :{
+                  \"application_identity\" : \"Developer ID Application: Protocol Labs, Inc. (7Y229E2YRL)\"
+                },
+                \"zip\" :{
+                    \"output_path\" : \"./tmp/signed_${{ env.dist_name }}_${{ env.dist_version }}_${arch}.zip\"
+                }
+            }" | tee | jq > "./gon-${arch}.json"
+            gon -log-level=info -log-json "./gon-${arch}.json"
+          done
+      - name: Temporarily save ./tmp
+        uses: actions/upload-artifact@v2
+        with:
+          name: tmp
+          path: ./tmp/
+          retention-days: 1
+      - name: Update changed binaries in ./releases
+        run: |
+          for arch in "amd64" "arm64"; do
+            echo "-> Updating ${arch} binaries"
+            # unzip signed binaries to a directory matching .tar.gz structure
+            cd "${{ github.workspace }}"
+            mkdir -p "./tmp/${arch}-signed/${{ env.dist_name }}"
+            cd "./tmp/${arch}-signed/${{ env.dist_name }}/"
+            echo "-> Unpacking gon .zip for ${arch}"
+            unzip "${{ github.workspace }}/tmp/signed_${{ env.dist_name }}_${{ env.dist_version }}_${arch}.zip"
+            echo "-> Unpacked contents"
+            ls -Rhl "${{ github.workspace }}/tmp/${arch}-signed/"
+            # replace .tar.gz with one that has the same structure, but signed binaries
+            PKG_NAME="${{ env.dist_name }}_${{ env.dist_version }}_darwin-${arch}.tar.gz"
+            PKG_ROOT="${{ github.workspace }}/releases/${{ env.dist_name }}/${{ env.dist_version }}"
+            PKG_PATH="${PKG_ROOT}/${PKG_NAME}"
+            DIST_JSON="${PKG_ROOT}/dist.json"
+            # read old hashes
+            OLD_CID=$(cat "${PKG_PATH}.cid")
+            OLD_SHA512=$(gawk '{ print $1; }' < "${PKG_PATH}.sha512")
+            echo "-> Found old $PKG_NAME"
+            echo "   old CID:    $OLD_CID"
+            echo "   old SHA512: $OLD_SHA512"
+            echo "-> Updating $PKG_NAME"
+            rm "$PKG_PATH"
+            tar -czvf "${{ github.workspace }}/releases/${{ env.dist_name }}/${{ env.dist_version }}/$PKG_NAME" -C "${{ github.workspace }}/tmp/${arch}-signed/" "${{ env.dist_name }}"
+            # calculate new hashes
+            NEW_CID=$(ipfs add -Qn "$PKG_PATH")
+            NEW_SHA512_LINE=$(gsha512sum "$PKG_PATH")
+            NEW_SHA512=$(echo "$NEW_SHA512_LINE" | gawk '{ print $1; }')
+            echo "-> New $PKG_NAME"
+            echo "   new CID:    $NEW_CID"
+            echo "   new SHA512: $NEW_SHA512"
+            # update metadata to use new hashes
+            echo "$NEW_CID" > "${PKG_PATH}.cid"
+            echo "$NEW_SHA512_LINE" > "${PKG_PATH}.sha512"
+            gsed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
+            echo "Finished updating ${arch}"
+          done
+      - name: List ./releases after
+        run: ls -Rhl ./releases
+      - name: Temporarily save notarized artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: releases-signed-macos-diff
+          path: releases
+          retention-days: 1
+
+  persist:
+    runs-on: "ubuntu-latest"
+    needs: sign-macos
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve ./dists changes
+        uses: actions/download-artifact@v2
+        with:
+          name: dists-diff
+          path: dists
+      - name: Retrieve signed artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: releases-signed-macos-diff
+          path: releases
+      - name: List ./releases
+        run: ls -Rhl ./releases
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: sudo snap install ipfs jq
+      - run: ipfs init --profile server
+      - name: Wait for ipfs daemon
+        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
+      - name: Connect to cluster.ipfs.io
+        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
       - run: git status
-      # todo: pin new root to cluster + update PR status with preview link (needs cid_to_add support in https://github.com/ipfs-shipyard/ipfs-github-action) 
+      - name: Read CID of updated DAG
+        id: cid-reader
+        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+      # pin new root to cluster + update PR status with preview link
+      - uses: ipfs-shipyard/ipfs-github-action@bda86e6563a66edcea22a0b0d20db6f19a2b5899 # https://github.com/ipfs-shipyard/ipfs-github-action/pull/7
+        id: ipfs
+        with:
+          path_to_add: /ipfs/${{ steps.cid-reader.outputs.CID }}
+          cluster_host: /dnsaddr/ipfs-websites.collab.ipfscluster.io
+          cluster_user: ${{ secrets.CLUSTER_USER }}
+          cluster_password: ${{ secrets.CLUSTER_PASSWORD }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo ${{ steps.ipfs.outputs.url }}
+      - run: echo ${{ github.ref }}
