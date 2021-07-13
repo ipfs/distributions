@@ -1,18 +1,24 @@
 name: add-version
 
 on:
+  push: # TODO: remove after testing
   workflow_dispatch:
     inputs:
-      app_name:
+      dist_name:
         required: true
         description: 'name (eg. go-ipfs)'
-      app_version:
+      dist_version:
         required: true
         description: 'version (eg. v1.0.0)'
 
+env:
+  # TODO: remove after testing
+  dist_name: ${{ github.event.inputs.dist_name || 'go-ipfs' }}
+  dist_version: ${{ github.event.inputs.dist_version || 'v0.9.0' }}
+
 jobs:
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04" # should match https://github.com/ipfs/distributions/blob/master/dockerized#L5
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2-beta
@@ -26,10 +32,23 @@ jobs:
       - run: ipfs daemon &
       - name: Wait for ipfs daemon
         run: npx wait-port http://127.0.0.1:8080/api/v0/version
-      - name: Connect to ipfs cluster
+      - name: Connect to cluster.ipfs.io
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make clean
-      - run: ./dist add-version ${{ github.event.inputs.app_name }} ${{ github.event.inputs.app_version }}
+      - run: ./dist.sh add-version ${{ env.dist_name }} ${{ env.dist_version }}
       - run: make publish
-      - run: git status
-      # todo: pin new root to cluster + update PR status with preview link (needs cid_to_add support in https://github.com/ipfs-shipyard/ipfs-github-action) 
+      - name: Read CID of updated DAG
+        id: cid-reader
+        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+      # pin new root to cluster + update PR status with preview link
+      - uses: ipfs-shipyard/ipfs-github-action@bda86e6563a66edcea22a0b0d20db6f19a2b5899 # https://github.com/ipfs-shipyard/ipfs-github-action/pull/7
+        id: ipfs
+        with:
+          path_to_add: /ipfs/${{ steps.cid-reader.outputs.CID }}
+          cluster_host: /dnsaddr/ipfs-websites.collab.ipfscluster.io
+          cluster_user: ${{ secrets.CLUSTER_USER }}
+          cluster_password: ${{ secrets.CLUSTER_PASSWORD }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo ${{ steps.ipfs.outputs.url }}
+      - run: echo ${{ github.ref }}
