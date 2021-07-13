@@ -102,7 +102,7 @@ And follow the prompts.
 
 The optional `sub_package` argument is used to specify a module within a repo.  The script looks to see if the subpackage is tagged separately from the repo by looking for `sub_package/version` tags. Example:
 ```sh
-> ./dist.sh fs-repo-99-to-100 github.com/ipfs/fs-repo-migrations fs-repo-99-to-100
+> ./dist.sh new-go-dist fs-repo-99-to-100 github.com/ipfs/fs-repo-migrations fs-repo-99-to-100
 ```
 
 ### Publishing
