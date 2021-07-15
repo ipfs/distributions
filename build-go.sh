@@ -341,8 +341,8 @@ function startGoBuilds() {
 	newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
 
 	# TODO: remove after poc work is done
-	if [ "$distname" == "go-ipfs" ]; then
-        newVersions="v0.9.0"
+	if [ "$distname" == "ipfs-update" ]; then
+        newVersions="v1.7.1"
 	fi
 
 	if [ -z "$newVersions" ]; then

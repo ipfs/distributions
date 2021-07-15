@@ -13,29 +13,127 @@ on:
 
 env:
   # TODO: remove after testing
-  dist_name: ${{ github.event.inputs.dist_name || 'go-ipfs' }}
-  dist_version: ${{ github.event.inputs.dist_version || 'v0.9.0' }}
+  dist_name: ${{ github.event.inputs.dist_name || 'ipfs-update' }}
+  dist_version: ${{ github.event.inputs.dist_version || 'v1.7.1' }}
 
 jobs:
   build:
-    runs-on: "ubuntu-20.04" # should match https://github.com/ipfs/distributions/blob/master/dockerized#L5
+    runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.16'
       - run: sudo snap install ipfs jq
       - run: ipfs init --profile server
-      - run: ipfs daemon &
       - name: Wait for ipfs daemon
-        run: npx wait-port http://127.0.0.1:8080/api/v0/version
+        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
       - name: Connect to cluster.ipfs.io
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make clean
-      - run: ./dist.sh add-version ${{ env.dist_name }} ${{ env.dist_version }}
+      - run: ./dockerized ./dist.sh add-version ${{ env.dist_name }} ${{ env.dist_version }}
+      - name: List ./releases
+        run: ls -Rhl ./releases
+      - name: Temporarily save artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: releases-unsigned-diff
+          path: releases
+          retention-days: 1
+
+  macos-notarization:
+    runs-on: "macos-latest"
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve unsigned artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: releases-unsigned-diff
+          path: releases
+      - name: List ./releases before
+        run: ls -Rhl ./releases
+      - name: Install gon via HomeBrew for code signing and app notarization
+        run: |
+          brew tap mitchellh/gon
+          brew install gawk jq mitchellh/gon/gon
+      - name: Import Keychain Certs
+        uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTS_PASS }}
+      - name: Verify identity used for signing
+        run: security find-identity -v
+      - name: Unpack arm64 and amd64 binaries to ./tmp-darwin
+        run: |
+          for arch in  "amd64" "arm64"; do
+            mkdir -p ./tmp-darwin/$arch
+            tar -zxvf "./releases/${{ env.dist_name }}/${{ env.dist_version }}/${{ env.dist_name }}_${{ env.dist_version }}_darwin-${arch}.tar.gz" -C "./tmp-darwin/$arch/"
+          done
+          ls -Rhl ./tmp-darwin
+      - name: Sign and notarize the mac binaries
+        env:
+          AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }} # implicitly read from env by gon
+          AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD }}
+        run: |
+          EXECUTABLES=$(jq -nc '$ARGS.positional' --args $(find ./tmp-darwin -type f -print))
+          echo "{
+              \"source\" : $EXECUTABLES,
+              \"bundle_id\" : \"io.ipfs.dist.${{ env.dist_name }}\",
+              \"apple_id\": {
+                \"password\":  \"@env:AC_PASSWORD\"
+              },
+              \"sign\" :{
+                \"application_identity\" : \"Developer ID Application: Protocol Labs, Inc. (7Y229E2YRL)\"
+              },
+              \"zip\" :{
+                  \"output_path\" : \"./tmp-darwin/signed_${{ env.dist_name }}_${{ env.dist_version }}.zip\"
+              }
+          }" | jq > ./gon.json
+          cat ./gon.json
+          gon -log-level=debug -log-json ./gon.json
+      - name: Temporarily save ./tmp-darwin
+        uses: actions/upload-artifact@v2
+        with:
+          name: tmp-darwin
+          path: ./tmp-darwin/
+          retention-days: 1
+      - name: Update changed binaries
+        run: |
+          for arch in  "amd64" "arm64"; do
+            rm "./releases/${{ env.dist_name }}/${{ env.dist_version }}/${{ env.dist_name }}_${{ env.dist_version }}_darwin-${arch}.tar.gz"
+            tar -czvf "./releases/${{ env.dist_name }}/${{ env.dist_version }}/${{ env.dist_name }}_${{ env.dist_version }}_darwin-${arch}.tar.gz" "./tmp-darwin/$arch/"
+          done
+      - name: List ./releases after
+        run: ls -Rhl ./releases
+      - name: Temporarily save notarized artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: releases-macos-notarized-diff
+          path: releases
+          retention-days: 1
+
+  persist:
+    runs-on: "ubuntu-latest"
+    needs: macos-notarization
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve signed artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: releases-macos-notarized-diff
+          path: releases
+      - name: List ./releases
+        run: ls -Rhl ./releases
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: sudo snap install ipfs jq
+      - run: ipfs init --profile server
+      - name: Wait for ipfs daemon
+        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
+      - name: Connect to cluster.ipfs.io
+        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
       - name: Read CID of updated DAG
         id: cid-reader
