@@ -1,3 +1,5 @@
+export NODE_OPTIONS="--unhandled-rejections=strict"
+
 all: deps releases all_dists site
 
 .PHONY: all all_dists deps
@@ -21,6 +23,9 @@ site: deps
 
 publish: deps all_dists site
 	./scripts/patch.js
+
+diff:
+	FORCE_COLOR=1 ./scripts/diff.js > diff
 
 clean:
 	rm -rf releases
