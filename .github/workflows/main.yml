@@ -27,6 +27,11 @@ jobs:
       - name: Connect to ipfs cluster
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
+      - run: make diff
+      - uses: actions/upload-artifact@v2
+        with:
+          name: diff
+          path: diff
       # todo: add $(cat versions) to cluster (and wait)
       # todo: update dist dnslink if changed.
   
@@ -39,3 +44,28 @@ jobs:
           node-version: '14'
       - run: npm ci --no-audit --progress=false
       - run: npm run lint
+  diff:
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: diff
+      - id: diff
+        run: |
+          body=$(cat diff)
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo ::set-output name=diff::$body
+      - uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          issue-number: ${{ github.event.number }}
+          body: |
+            Diff of changes:
+            ```diff
+            ${{ steps.diff.outputs.diff }}
+            ```
