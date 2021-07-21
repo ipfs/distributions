@@ -53,9 +53,9 @@ async function spawnAsync (command, args, options = {}) {
   // to produce a nice diff we'll setup two dirs and diff them recursively
   const tmpDir = await tempDir()
   const dirA = path.join(tmpDir, 'a')
-  await fs.mkdir(dirA)
+  await fs.mkdir(dirA, { recursive: true })
   const dirB = path.join(tmpDir, 'b')
-  await fs.mkdir(dirB)
+  await fs.mkdir(dirB, { recursive: true })
 
   const ipfsDiffResult = await exec(`ipfs object diff ${DIST_ROOT} /ipfs/${cid} --enc=json`)
   const changes = JSON.parse(ipfsDiffResult.stdout).Changes
