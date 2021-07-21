@@ -82,8 +82,7 @@ async function spawnAsync (command, args, options = {}) {
   const diffResult = await spawnAsync('diff', [
     '-u',
     '--recursive',
-    // these change on every build, so they just add noise, which is why we ignore them
-    '--ignore-matching-lines', '^\\s*<pubDate>.*</pubDate>\\s*',
+    // this changes on every build, so just adds noise, which is why we ignore it
     '--ignore-matching-lines', '^\\s*<lastBuildDate>.*</lastBuildDate>\\s*',
     'a',
     'b'
