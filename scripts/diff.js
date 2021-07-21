@@ -26,7 +26,7 @@ async function tempDir () {
 async function ipfsGet (cid, outputPath) {
   const dir = path.dirname(outputPath)
   await fs.mkdir(dir, { recursive: true })
-  await exec(`ipfs cat ${cid} > ${outputPath}`)
+  await exec(`ipfs get -o ${outputPath} ${cid}`)
 }
 
 // spawn a subprocess, resolving the ChildProcess but not rejecting if exit code != 0
@@ -53,7 +53,9 @@ async function spawnAsync (command, args, options = {}) {
   // to produce a nice diff we'll setup two dirs and diff them recursively
   const tmpDir = await tempDir()
   const dirA = path.join(tmpDir, 'a')
+  await fs.mkdir(dirA)
   const dirB = path.join(tmpDir, 'b')
+  await fs.mkdir(dirB)
 
   const ipfsDiffResult = await exec(`ipfs object diff ${DIST_ROOT} /ipfs/${cid} --enc=json`)
   const changes = JSON.parse(ipfsDiffResult.stdout).Changes
@@ -61,17 +63,17 @@ async function spawnAsync (command, args, options = {}) {
   for (const f of changes) {
     switch (f.Type) {
       case CHANGE_TYPE_ADD:
-        await ipfsGet(f.After['/'], path.join(dirB, f.Path))
+        await ipfsGet(`${cid}/${f.Path}`, path.join(dirB, f.Path))
         break
       case CHANGE_TYPE_REMOVE:
-        await ipfsGet(f.Before['/'], path.join(dirA, f.Path))
+        await ipfsGet(`${DIST_ROOT}/${f.Path}`, path.join(dirA, f.Path))
         break
       case CHANGE_TYPE_MOD:
         if (skipDiff.has(f.Path)) {
           skipped.push(f.Path)
         } else {
-          await ipfsGet(f.Before['/'], path.join(dirA, f.Path))
-          await ipfsGet(f.After['/'], path.join(dirB, f.Path))
+          await ipfsGet(`${cid}/${f.Path}`, path.join(dirB, f.Path))
+          await ipfsGet(`${DIST_ROOT}/${f.Path}`, path.join(dirA, f.Path))
         }
         break
       default:
@@ -80,6 +82,7 @@ async function spawnAsync (command, args, options = {}) {
   }
 
   const diffResult = await spawnAsync('diff', [
+    '--new-file',
     '-u',
     '--recursive',
     // this changes on every build, so just adds noise, which is why we ignore it
@@ -87,6 +90,10 @@ async function spawnAsync (command, args, options = {}) {
     'a',
     'b'
   ], { cwd: tmpDir })
+
+  if (diffResult.code === 2) {
+    throw new Error(`unexpected error from diff: ${diffResult.stderr}`)
+  }
 
   const noDifferences = diffResult.code === 0
 

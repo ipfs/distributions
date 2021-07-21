@@ -25,7 +25,7 @@ publish: deps all_dists site
 	./scripts/patch.js
 
 diff:
-	FORCE_COLOR=1 ./scripts/diff.js > diff
+	./scripts/diff.js > diff
 
 clean:
 	rm -rf releases
