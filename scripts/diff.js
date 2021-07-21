@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict'
 
+const spawn = require('child_process').spawn
 const fs = require('fs/promises')
 const path = require('path')
 const util = require('util')
@@ -22,14 +23,27 @@ async function tempDir () {
   return f.stdout.trim()
 }
 
-async function tryExec (command) {
-  return exec(command).catch(e => e)
-}
-
 async function ipfsGet (cid, outputPath) {
   const dir = path.dirname(outputPath)
   await fs.mkdir(dir, { recursive: true })
   await exec(`ipfs cat ${cid} > ${outputPath}`)
+}
+
+// spawn a subprocess, resolving the ChildProcess but not rejecting if exit code != 0
+async function spawnAsync (command, args, options = {}) {
+  const proc = spawn(command, args, options)
+  const stdoutChunks = []
+  const stderrChunks = []
+  return new Promise((resolve, reject) => {
+    proc.stdout.on('data', d => stdoutChunks.push(d))
+    proc.stderr.on('data', d => stderrChunks.push(d))
+    proc.on('exit', (code) => resolve({
+      code: code,
+      stdout: Buffer.concat(stdoutChunks).toString(),
+      stderr: Buffer.concat(stderrChunks).toString()
+    }))
+    proc.on('error', err => reject(err))
+  })
 }
 
 (async () => {
@@ -37,23 +51,27 @@ async function ipfsGet (cid, outputPath) {
   const cid = versionsContents.split('\n').filter(x => x).pop()
 
   // to produce a nice diff we'll setup two dirs and diff them recursively
-  const tmpDirA = await tempDir()
-  const tmpDirB = await tempDir()
+  const tmpDir = await tempDir()
+  const dirA = path.join(tmpDir, 'a')
+  const dirB = path.join(tmpDir, 'b')
 
-  const diffResult = await exec(`ipfs object diff ${DIST_ROOT} /ipfs/${cid} --enc=json`)
-  const changes = JSON.parse(diffResult.stdout).Changes
+  const ipfsDiffResult = await exec(`ipfs object diff ${DIST_ROOT} /ipfs/${cid} --enc=json`)
+  const changes = JSON.parse(ipfsDiffResult.stdout).Changes
+  var skipped = []
   for (const f of changes) {
     switch (f.Type) {
       case CHANGE_TYPE_ADD:
-        await ipfsGet(f.After['/'], path.join(tmpDirB, f.Path))
+        await ipfsGet(f.After['/'], path.join(dirB, f.Path))
         break
       case CHANGE_TYPE_REMOVE:
-        await ipfsGet(f.Before['/'], path.join(tmpDirA, f.Path))
+        await ipfsGet(f.Before['/'], path.join(dirA, f.Path))
         break
       case CHANGE_TYPE_MOD:
-        if (!skipDiff.has(f.Path)) {
-          await ipfsGet(f.Before['/'], path.join(tmpDirA, f.Path))
-          await ipfsGet(f.After['/'], path.join(tmpDirB, f.Path))
+        if (skipDiff.has(f.Path)) {
+          skipped.push(f.Path)
+        } else {
+          await ipfsGet(f.Before['/'], path.join(dirA, f.Path))
+          await ipfsGet(f.After['/'], path.join(dirB, f.Path))
         }
         break
       default:
@@ -61,6 +79,38 @@ async function ipfsGet (cid, outputPath) {
     }
   }
 
-  const gitDiffResult = await tryExec(`git diff --no-index ${tmpDirA} ${tmpDirB}`)
-  console.log(gitDiffResult.stdout)
+  const diffResult = await spawnAsync('diff', [
+    '-u',
+    '--recursive',
+    // these change on every build, so they just add noise, which is why we ignore them
+    '--ignore-matching-lines', '^\\s*<pubDate>.*</pubDate>\\s*',
+    '--ignore-matching-lines', '^\\s*<lastBuildDate>.*</lastBuildDate>\\s*',
+    'a',
+    'b'
+  ], { cwd: tmpDir })
+
+  const noDifferences = diffResult.code === 0
+
+  const diffMarkdownLines = []
+  if (noDifferences) {
+    diffMarkdownLines.push('This change produced no new differences in built artifacts.')
+  } else {
+    diffMarkdownLines.push('## Diff of Changes', '')
+
+    if (skipped.length > 0) {
+      diffMarkdownLines.push('The following files changed but will not show diffs, because the diffs would be unreadable:')
+      const unreadable = new Set()
+      skipped.forEach(f => unreadable.add(`* ${f}`))
+      diffMarkdownLines.push(...unreadable)
+      diffMarkdownLines.push('')
+    }
+
+    diffMarkdownLines.push(...[
+      '```diff',
+      diffResult.stdout,
+      '```'
+    ])
+  }
+
+  console.log(diffMarkdownLines.join('\n'))
 })()

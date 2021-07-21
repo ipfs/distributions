@@ -65,7 +65,4 @@ jobs:
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           issue-number: ${{ github.event.number }}
           body: |
-            Diff of changes:
-            ```diff
             ${{ steps.diff.outputs.diff }}
-            ```
