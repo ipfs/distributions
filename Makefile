@@ -1,11 +1,22 @@
 all: deps releases all_dists site
 
-.PHONY: all all_dists deps
-all_dists: $(notdir $(wildcard dists/*))
+DISTS = $(notdir $(wildcard dists/*))
 
-%:
+NDISTS = $(DISTS:%=nightly-%)
+
+.PHONY: all all_dists deps nightly
+all_dists: $(DISTS)
+
+$(DISTS):
 	@echo "** $@ **"
 	$(MAKE) -C dists/$@
+	@echo ""
+
+nightly: $(NDISTS)
+
+$(NDISTS):
+	@echo "** $@ Nightly **"
+	$(MAKE) -C dists/$(@:nightly-%=%) nightly
 	@echo ""
 
 deps:
@@ -13,6 +24,7 @@ deps:
 
 releases:
 	mkdir -p releases
+
 
 .PHONY: site
 site: deps

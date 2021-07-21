@@ -74,6 +74,7 @@ case $1 in
 
 		case "$nvers" in
 			*-*) echo "WARNING: not marking pre-release $dist $nvers as the current version." ;;
+			nightly) nvers=$nvers-$(date '+%Y-%m-%d') ;;
 			*) echo "$nvers" > "dists/$dist/current" ;;
 		esac
 

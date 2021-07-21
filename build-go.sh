@@ -219,7 +219,7 @@ function buildWithMatrix() {
 	local package=$2
 	local output=$3
 	local commit=$4
-	local version=$5
+	local buildVersion=$5
 
 	test -n "$output" || fail "error: output dir not specified"
 	test -e "$matfile" || fail "build matrix $matfile does not exist"
@@ -229,13 +229,13 @@ function buildWithMatrix() {
 	local distname
 	distname=$(basename "$(pwd)")
 
-	printInitialDistfile "$distname" "$version" > dist.json
+	printInitialDistfile "$distname" "$buildVersion" > dist.json
 	printBuildInfo "$commit" > "$output/build-info"
 
 	# build each os/arch combo
 	while read -r goos goarch
 	do
-		doBuild "$goos" "$goarch" "$package" "$output" "$version"
+		doBuild "$goos" "$goarch" "$package" "$output" "$buildVersion"
 	done < "$matfile"
 
 	# build the source
@@ -253,9 +253,20 @@ function cleanRepo() {
 
 function checkoutVersion() {
 	local repopath=$1
-	local ref=$2
+	local version=$2
 
 	test -n "$repopath" || fail "checkoutVersion: no repo to check out specified"
+
+
+	case $version in
+	nightly*)
+		# Use default branch, may be master, main or some other name
+		ref=$(git -C "$repopath" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+		;;
+	*)
+		ref=$version
+		;;
+	esac
 
 	echo "==> checking out version $ref in $repopath"
 	cleanRepo "$repopath"
@@ -369,10 +380,21 @@ function startGoBuilds() {
 
 	while read -r version
 	do
-		if [ -e "$outputDir/$version" ]; then
+		outputVersion=$outputDir/$version
+
+		if [ -e "$outputVersion" ]; then
 			echo "$version already exists, skipping..."
 			continue
 		fi
+
+		case $version in
+		nightly*)
+			buildVersion="$version-$(git rev-parse --short=7 HEAD)"
+			;;
+		*)
+			buildVersion=$version
+			;;
+		esac
 
 		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
@@ -394,7 +416,7 @@ function startGoBuilds() {
 		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
 		fi
 
-		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputVersion" "$(currentSha "$repopath")" "$buildVersion"
 		echo ""
 	done <<< "$newVersions"
 
