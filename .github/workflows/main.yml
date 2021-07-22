@@ -23,12 +23,61 @@ jobs:
           node-version: '14'
       - name: Install ipfs and deps
         run: |
-          sudo snap install ipfs jq
-          ipfs init --profile server
+          sudo snap install jq
+          # set up go-ipfs
+          IPFS_VERSION=$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)
+          tar xzf <(curl -s https://dist.ipfs.io/go-ipfs/${IPFS_VERSION}/go-ipfs_${IPFS_VERSION}_linux-amd64.tar.gz)
+          echo "${{ github.workspace }}/go-ipfs/" >> $GITHUB_PATH
+          # set up ipfs-cluster-ctl
+          CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
+          tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
+          echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
+      - name: Set up ipfs
+        run: |
+          ipfs init --profile server,test,lowpower
+          # restore deterministic port (changed by test profile)
+          ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
+          # DNS over HTTPS to avoid random Github Action failures like
+          # Error: lookup _dnsaddr.ipfs-websites.collab.ipfscluster.io on 127.0.0.53:53: dial udp 127.0.0.53:53: i/o timeout
+          ipfs config --json DNS.Resolvers '{ ".": "https://cloudflare-dns.com/dns-query" }'
       - name: Wait for ipfs daemon
-        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
+        run: ipfs daemon & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+        timeout-minutes: 3
       - name: Connect to ipfs cluster
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
+      - name: List peers
+        run: |
+          echo 'resolv'
+          ls -l /etc/resolv.conf
+          cat /etc/resolv.conf
+          echo 'updated resolv'
+          # TODO: simplify
+          sudo sed -i -e 's/127.0.0.*/1.1.1.1/g' /etc/resolv.conf
+          cat /etc/resolv.conf
+          echo 'list swarm peers'
+          ipfs swarm peers
+          echo 'list cluster peers at ipfs-websites'
+          ipfs-cluster-ctl \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            peers ls > cluster-peers-ls
+          for peerid in $(grep "IPFS:" cluster-peers-ls | awk '{print $3; }'); do
+            for maddr in $(grep "/p2p/${peerid}" cluster-peers-ls | awk '{ print $2; }'); do
+              ipfs swarm connect "$maddr" || true
+            done
+          done
+          echo 'list swarm peers with cluster ones'
+          ipfs swarm peers
+      - name: Test pin
+        run: |
+          echo 'pin test cid'
+          ipfs-cluster-ctl \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            --debug \
+            pin add QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR \
+            --wait --name  'test_${{ github.run_id }}' --expire-in 24h
+        timeout-minutes: 3
       - name: Build any new ./releases
         run: ./dockerized make all_dists
       - name: Inspect git status and contents of ./releases
@@ -191,13 +240,26 @@ jobs:
           node-version: '14'
       - name: Install ipfs and deps
         run: |
-          sudo snap install ipfs jq
-          ipfs init --profile server
+          sudo snap install jq
+          # set up go-ipfs
+          IPFS_VERSION=$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)
+          tar xzf <(curl -s https://dist.ipfs.io/go-ipfs/${IPFS_VERSION}/go-ipfs_${IPFS_VERSION}_linux-amd64.tar.gz)
+          echo "${{ github.workspace }}/go-ipfs/" >> $GITHUB_PATH
+          # set up ipfs-cluster-ctl
+          CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
+          tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
+          echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
+      - name: Set up ipfs
+        run: |
+          ipfs init --profile server,test,lowpower
+          # restore deterministic port (changed by test profile)
+          ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
           # DNS over HTTPS to avoid random Github Action failures like
           # Error: lookup _dnsaddr.ipfs-websites.collab.ipfscluster.io on 127.0.0.53:53: dial udp 127.0.0.53:53: i/o timeout
           ipfs config --json DNS.Resolvers '{ ".": "https://cloudflare-dns.com/dns-query" }'
       - name: Wait for ipfs daemon
-        run: ipfs daemon & npx wait-port http://127.0.0.1:8080/api/v0/version
+        run: ipfs daemon & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+        timeout-minutes: 3
       - name: Connect to cluster.ipfs.io
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make publish
@@ -205,17 +267,33 @@ jobs:
       - name: Read CID of updated DAG
         id: cid-reader
         run: echo "::set-output name=CID::$(tail -1 ./versions)"
-      # pin new root to cluster + update PR status with preview link
-      - name: Connect to ipfs-websites.collab.ipfscluster.io
-        run: ipfs swarm connect /dnsaddr/ipfs-websites.collab.ipfscluster.io
-      - uses: ipfs-shipyard/ipfs-github-action@bda86e6563a66edcea22a0b0d20db6f19a2b5899 # https://github.com/ipfs-shipyard/ipfs-github-action/pull/7
-        id: ipfs
-        with:
-          path_to_add: /ipfs/${{ steps.cid-reader.outputs.CID }}
-          cluster_host: /dnsaddr/ipfs-websites.collab.ipfscluster.io
-          cluster_user: ${{ secrets.CLUSTER_USER }}
-          cluster_password: ${{ secrets.CLUSTER_PASSWORD }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: echo ${{ steps.ipfs.outputs.url }}
-      - run: echo ${{ github.ref }}
+      - name: Pin new website to ipfs-websites.collab.ipfscluster.io
+        run: |
+          ipfs swarm connect /dnsaddr/ipfs-websites.collab.ipfscluster.io
+          echo 'list swarm peers'
+          ipfs swarm peers
+          echo 'list cluster peers'
+          ipfs-cluster-ctl \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            peers ls
+          echo 'pin to cluster'
+          ipfs-cluster-ctl \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            pin add \
+            --wait --debug \
+            --pin-name="https://github.com/ipfs/distributions/commits/${{ github.sha }}" \
+            "${{ steps.cid-reader.outputs.CID }}"
+      # TODO: update PR status with preview link
+      # - uses: ipfs-shipyard/ipfs-github-action@51639f910548de983b3f49b209bc23e0cf997b14 # https://github.com/ipfs-shipyard/ipfs-github-action/pull/7
+      #  id: ipfs
+      #  with:
+      #    path_to_add: /ipfs/${{ steps.cid-reader.outputs.CID }}
+      #    cluster_host: /dnsaddr/ipfs-websites.collab.ipfscluster.io
+      #    cluster_user: ${{ secrets.CLUSTER_USER }}
+      #    cluster_password: ${{ secrets.CLUSTER_PASSWORD }}
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #- run: echo ${{ steps.ipfs.outputs.url }}
+      #- run: echo ${{ github.ref }}
