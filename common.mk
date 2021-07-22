@@ -9,7 +9,7 @@ distname ?= $(notdir ${CURDIR})
 releases ?= $(relpath)releases/${distname}
 versions ?= versions
 
-nightlyVer = nightly-$(shell date '+%Y-%m-%d')
+nightlyVer = nightly-$(shell date -u '+%Y-%m-%d')
 
 
 all: dist
