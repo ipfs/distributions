@@ -1,8 +1,10 @@
 name: Nightly
 
 on:
+  ## Allow manual invocation
+  workflow_dispatch:
   schedule:
-    - cron: '30/15 12 * * *' # UTC
+    - cron: '0 5 * * *' # UTC
 
 jobs:
   build:
