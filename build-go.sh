@@ -349,7 +349,11 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
-	newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+
+	outputDir="$releases/$distname"
+
+	ipfs cat "$existing/$distname/versions" > "$outputDir/existingVersions"
+	newVersions=$(comm --nocheck-order -13 "$outputDir/existingVersions" "$versions")
 
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
@@ -357,7 +361,6 @@ function startGoBuilds() {
 	fi
 	printVersions "$newVersions"
 
-	outputDir="$releases/$distname"
 
 	# if the output directory already exists, warn user
 	if [ -e "$outputDir" ]; then
@@ -420,7 +423,11 @@ function startGoBuilds() {
 		echo ""
 	done <<< "$newVersions"
 
-	cp "$versions" "$outputDir/versions"
+	# All tagged versions from repo
+	grep -v ^nightly "$versions" > "$outputDir/versions"
+
+	# Last 7 nightly versions from repo and existing
+	grep -h ^nightly "$versions" "$outputDir/existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
 
 	notice "build complete!"
 }
