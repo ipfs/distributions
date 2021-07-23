@@ -351,7 +351,14 @@ function startGoBuilds() {
 	echo "comparing $versions with $existing/$distname/versions"
 
 	outputDir="$releases/$distname"
+	# if the output directory already exists, warn user
+	if [ -e "$outputDir" ]; then
+		warn "dirty output directory"
+		warn "will skip building already existing binaries"
+		warn "to perform a fresh build, please delete $outputDir"
+	fi
 
+	mkdir -p "$outputDir"
 	touch "$outputDir/existingVersions"
 	ipfs cat "$existing/$distname/versions" >> "$outputDir/existingVersions"
 	newVersions=$(comm --nocheck-order -13 "$outputDir/existingVersions" "$versions")
@@ -363,12 +370,6 @@ function startGoBuilds() {
 	printVersions "$newVersions"
 
 
-	# if the output directory already exists, warn user
-	if [ -e "$outputDir" ]; then
-		warn "dirty output directory"
-		warn "will skip building already existing binaries"
-		warn "to perform a fresh build, please delete $outputDir"
-	fi
 
 	export GOPATH
 	GOPATH="$(pwd)/gopath"
