@@ -352,7 +352,8 @@ function startGoBuilds() {
 
 	outputDir="$releases/$distname"
 
-	ipfs cat "$existing/$distname/versions" > "$outputDir/existingVersions"
+	touch "$outputDir/existingVersions"
+	ipfs cat "$existing/$distname/versions" >> "$outputDir/existingVersions"
 	newVersions=$(comm --nocheck-order -13 "$outputDir/existingVersions" "$versions")
 
 	if [ -z "$newVersions" ]; then
