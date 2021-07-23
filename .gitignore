@@ -13,6 +13,7 @@ www
 **/go.sum
 **/go.mod
 /versions
+/diff
 
 site/static/*.js
 site/static/*.css
