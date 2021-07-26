@@ -284,15 +284,16 @@ jobs:
             fi
           done
         timeout-minutes: 60
-      # TODO: update PR status with preview link
-      # - uses: ipfs-shipyard/ipfs-github-action@51639f910548de983b3f49b209bc23e0cf997b14 # https://github.com/ipfs-shipyard/ipfs-github-action/pull/7
-      #  id: ipfs
-      #  with:
-      #    path_to_add: /ipfs/${{ steps.cid-reader.outputs.CID }}
-      #    cluster_host: /dnsaddr/ipfs-websites.collab.ipfscluster.io
-      #    cluster_user: ${{ secrets.CLUSTER_USER }}
-      #    cluster_password: ${{ secrets.CLUSTER_PASSWORD }}
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #- run: echo ${{ steps.ipfs.outputs.url }}
-      #- run: echo ${{ github.ref }}
+      - name: Update PR status with preview link
+        run: |
+          PREVIEW_URL="https://dweb.link/ipfs/${{ steps.cid-reader.outputs.CID }}"
+          API_PARAMS=$(jq --monochrome-output --null-input \
+            --arg state "success" \
+            --arg target_url "$PREVIEW_URL" \
+            --arg description "Preview on IPFS" \
+            --arg context "IPFS" \
+            '{ state: $state, target_url: $target_url, description: $description, context: $context }' )
+          curl --output /dev/null --silent --show-error \
+            -X POST -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H 'Content-Type: application/json' \
+            --data "$API_PARAMS" 'https://api.github.com/repos/ipfs/distributions/statuses/${{ github.sha }}'
+          echo "Pinned to IPFS - $PREVIEW_URL"
