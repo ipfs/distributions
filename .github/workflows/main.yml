@@ -31,22 +31,17 @@ jobs:
           CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
           tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
           echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
-      - name: Fix resolv
-        run: |
-          echo '-> flaky resolv'
-          ls -l /etc/resolv.conf
-          cat /etc/resolv.conf
-          echo '-> updated resolv'
-          # TODO: simplify
-          sudo sed -i -e 's/127.0.0.*/1.1.1.1/g' /etc/resolv.conf
-          cat /etc/resolv.conf
+      - name: Fix resolv # DNS provided by Github is unreliable for DNSLik/dnsaddr
+        run: sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
       - name: Set up ipfs
         run: |
-          ipfs init --profile server,test,lowpower
+          ipfs init --profile flatfs,server,test,lowpower
+          # make flatfs async for faster ci
+          new_config=$( jq '.Datastore.Spec.mounts[0].child.sync = false' ~/.ipfs/config) && echo "${new_config}" > ~/.ipfs/config
           # restore deterministic port (changed by test profile)
           ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
       - name: Wait for ipfs daemon
-        run: ipfs daemon & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+        run: ipfs daemon --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
         timeout-minutes: 3
       - name: Preconnect to cluster peers
         run: |
@@ -63,31 +58,6 @@ jobs:
           echo '-> list swarm peers'
           ipfs swarm peers
         timeout-minutes: 3
-      - name: Pin test
-        run: |
-          TEST_CID=$(echo date | ipfs add -Q)
-          echo 'pin to cluster'
-          ipfs-cluster-ctl --enc=json \
-            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
-            pin add \
-            --pin-name="test-ipfs-dists-${{ github.sha }}" \
-            --no-status \
-            "$TEST_CID"
-          while true; do
-            ipfs-cluster-ctl --enc=json \
-              --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-              --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
-              status "$TEST_CID" | tee cluster-pin-status
-            if [[ $(jq '.peer_map[].status' cluster-pin-status | grep '"pinned"' | wc -l) -ge 2 ]]; then
-              echo "Got 2 pin confirmations, finishing the workflow"
-              break
-            else
-              echo "(sleeping for 5 seconds)"
-              sleep 5
-            fi
-          done
-        timeout-minutes: 5
       - name: Build any new ./releases
         run: ./dockerized make all_dists
       - name: Inspect git status and contents of ./releases
@@ -125,7 +95,7 @@ jobs:
         run: |
           brew tap mitchellh/gon
           brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
-          ipfs init --profile server # needed for calculating NEW_CID later
+          ipfs init --profile test # needed for calculating NEW_CID later
       - name: Import Keychain Certs
         uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
         with:
@@ -258,22 +228,17 @@ jobs:
           CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
           tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
           echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
-      - name: Fix resolv
-        run: |
-          echo '-> flaky resolv'
-          ls -l /etc/resolv.conf
-          cat /etc/resolv.conf
-          echo '-> updated resolv'
-          # TODO: simplify
-          sudo sed -i -e 's/127.0.0.*/1.1.1.1/g' /etc/resolv.conf
-          cat /etc/resolv.conf
+      - name: Fix resolv # DNS provided by Github is unreliable for DNSLik/dnsaddr
+        run: sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
       - name: Set up ipfs
         run: |
-          ipfs init --profile server,test,lowpower
+          ipfs init --profile flatfs,server,test,lowpower
+          # make flatfs async for faster ci
+          new_config=$( jq '.Datastore.Spec.mounts[0].child.sync = false' ~/.ipfs/config) && echo "${new_config}" > ~/.ipfs/config
           # restore deterministic port (changed by test profile)
           ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
       - name: Wait for ipfs daemon
-        run: ipfs daemon & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+        run: ipfs daemon --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
         timeout-minutes: 3
       - name: Preconnect to cluster peers
         run: |
@@ -314,8 +279,8 @@ jobs:
               echo "Got 2 pin confirmations, finishing the workflow"
               break
             else
-              echo "(sleeping for 5 seconds)"
-              sleep 5
+              echo "(sleeping for 15 seconds)"
+              sleep 15
             fi
           done
         timeout-minutes: 60
