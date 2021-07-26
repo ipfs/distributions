@@ -25,4 +25,4 @@ jobs:
       - name: Connect to ipfs cluster
         run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
       - run: make deps nightly all_dists
-      #- run: make publish
+      - run: make publish
