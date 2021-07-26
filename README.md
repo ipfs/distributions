@@ -122,14 +122,15 @@ To produce a CID (`<NEW_HASH>`) that includes binaries for all versions defined 
 
 After the local build is done, make a quick inspection:
 
-2. Load the dists website in your browser to make sure everything looks right: `http://127.0.0.1:8080/ipfs/<NEW_HASH>`.
+2. Load the dists website in your browser to make sure everything looks right: `http://localhost:8080/ipfs/<NEW_HASH>`.
 3. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
 
 Finally,
 
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
-2. Wait for [Github Action](https://github.com/ipfs/distributions/actions/) on your PR to build and **signed** binaries. `<NEW_SIGNED_HASH>` will be different than one from local build.
+2. Wait for [Github Action](https://github.com/ipfs/distributions/actions/) on your PR to build **signed** binaries. `<NEW_SIGNED_HASH>` will be different than one from local build.
 3. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with `<NEW_SIGNED_HASH>` you got from the Github Action output and a link to the PR above.
+   - TODO: this step will be automated in the future.
 
 If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 

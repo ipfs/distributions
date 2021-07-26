@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-# TODO: restore after testing
+# TODO: restore before merging
 #    branches:
 #      - master
 #  pull_request:
@@ -10,8 +10,9 @@ on:
 #      - master
 
 env:
- # TODO: remove after testing
-  DIST_ROOT: '/ipfs/QmX6J3hVtMF9Y73CKcyLHfgviEfXGFFQABWPXsD17EsBhg' # dist.ipfs.io without ipfs-update@v1.7.1
+ DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
@@ -23,14 +24,8 @@ jobs:
           node-version: '14'
       - name: Install ipfs and deps
         run: |
-          # set up go-ipfs
-          IPFS_VERSION=$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)
-          tar xzf <(curl -s https://dist.ipfs.io/go-ipfs/${IPFS_VERSION}/go-ipfs_${IPFS_VERSION}_linux-amd64.tar.gz)
-          echo "${{ github.workspace }}/go-ipfs/" >> $GITHUB_PATH
-          # set up ipfs-cluster-ctl
-          CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
-          tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
-          echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
+          curl -s https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+          curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CLUSTER_CTL_VER}/ipfs-cluster-ctl_${CLUSTER_CTL_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ ipfs-cluster-ctl/ipfs-cluster-ctl --strip-components=1
       - name: Fix resolv # DNS provided by Github is unreliable for DNSLik/dnsaddr
         run: sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
       - name: Set up ipfs
@@ -50,7 +45,7 @@ jobs:
             --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
             --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
             peers ls > cluster-peers-ls
-          for maddr in $(jq -r '.[].ipfs.addresses[]' cluster-peers-ls); do
+          for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
             ipfs swarm connect "$maddr" || continue
           done
           echo '-> manual connect to cluster.ipfs.io'
@@ -89,8 +84,9 @@ jobs:
         with:
           name: releases-unsigned-diff
           path: releases
+        continue-on-error: true # skip if no releases
       - name: List ./releases before
-        run: ls -Rhl ./releases
+        run: ls -Rhl ./releases || echo "No ./releases"
       - name: Install gon via HomeBrew for code signing and app notarization
         run: |
           brew tap mitchellh/gon
@@ -115,7 +111,7 @@ jobs:
               tar -zxvf "./releases/${DIST_NAME}/${DIST_VERSION}/${DIST_NAME}_${DIST_VERSION}_darwin-${arch}.tar.gz" -C "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/"
             done
           done
-          ls -Rhl ./tmp
+          ls -Rhl ./tmp || echo "Nothing new in ./tmp"
       - name: Sign and notarize the mac binaries
         env:
           AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }} # implicitly read from env by gon
@@ -195,13 +191,14 @@ jobs:
             done
           done
       - name: List ./releases after
-        run: ls -Rhl ./releases
+        run: ls -Rhl ./releases || echo "No ./releases"
       - name: Temporarily save notarized artifacts
         uses: actions/upload-artifact@v2
         with:
           name: releases-signed-macos-diff
           path: releases
           retention-days: 1
+        continue-on-error: true # skip if no releases
 
   persist:
     runs-on: "ubuntu-latest"
@@ -210,24 +207,16 @@ jobs:
       - uses: actions/checkout@v2
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v2
+        continue-on-error: true # skip if no releases
         with:
           name: releases-signed-macos-diff
           path: releases
       - name: List ./releases
-        run: ls -Rhl ./releases
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+        run: ls -Rhl ./releases || echo "No ./releases"
       - name: Install ipfs and deps
         run: |
-          # set up go-ipfs
-          IPFS_VERSION=$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)
-          tar xzf <(curl -s https://dist.ipfs.io/go-ipfs/${IPFS_VERSION}/go-ipfs_${IPFS_VERSION}_linux-amd64.tar.gz)
-          echo "${{ github.workspace }}/go-ipfs/" >> $GITHUB_PATH
-          # set up ipfs-cluster-ctl
-          CTL_VERSION=$(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/versions | tail -n 1)
-          tar xzf <(curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CTL_VERSION}/ipfs-cluster-ctl_${CTL_VERSION}_linux-amd64.tar.gz)
-          echo "${{ github.workspace }}/ipfs-cluster-ctl/" >> $GITHUB_PATH
+          curl -s https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+          curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CLUSTER_CTL_VER}/ipfs-cluster-ctl_${CLUSTER_CTL_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ ipfs-cluster-ctl/ipfs-cluster-ctl --strip-components=1
       - name: Fix resolv # DNS provided by Github is unreliable for DNSLik/dnsaddr
         run: sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
       - name: Set up ipfs
@@ -247,7 +236,7 @@ jobs:
             --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
             --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
             peers ls > cluster-peers-ls
-          for maddr in $(jq -r '.[].ipfs.addresses[]' cluster-peers-ls); do
+          for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
             ipfs swarm connect "$maddr" || continue
           done
           echo '-> manual connect to cluster.ipfs.io'
@@ -255,7 +244,7 @@ jobs:
           echo '-> list swarm peers'
           ipfs swarm peers
         timeout-minutes: 3
-      - run: make publish
+      - run: ./dockerized make publish
       - run: git status
       - name: Read CID of updated DAG
         id: cid-reader
