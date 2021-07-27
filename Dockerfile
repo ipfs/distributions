@@ -1,7 +1,8 @@
 FROM ubuntu:20.04
 ARG USER_UID
+ARG GO_IPFS_VER
 RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip 
-RUN curl -s https://dist.ipfs.io/go-ipfs/v0.9.1/go-ipfs_v0.9.1_linux-amd64.tar.gz | tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+RUN curl -s "https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz" | tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
 
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
 ENV PATH="${PATH}:/asdf/.asdf/shims:/asdf/.asdf/bin"
