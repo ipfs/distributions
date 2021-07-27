@@ -349,19 +349,10 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
+	existingVersions=$(mktemp)
+	ipfs cat "$existing/$distname/versions" > "$existingVersions"
 
-	outputDir="$releases/$distname"
-	# if the output directory already exists, warn user
-	if [ -e "$outputDir" ]; then
-		warn "dirty output directory"
-		warn "will skip building already existing binaries"
-		warn "to perform a fresh build, please delete $outputDir"
-	fi
-
-	mkdir -p "$outputDir"
-	touch "$outputDir/existingVersions"
-	ipfs cat "$existing/$distname/versions" >> "$outputDir/existingVersions"
-	newVersions=$(comm --nocheck-order -13 "$outputDir/existingVersions" "$versions")
+	newVersions=$(comm --nocheck-order -13 "$existingVersions" "$versions")
 
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
@@ -369,7 +360,14 @@ function startGoBuilds() {
 	fi
 	printVersions "$newVersions"
 
+	outputDir="$releases/$distname"
 
+	# if the output directory already exists, warn user
+	if [ -e "$outputDir" ]; then
+		warn "dirty output directory"
+		warn "will skip building already existing binaries"
+		warn "to perform a fresh build, please delete $outputDir"
+	fi
 
 	export GOPATH
 	GOPATH="$(pwd)/gopath"
@@ -425,13 +423,15 @@ function startGoBuilds() {
 		echo ""
 	done <<< "$newVersions"
 
-	# All tagged versions from repo
+	# Keep all tagged versions from repo
 	grep -v ^nightly "$versions" > "$outputDir/versions"
 
-	# Last 7 nightly versions from repo and existing
-	grep -h ^nightly "$versions" "$outputDir/existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
+	# Keep at most 7 nightly versions
+	grep -h ^nightly "$versions" "$existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
 
 	notice "build complete!"
 }
 
 startGoBuilds "$1" "$2" "$3" "$4" "$5"
+
+# vim: noet
