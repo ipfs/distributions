@@ -1,28 +1,94 @@
 name: Nightly
 
 on:
+  push:
   ## Allow manual invocation
-  workflow_dispatch:
-  schedule:
-    - cron: '0 5 * * *' # UTC
+  #workflow_dispatch:
+  #schedule:
+  #  - cron: '0 5 * * *' # UTC
+
+env:
+ DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: '14'
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.16'
-      - run: sudo snap install ipfs jq
-      - run: ipfs init --profile server
-      - run: ipfs daemon &
+      - name: Install ipfs and deps
+        run: |
+          curl -s https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+          curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CLUSTER_CTL_VER}/ipfs-cluster-ctl_${CLUSTER_CTL_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ ipfs-cluster-ctl/ipfs-cluster-ctl --strip-components=1
+      - name: Fix resolv # DNS provided by Github is unreliable for DNSLik/dnsaddr
+        run: sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
+      - name: Set up ipfs
+        run: |
+          ipfs init --profile flatfs,server,test,lowpower
+          # make flatfs async for faster ci
+          new_config=$( jq '.Datastore.Spec.mounts[0].child.sync = false' ~/.ipfs/config) && echo "${new_config}" > ~/.ipfs/config
+          # restore deterministic port (changed by test profile)
+          ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
       - name: Wait for ipfs daemon
-        run: npx wait-port http://127.0.0.1:8080/api/v0/version
-      - name: Connect to ipfs cluster
-        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
-      - run: make deps nightly all_dists
-      - run: make publish
+        run: ipfs daemon --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+        timeout-minutes: 3
+      - name: Preconnect to cluster peers
+        run: |
+          echo '-> preconnect to cluster peers'
+          ipfs-cluster-ctl --enc=json \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            peers ls > cluster-peers-ls
+          for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
+            ipfs swarm connect "$maddr" || continue
+          done
+          echo '-> manual connect to cluster.ipfs.io'
+          ipfs swarm connect /dnsaddr/cluster.ipfs.io
+          echo '-> list swarm peers'
+          ipfs swarm peers
+        timeout-minutes: 3
+      - run: ./dockerized make deps nightly all_dists
+      - run: ./dockerized make publish
+      - name: Inspect git status and contents of ./releases
+        run: git status && ls -Rhl ./releases
+      - name: Read CID of updated DAG
+        id: cid-reader
+        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+      - name: Pin new website to ipfs-websites.collab.ipfscluster.io for 7 days
+        run: |
+          echo 'pin to cluster'
+          ipfs-cluster-ctl --enc=json \
+            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+            pin add \
+            --pin-name="https://github.com/ipfs/distributions/commits/${{ github.sha }}" \
+            --no-status --expire-in 168h \
+            "${{ steps.cid-reader.outputs.CID }}"
+          while true; do
+            ipfs-cluster-ctl --enc=json \
+              --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+              --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
+              status "${{ steps.cid-reader.outputs.CID }}" | tee cluster-pin-status
+            if [[ $(jq '.peer_map[].status' cluster-pin-status | grep '"pinned"' | wc -l) -ge 2 ]]; then
+              echo "Got 2 pin confirmations, finishing the workflow"
+              break
+            else
+              echo "(sleeping for 15 seconds)"
+              sleep 15
+            fi
+          done
+        timeout-minutes: 60
+      - name: Update PR status with preview link
+        run: |
+          PREVIEW_URL="https://dweb.link/ipfs/${{ steps.cid-reader.outputs.CID }}"
+          API_PARAMS=$(jq --monochrome-output --null-input \
+            --arg state "success" \
+            --arg target_url "$PREVIEW_URL" \
+            --arg description "Preview on IPFS" \
+            --arg context "IPFS" \
+            '{ state: $state, target_url: $target_url, description: $description, context: $context }' )
+          curl --output /dev/null --silent --show-error \
+            -X POST -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H 'Content-Type: application/json' \
+            --data "$API_PARAMS" 'https://api.github.com/repos/ipfs/distributions/statuses/${{ github.sha }}'
+          echo "Pinned to IPFS - $PREVIEW_URL"
