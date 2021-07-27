@@ -10,8 +10,7 @@ export GOPATH
 export GO111MODULE=on
 
 # Content path to use when looking for pre-existing release data
-DIST_ROOT=${DIST_ROOT:-/ipns/dist.ipfs.io}
-DIST_ROOT=$(ipfs resolve "$DIST_ROOT")
+DIST_ROOT=$(ipfs resolve "${DIST_ROOT:-/ipns/dist.ipfs.io}")
 
 # normalize umask
 umask 022
