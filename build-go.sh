@@ -251,17 +251,26 @@ function cleanRepo() {
 	git -C "$repopath" reset --hard
 }
 
+function nightlyRevision() {
+	local repopath=$1
+	local version=$2
+
+	# Use default branch, may be master, main or some other name
+	default_branch="$(git -C "$repopath" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+	# Find the last commit before nightly cut-off
+	cutoff_date="${version#nightly-}"
+	git -C "$repopath" rev-list -1 --first-parent --before="$cutoff_date" "$default_branch"
+}
+
 function checkoutVersion() {
 	local repopath=$1
 	local version=$2
 
 	test -n "$repopath" || fail "checkoutVersion: no repo to check out specified"
 
-
 	case $version in
 	nightly*)
-		# Use default branch, may be master, main or some other name
-		ref=$(git -C "$repopath" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+		ref="$(nightlyRevision "$repopath" "$version")"
 		;;
 	*)
 		ref=$version
@@ -392,7 +401,7 @@ function startGoBuilds() {
 
 		case $version in
 		nightly*)
-			buildVersion="$version-$(git rev-parse --short=7 HEAD)"
+			buildVersion="$version-$(nightlyRevision "$repopath" "$version" | head -c 7)"
 			;;
 		*)
 			buildVersion=$version
