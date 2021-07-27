@@ -130,7 +130,7 @@ Finally,
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
 2. Wait for [Github Action](https://github.com/ipfs/distributions/actions/) on your PR to build **signed** binaries. `<NEW_SIGNED_HASH>` will be different than one from local build.
 3. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with `<NEW_SIGNED_HASH>` you got from the Github Action output and a link to the PR above.
-   - TODO: this step will be automated in the future.
+   - TODO: this step may be automated in the future - see the [discussion](https://github.com/ipfs/distributions/issues/372).
 
 If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
 
