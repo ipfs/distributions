@@ -9,6 +9,9 @@ echo "::endgroup::"
 # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
 sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
 
+# QUIC perf: https://github.com/lucas-clemente/quic-go/wiki/UDP-Receive-Buffer-Size
+sudo sysctl -w net.core.rmem_max=2500000
+
 # init ipfs
 echo "::group::Set up IPFS daemon"
     ipfs init --profile flatfs,server,test,lowpower
