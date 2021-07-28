@@ -25,7 +25,7 @@ echo "::group::Preconnect to cluster peers"
     echo '-> preconnect to cluster peers'
     ipfs-cluster-ctl --enc=json \
         --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-        --basic-auth '${CLUSTER_USER}:${CLUSTER_PASSWORD}' \
+        --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
         peers ls > cluster-peers-ls
     for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
         ipfs swarm connect "$maddr" || continue

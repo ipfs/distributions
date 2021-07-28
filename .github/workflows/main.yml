@@ -200,28 +200,13 @@ jobs:
         id: cid-reader
         run: echo "::set-output name=CID::$(tail -1 ./versions)"
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
-        run: |
-          echo 'pin to cluster'
-          ipfs-cluster-ctl --enc=json \
-            --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-            --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
-            pin add \
-            --pin-name="https://github.com/ipfs/distributions/commits/${{ github.sha }}" \
-            --no-status \
-            "${{ steps.cid-reader.outputs.CID }}"
-          while true; do
-            ipfs-cluster-ctl --enc=json \
-              --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-              --basic-auth '${{ secrets.CLUSTER_USER }}:${{ secrets.CLUSTER_PASSWORD }}' \
-              status "${{ steps.cid-reader.outputs.CID }}" | tee cluster-pin-status
-            if [[ $(jq '.peer_map[].status' cluster-pin-status | grep '"pinned"' | wc -l) -ge 2 ]]; then
-              echo "Got 2 pin confirmations, finishing the workflow"
-              break
-            else
-              echo "(sleeping for 15 seconds)"
-              sleep 15
-            fi
-          done
+        run: ./scripts/ci/pin-to-cluster.sh
+        env:
+          PIN_CID: ${{ steps.cid-reader.outputs.CID }}
+          PIN_NAME: "https://github.com/ipfs/distributions/commits/${{ github.sha }}"
+          PIN_ADD_EXTRA_ARGS: ""
+          CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
+          CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         timeout-minutes: 60
       - name: Update PR status with preview link
         run: |
