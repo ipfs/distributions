@@ -10,7 +10,8 @@ on:
 #      - master
 
 env:
- DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
+ # TODO: restore DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
+ DIST_ROOT: '/ipfs/QmX6J3hVtMF9Y73CKcyLHfgviEfXGFFQABWPXsD17EsBhg' # dist.ipfs.io without ipfs-update@v1.7.1
  GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
