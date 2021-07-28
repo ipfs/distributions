@@ -199,7 +199,7 @@ function printInitialDistfile() {
   "name": "$distname",
   "owner": "$(< repo-owner)",
   "description": "$(< description)",
-  "date": "$(date '+%B %d, %Y')",
+  "date": "$(date -u '+%B %d, %Y')",
   "platforms": {}
 }
 EOF
@@ -211,7 +211,7 @@ function printBuildInfo() {
 	go version
 	echo "git sha of code: $commit"
 	uname -a
-	echo "built on $(date)"
+	echo "built on $(date -u)"
 }
 
 function buildWithMatrix() {
@@ -274,16 +274,19 @@ function checkoutVersion() {
 		;;
 	*)
 		ref=$version
+
+		# If there is a vtag, then checkout using <vtag>/<version>
+		# ('vtag' file is used for indicating 'submodule'
+		# such as 'fs-repo-migrations/fs-repo-0-to-1',
+		# those have release tags like 'fs-repo-0-to-1/v1.0.0')
+		if [ -e vtag ]; then
+			ref="$(cat vtag)/${version}"
+		fi
 		;;
 	esac
 
-	echo "==> checking out version $ref in $repopath"
+	echo "==> checking out version $version (git: $ref) in $repopath"
 	cleanRepo "$repopath"
-
-	# If there is a vtag, then checkout using <vtag>/<version>
-	if [ -e vtag ]; then
-		ref="$(cat vtag)/${ref}"
-	fi
 
 	git -C "$repopath" checkout "$ref" > /dev/null || fail "failed to check out $ref in $reporoot"
 }
@@ -358,6 +361,7 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
+
 	existingVersions=$(mktemp)
 	ipfs cat "$existing/$distname/versions" > "$existingVersions"
 
