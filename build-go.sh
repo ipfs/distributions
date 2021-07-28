@@ -436,11 +436,13 @@ function startGoBuilds() {
 		echo ""
 	done <<< "$newVersions"
 
-	# Keep all tagged versions from repo
-	grep -v ^nightly "$versions" > "$outputDir/versions"
-
-	# Keep at most 7 nightly versions
-	grep -h ^nightly "$versions" "$existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
+	# Additional cleanup/normalization for nightly builds
+	if grep -h ^nightly "$versions" "$existingVersions" > /dev/null; then
+		# Keep all tagged versions from repo
+		grep -v ^nightly "$versions" > "$outputDir/versions"
+		# Keep at most 7 nightly versions
+		grep -h ^nightly "$versions" "$existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
+	fi
 
 	notice "build complete!"
 }
