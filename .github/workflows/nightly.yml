@@ -13,8 +13,22 @@ env:
  CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
 jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(ls ./dists -1))"
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
   build:
     runs-on: "ubuntu-latest"
+    needs: prepare-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        dist_name: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v2
       - name: Install ipfs and deps
@@ -48,7 +62,7 @@ jobs:
           echo '-> list swarm peers'
           ipfs swarm peers
         timeout-minutes: 3
-      - run: ./dockerized make deps nightly all_dists
+      - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Inspect git status and contents of ./releases
         run: git status && ls -Rhl ./releases
@@ -72,6 +86,7 @@ jobs:
               status "${{ steps.cid-reader.outputs.CID }}" | tee cluster-pin-status
             if [[ $(jq '.peer_map[].status' cluster-pin-status | grep '"pinned"' | wc -l) -ge 2 ]]; then
               echo "Got 2 pin confirmations, finishing the workflow"
+              echo "Pinned ${{ matrix.dist_name }} nightly to IPFS - https://dweb.link/ipfs/${{ steps.cid-reader.outputs.CID }}/${{ matrix.dist_name }}/"
               break
             else
               echo "(sleeping for 15 seconds)"
@@ -79,16 +94,3 @@ jobs:
             fi
           done
         timeout-minutes: 60
-      - name: Update PR status with preview link
-        run: |
-          PREVIEW_URL="https://dweb.link/ipfs/${{ steps.cid-reader.outputs.CID }}"
-          API_PARAMS=$(jq --monochrome-output --null-input \
-            --arg state "success" \
-            --arg target_url "$PREVIEW_URL" \
-            --arg description "Preview on IPFS" \
-            --arg context "IPFS" \
-            '{ state: $state, target_url: $target_url, description: $description, context: $context }' )
-          curl --output /dev/null --silent --show-error \
-            -X POST -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -H 'Content-Type: application/json' \
-            --data "$API_PARAMS" 'https://api.github.com/repos/ipfs/distributions/statuses/${{ github.sha }}'
-          echo "Pinned to IPFS - $PREVIEW_URL"
