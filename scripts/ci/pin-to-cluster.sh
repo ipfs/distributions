@@ -6,7 +6,7 @@ ipfs-cluster-ctl --enc=json \
     --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
     --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
     pin add \
-    --pin-name="${PIN_NAME}" \
+    --name "${PIN_NAME}" \
     --no-status $PIN_ADD_EXTRA_ARGS \
     "$PIN_CID"
 echo "::endgroup::"
