@@ -15,6 +15,29 @@ sedEscapeArg() {
 	echo "$@" | sed 's/\//\\\//g'
 }
 
+# Adapted from https://stackoverflow.com/a/44660519/702738
+compare_version() {
+	if [[ $1 == $2 ]]; then
+		return 0
+	fi
+	local IFS=.
+	local i a=(${1%%[^0-9.]*}) b=(${2%%[^0-9.]*})
+	local arem=${1#${1%%[^0-9.]*}} brem=${2#${2%%[^0-9.]*}}
+	for ((i=0; i<${#a[@]} || i<${#b[@]}; i++)); do
+		if ((10#${a[i]:-0} < 10#${b[i]:-0})); then
+				return 1
+		elif ((10#${a[i]:-0} > 10#${b[i]:-0})); then
+				return 0
+		fi
+	done
+	if [ "$arem" '<' "$brem" ]; then
+		return 1
+	elif [ "$arem" '>' "$brem" ]; then
+		return 0
+	fi
+	return 1
+}
+
 case $1 in
 	new-go-dist)
 		name="$2"
@@ -58,7 +81,7 @@ case $1 in
 
 		# Create vtag file that contains version tag prefix
 		if [ "$tag_prefix" != "." ]; then
-			echo "$tag_prefix" > "dists/${name}/vtag"
+			echo "$tag_prefix" > "dists/$name/vtag"
 		fi
 
 		echo "distribution $name created successfully! To start build: make $name"
@@ -72,9 +95,20 @@ case $1 in
 			exit 1
 		fi
 
+		# Test if the new version is greater than the current version.
+		test_version() {
+			current_version=$([ -f "dists/$dist/current" ] && cat "dists/$dist/current" | sed "s/v//")
+			new_version=$(echo $nvers | sed "s/v//")
+
+			if compare_version "$current_version" "$new_version"; then
+				echo "ERROR: The version provided ($new_version) has to be greater than the current release ($current_version)."
+				exit 1
+			fi
+		}
+
 		case "$nvers" in
-			*-*) echo "WARNING: not marking pre-release $dist $nvers as the current version." ;;
-			*) echo "$nvers" > "dists/$dist/current" ;;
+			*-*) test_version && echo "WARNING: not marking pre-release $dist $nvers as the current version." ;;
+			*) test_version && echo "$nvers" > "dists/$dist/current" ;;
 		esac
 
 		echo "$nvers" >> "dists/$dist/versions"
