@@ -87,15 +87,19 @@ Run:
 > ./dist.sh add-version <dist> <version>
 ```
 
-This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
+This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it locally.
 
 Example:
 ```sh
 > ./dist.sh add-version fs-repo-99-to-100 v1.0.1
 ```
 
-**Official build:** If you want to build official signed binaries for added version, commit changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
-Github Action workflow for a PR builds and signs new version using deterministic toolchain and spits out updated root CID at the end.
+To produce a signed, **official build** for use in DNSLink at `dist.ipfs.io`:
+
+1. Run `./dist.sh add-version` locally.
+2. Commit created changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
+3. Wait for Github Action to finish PR build. It runs `./dockerized` build, then signs macOS binaries and spits out updated root CID at the end.
+4. If everything looks good, write down the CID from the preview link on the PR, and update the DNSlink at `dist.ipfs.io`.
 
 ### Adding a new (go) distribution
 
