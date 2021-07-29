@@ -20,13 +20,17 @@
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
     - [Publishing](#publishing)
   - [Background](#background)
+    - [Notes on reproducible builds](#notes-on-reproducible-builds)
   - [Contribute](#contribute)
     - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
   - [License](#license)
 
 ## Install
 
-Clone the repo and install the following dependencies via your favorite package manager:
+Clone the repo and use Docker via `./dockerized <cmd>` wrapper.
+
+If you don't want to run `./dockerized` build, install
+the following dependencies via your favorite package manager:
 
 * `go`
 * `npm` (v7.13.0+ with nodejs v16.2.0+)
@@ -198,6 +202,16 @@ So for example, if we had `<dist>` `go-ipfs` and `fs-repo-migrations`, we might 
 ```
 
 We call this the **distribution index**, the listing of all distributions, their versions, and platform assets.
+
+### Notes on reproducible builds
+
+Running `./dockerized make publish` will produce binaries using the same
+runtime as CI. The main difference between local build and official CI one is
+signing step on platforms such as `darwin` (macOS).
+
+Signatures are attached at the end of macOS binaries, which means
+`*_darwin-*.tar.gz` produced by CI will have additional bytes when compared
+with local build.
 
 ## Contribute
 
