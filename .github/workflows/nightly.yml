@@ -62,7 +62,7 @@ jobs:
                 labels: ['kind/bug', 'need/triage']
               })
               console.log('no open issues, created a new one', created)
-              link = created.html_url
+              link = created.data.html_url
             }
             for (const issue of response.data.items) {
               if (issue.title !== title) continue
@@ -72,7 +72,7 @@ jobs:
                 body
               })
               console.log('commented on existing open issue', created)
-              link = created.html_url
+              link = created.data.html_url
             }
             await github.repos.createCommitStatus({ ...opts,
               sha: '${{ github.sha }}',
