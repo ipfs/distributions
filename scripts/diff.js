@@ -85,8 +85,6 @@ async function spawnAsync (command, args, options = {}) {
     '--new-file',
     '-u',
     '--recursive',
-    // this changes on every build, so just adds noise, which is why we ignore it
-    '--ignore-matching-lines', '^\\s*<lastBuildDate>.*</lastBuildDate>\\s*',
     'a',
     'b'
   ], { cwd: tmpDir })
