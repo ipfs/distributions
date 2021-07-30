@@ -43,7 +43,7 @@ async function fetchDistData (distName) {
   }
   const data = JSON.parse(jsonStr)
   if (!data.dateUTC && data.date) {
-    data.dateUTC = new Date(data.date).toUTCString()
+    data.dateUTC = new Date(`${data.date} UTC`).toUTCString()
   }
   return data
 }
