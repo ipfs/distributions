@@ -199,7 +199,7 @@ function printInitialDistfile() {
   "name": "$distname",
   "owner": "$(< repo-owner)",
   "description": "$(< description)",
-  "date": "$(date '+%B %d, %Y')",
+  "date": "$(date -u '+%B %d, %Y')",
   "platforms": {}
 }
 EOF
@@ -211,7 +211,7 @@ function printBuildInfo() {
 	go version
 	echo "git sha of code: $commit"
 	uname -a
-	echo "built on $(date)"
+	echo "built on $(date -u)"
 }
 
 function buildWithMatrix() {
@@ -219,7 +219,7 @@ function buildWithMatrix() {
 	local package=$2
 	local output=$3
 	local commit=$4
-	local version=$5
+	local buildVersion=$5
 
 	test -n "$output" || fail "error: output dir not specified"
 	test -e "$matfile" || fail "build matrix $matfile does not exist"
@@ -229,13 +229,13 @@ function buildWithMatrix() {
 	local distname
 	distname=$(basename "$(pwd)")
 
-	printInitialDistfile "$distname" "$version" > dist.json
+	printInitialDistfile "$distname" "$buildVersion" > dist.json
 	printBuildInfo "$commit" > "$output/build-info"
 
 	# build each os/arch combo
 	while read -r goos goarch
 	do
-		doBuild "$goos" "$goarch" "$package" "$output" "$version"
+		doBuild "$goos" "$goarch" "$package" "$output" "$buildVersion"
 	done < "$matfile"
 
 	# build the source
@@ -251,19 +251,42 @@ function cleanRepo() {
 	git -C "$repopath" reset --hard
 }
 
+function nightlyRevision() {
+	local repopath=$1
+	local version=$2
+
+	# Use default branch, may be master, main or some other name
+	default_branch="$(git -C "$repopath" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+	# Find the last commit before nightly cut-off
+	cutoff_date="${version#nightly-}"
+	git -C "$repopath" rev-list -1 --first-parent --before="$cutoff_date" "$default_branch"
+}
+
 function checkoutVersion() {
 	local repopath=$1
-	local ref=$2
+	local version=$2
 
 	test -n "$repopath" || fail "checkoutVersion: no repo to check out specified"
 
-	echo "==> checking out version $ref in $repopath"
-	cleanRepo "$repopath"
+	case $version in
+	nightly*)
+		ref="$(nightlyRevision "$repopath" "$version")"
+		;;
+	*)
+		ref=$version
 
-	# If there is a vtag, then checkout using <vtag>/<version>
-	if [ -e vtag ]; then
-		ref="$(cat vtag)/${ref}"
-	fi
+		# If there is a vtag, then checkout using <vtag>/<version>
+		# ('vtag' file is used for indicating 'submodule'
+		# such as 'fs-repo-migrations/fs-repo-0-to-1',
+		# those have release tags like 'fs-repo-0-to-1/v1.0.0')
+		if [ -e vtag ]; then
+			ref="$(cat vtag)/${version}"
+		fi
+		;;
+	esac
+
+	echo "==> checking out version $version (git: $ref) in $repopath"
+	cleanRepo "$repopath"
 
 	git -C "$repopath" checkout "$ref" > /dev/null || fail "failed to check out $ref in $reporoot"
 }
@@ -338,7 +361,11 @@ function startGoBuilds() {
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
-	newVersions=$(comm --nocheck-order -13 <(ipfs cat "$existing/$distname/versions") "$versions")
+
+	existingVersions=$(mktemp)
+	ipfs cat "$existing/$distname/versions" > "$existingVersions"
+
+	newVersions=$(comm --nocheck-order -13 "$existingVersions" "$versions")
 
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
@@ -369,10 +396,21 @@ function startGoBuilds() {
 
 	while read -r version
 	do
-		if [ -e "$outputDir/$version" ]; then
+		outputVersion=$outputDir/$version
+
+		if [ -e "$outputVersion" ]; then
 			echo "$version already exists, skipping..."
 			continue
 		fi
+
+		case $version in
+		nightly*)
+			buildVersion="$version-$(nightlyRevision "$repopath" "$version" | head -c 7)"
+			;;
+		*)
+			buildVersion=$version
+			;;
+		esac
 
 		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
@@ -394,13 +432,21 @@ function startGoBuilds() {
 		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
 		fi
 
-		buildWithMatrix "$matfile" "$repo/$package" "$outputDir/$version" "$(currentSha "$repopath")" "$version"
+		buildWithMatrix "$matfile" "$repo/$package" "$outputVersion" "$(currentSha "$repopath")" "$buildVersion"
 		echo ""
 	done <<< "$newVersions"
 
-	cp "$versions" "$outputDir/versions"
+	# Additional cleanup/normalization for nightly builds
+	if grep -h ^nightly "$versions" "$existingVersions" > /dev/null; then
+		# Keep all tagged versions from repo
+		grep -v ^nightly "$versions" > "$outputDir/versions"
+		# Keep at most 7 nightly versions
+		grep -h ^nightly "$versions" "$existingVersions" | sort -ur | head -n7 >> "$outputDir/versions"
+	fi
 
 	notice "build complete!"
 }
 
 startGoBuilds "$1" "$2" "$3" "$4" "$5"
+
+# vim: noet

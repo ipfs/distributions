@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-PREVIEW_URL="https://dweb.link$CONTENT_PATH"
+PREVIEW_URL=${PREVIEW_URL:-"https://dweb.link$CONTENT_PATH"}
 API_PARAMS=$(jq --monochrome-output --null-input \
     --arg state "success" \
     --arg target_url "$PREVIEW_URL" \
-    --arg description "Preview updated website on IPFS" \
-    --arg context "Preview is ready" \
+    --arg description "${GITHUB_DESCRIPTION:-"Preview updated website on IPFS"}" \
+    --arg context "${GITHUB_TITLE:-"Preview is ready"}" \
     '{ state: $state, target_url: $target_url, description: $description, context: $context }' )
 curl --output /dev/null --silent --show-error \
     -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H 'Content-Type: application/json' \
