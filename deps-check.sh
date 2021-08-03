@@ -25,4 +25,4 @@ if [ "$failed" = true ]; then
 fi
 
 echo "npm install"
-exec npm install --no-audit --progress=false
+exec npm ci --prefer-offline --no-audit --progress=false

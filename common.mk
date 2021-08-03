@@ -7,11 +7,15 @@ relpath = $(dir $(lastword $(MAKEFILE_LIST)))
 # Default values
 distname ?= $(notdir ${CURDIR})
 releases ?= $(relpath)releases/${distname}
+versions ?= versions
+
+nightlyVer = nightly-$(shell date -u '+%Y-%m-%d')
+
 
 all: dist
 
 dist:
-	${relpath}build-go.sh "${distname}" "${repo}" "${package}" versions
+	${relpath}build-go.sh "${distname}" "${repo}" "${package}" "${versions}"
 
 update_sources:
 	cd gopath/src/${repo}
@@ -19,3 +23,7 @@ update_sources:
 
 clean:
 	rm -rf $(releases)
+
+nightly:
+	grep -qxF ${nightlyVer} versions || echo ${nightlyVer} >> versions
+

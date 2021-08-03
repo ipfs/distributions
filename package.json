@@ -12,7 +12,7 @@
     "webpack:watch": "webpack --watch-stdin",
     "less:watch": "onchange 'site/assets/less/**/*.less' -- npm run less:build",
     "less:build": "lessc site/assets/less/main.less --clean-css site/static/site.css",
-    "build:hugo": "hugo --quiet -s site -d ../releases",
+    "build:hugo": "hugo -s site -d ../releases",
     "build:assets": "npm run less:build && npm run webpack:build",
     "build": "npm run dist && npm run build:assets && npm run build:hugo",
     "start": "npm run clean && npm run dist && npm run less:build && npm run webpack:build && concurrently --kill-others 'npm run less:watch' 'npm run webpack:watch' 'hugo serve -s site'"

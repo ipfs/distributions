@@ -6,7 +6,7 @@
 
 ```bash
 # Install dependencies
-$ npm install
+$ npm ci
 $ npm start
 $ open localhost:1313
 ```

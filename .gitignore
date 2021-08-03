@@ -3,6 +3,7 @@ logs
 **/npm-debug.log
 **/node_modules
 releases
+site/data
 dists/ipfs-app/build
 www
 **/gopath
