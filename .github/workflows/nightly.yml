@@ -1,14 +1,17 @@
 name: Nightly
 
 on:
-  push:
-  ## Allow manual invocation
-  #workflow_dispatch:
-  #schedule:
-  #  - cron: '0 5 * * *' # UTC
+  workflow_dispatch:
+    inputs:
+      dist_root:
+        description: 'DIST_ROOT'
+        required: true
+        default: '/ipns/dist.ipfs.io'
+  schedule:
+    - cron: '0 5 * * *' # UTC
 
 env:
- DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
  GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
@@ -30,7 +33,6 @@ jobs:
     runs-on: "ubuntu-latest"
     needs: prepare-matrix
     strategy:
-      max-parallel: 15 # avoid using all workers from the org pool
       fail-fast: false
       matrix:
         dist_name: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
