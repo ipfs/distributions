@@ -2,16 +2,20 @@ name: CI
 
 on:
   push:
-# TODO: restore before merging
-#    branches:
-#      - master
-#  pull_request:
-#    branches:
-#      - master
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      dist_root:
+        description: 'DIST_ROOT'
+        required: true
+        default: '/ipns/dist.ipfs.io'
 
 env:
- # TODO: restore DIST_ROOT: '/ipns/dist.ipfs.io' # content root used for calculating diff to build
- DIST_ROOT: '/ipfs/QmX6J3hVtMF9Y73CKcyLHfgviEfXGFFQABWPXsD17EsBhg' # dist.ipfs.io without ipfs-update@v1.7.1
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
  GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 

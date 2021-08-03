@@ -7,7 +7,7 @@
     <description>Recent releases on {{ .Site.Title }}</description>
     <generator>Hugo -- gohugo.io</generator>
     {{ with .Site.LanguageCode }}<language>{{.}}</language>{{end}}
-    <lastBuildDate>{{ now.Format "Mon, 02 Jan 2006 15:04:05 -0700" | safeHTML }}</lastBuildDate>
+    <lastBuildDate>{{ $.Site.Data.siteroot.lastBuildDate | safeHTML }}</lastBuildDate>
     {{ with .OutputFormats.Get "RSS" }}
 	<atom:link href="{{ $baseURL }}{{ .Permalink }}" rel="self" type="{{ .MediaType }}" />
     {{ end }}

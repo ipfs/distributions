@@ -20,13 +20,17 @@
     - [Adding a new (go) distribution](#adding-a-new-go-distribution)
     - [Publishing](#publishing)
   - [Background](#background)
+    - [Notes on reproducible builds](#notes-on-reproducible-builds)
   - [Contribute](#contribute)
     - [Want to hack on IPFS?](#want-to-hack-on-ipfs)
   - [License](#license)
 
 ## Install
 
-Clone the repo and install the following dependencies via your favorite package manager:
+Clone the repo and use Docker via `./dockerized <cmd>` wrapper.
+
+If you don't want to run `./dockerized` build, install
+the following dependencies via your favorite package manager:
 
 * `go`
 * `npm` (v7.13.0+ with nodejs v16.2.0+)
@@ -83,15 +87,19 @@ Run:
 > ./dist.sh add-version <dist> <version>
 ```
 
-This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it.
+This will add the version to `dists/<dist>/versions`, set it as the current version in `dists/<dist>/current`, and build it locally.
 
 Example:
 ```sh
 > ./dist.sh add-version fs-repo-99-to-100 v1.0.1
 ```
 
-**Official build:** If you want to build official signed binaries for added version, commit changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
-Github Action workflow for a PR builds and signs new version using deterministic toolchain and spits out updated root CID at the end.
+To produce a signed, **official build** for use in DNSLink at `dist.ipfs.io`:
+
+1. Run `./dist.sh add-version` locally.
+2. Commit created changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
+3. Wait for Github Action to finish PR build. It runs `./dockerized` build, then signs macOS binaries and spits out updated root CID at the end.
+4. If everything looks good, write down the CID from the preview link on the PR, and update the DNSlink at `dist.ipfs.io`.
 
 ### Adding a new (go) distribution
 
@@ -198,6 +206,16 @@ So for example, if we had `<dist>` `go-ipfs` and `fs-repo-migrations`, we might 
 ```
 
 We call this the **distribution index**, the listing of all distributions, their versions, and platform assets.
+
+### Notes on reproducible builds
+
+Running `./dockerized make publish` will produce binaries using the same
+runtime as CI. The main difference between local build and official CI one is
+signing step on platforms such as `darwin` (macOS).
+
+Signatures are attached at the end of macOS binaries, which means
+`*_darwin-*.tar.gz` produced by CI will have additional bytes when compared
+with local build.
 
 ## Contribute
 
