@@ -9,8 +9,8 @@ export GOPATH
 # Always use go modules
 export GO111MODULE=on
 
-DIST_PATH=${DIST_PATH:-/ipns/dist.ipfs.io}
-DIST_PATH=$(ipfs resolve "$DIST_PATH")
+# Content path to use when looking for pre-existing release data
+DIST_ROOT=$(ipfs resolve "${DIST_ROOT:-/ipns/dist.ipfs.io}")
 
 # normalize umask
 umask 022
@@ -334,7 +334,7 @@ function startGoBuilds() {
 	fi
 
 	if [ -z "$existing" ]; then
-		existing="$DIST_PATH"
+		existing="$DIST_ROOT"
 	fi
 
 	echo "comparing $versions with $existing/$distname/versions"
