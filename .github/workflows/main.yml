@@ -115,7 +115,7 @@ jobs:
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         timeout-minutes: 5
       - run: ./dockerized make publish
-      - run: git status      
+      - run: git status
       - name: Read CID of updated DAG
         id: cid-reader
         run: echo "::set-output name=CID::$(tail -1 ./versions)"
