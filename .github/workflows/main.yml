@@ -140,7 +140,7 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           name: diff
-          path: diff          
+          path: diff
 
   diff:
     needs: persist
@@ -152,15 +152,18 @@ jobs:
           name: diff
       - id: diff
         run: |
-          body=$(cat diff)
+          body=$(cat diff | sed 's:`:\\`:g')
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}"
           echo ::set-output name=diff::$body
-      - uses: peter-evans/create-or-update-comment@a35cf36e5301d70b76f316e867e7788a55a31dae # v1.4.5
+      - name: Create comment with the diff
+        uses: actions/github-script@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-          issue-number: ${{ github.event.number }}
-          body: |
-            ${{ steps.diff.outputs.diff }}
+          script: |
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.number }},
+              body: `${{ steps.diff.outputs.diff }}`
+            })
