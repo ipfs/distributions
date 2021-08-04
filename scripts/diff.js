@@ -96,7 +96,7 @@ async function spawnAsync (command, args, options = {}) {
   }
 
   const noDifferences = diffResult.code === 0
-  const oldSitePath = DIST_ROOT === resolvedDistRoot ? DIST_ROOT : `${DIST_ROOT} at ${resolvedDistRoot}`
+  const oldSitePath = DIST_ROOT === resolvedDistRoot ? `\`${DIST_ROOT}\`` : `\`${DIST_ROOT}\` at \`${resolvedDistRoot}\``
 
   const diffMarkdownLines = []
   if (noDifferences) {
@@ -106,7 +106,7 @@ async function spawnAsync (command, args, options = {}) {
       '## Diff of Changes',
       '',
       `Old: ${oldSitePath}`,
-      `New: /ipfs/${cid}`,
+      `New: \`/ipfs/${cid}\``,
       '')
 
     if (skipped.length > 0) {
