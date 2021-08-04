@@ -8,7 +8,8 @@ echo "::group::Unpack any new darwin arm64 and amd64 binaries to ./tmp"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        for arch in "amd64" "arm64"; do
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        for arch in $DIST_MAC_ARCHS; do
             mkdir -p "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned"
             tar -zxvf "./releases/${DIST_NAME}/${DIST_VERSION}/${DIST_NAME}_${DIST_VERSION}_darwin-${arch}.tar.gz" -C "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/"
         done
@@ -23,7 +24,8 @@ echo "::group::Sign and notarize the mac binaries"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        for arch in "amd64" "arm64"; do
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        for arch in $DIST_MAC_ARCHS; do
             EXECUTABLES=$(jq -nc '$ARGS.positional' --args $(find "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/" -perm +111 -type f -print))
             echo "{
                 \"source\" : $EXECUTABLES,
@@ -51,7 +53,8 @@ echo "::group::Update changed binaries in ./releases"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        for arch in "amd64" "arm64"; do
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        for arch in $DIST_MAC_ARCHS; do
             echo "-> Starting the update of darwin_${arch}.tar.gz for name='${DIST_NAME}' and version='${DIST_VERSION}'"
             # unzip signed binaries to a directory matching .tar.gz structure
             cd "${WORK_DIR}"
