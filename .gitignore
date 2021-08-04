@@ -3,6 +3,7 @@ logs
 **/npm-debug.log
 **/node_modules
 releases
+site/data
 dists/ipfs-app/build
 www
 **/gopath
@@ -13,6 +14,7 @@ www
 **/go.sum
 **/go.mod
 /versions
+/diff
 
 site/static/*.js
 site/static/*.css

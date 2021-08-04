@@ -7,35 +7,163 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      dist_root:
+        description: 'DIST_ROOT'
+        required: true
+        default: '/ipns/dist.ipfs.io'
+
+env:
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.9.1'           # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - uses: actions/setup-go@v2
+      - name: Setup IPFS
+        run: ./scripts/ci/setup-ipfs.sh
+        env:
+          CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
+          CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        timeout-minutes: 5
+      - name: Build any new ./releases
+        run: ./dockerized make all_dists
+      - name: Inspect git status and contents of ./releases
+        run: git status && ls -Rhl ./releases
+      - name: Temporarily save ./releases artifacts
+        uses: actions/upload-artifact@v2
         with:
-          go-version: '1.16'
-      - run: sudo snap install ipfs jq
-      - run: ipfs init --profile server
-      - run: ipfs daemon &
-      - name: Wait for ipfs daemon
-        run: npx wait-port http://127.0.0.1:8080/api/v0/version
-      - name: Connect to ipfs cluster
-        run: ipfs swarm connect /dnsaddr/cluster.ipfs.io
-      - run: make publish
-      # todo: add $(cat versions) to cluster (and wait)
-      # todo: update dist dnslink if changed.
-  
-  lint: 
+          name: releases-unsigned-diff
+          path: releases
+          retention-days: 1
+
+  lint:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: '14'
       - run: npm ci --no-audit --progress=false
       - run: npm run lint
+
+  sign-macos:
+    runs-on: "macos-latest"
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve unsigned artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: releases-unsigned-diff
+          path: releases
+        continue-on-error: true # skip if no releases
+      - name: List ./releases before
+        run: ls -Rhl ./releases || echo "No ./releases"
+      - name: Install gon via HomeBrew for code signing and app notarization
+        run: |
+          brew tap mitchellh/gon
+          brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
+          ipfs init --profile test # needed for calculating NEW_CID later
+      - name: Import Keychain Certs
+        uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTS_PASS }}
+      - name: Verify identity used for signing
+        run: security find-identity -v
+      - name: Sign any new releases
+        run: ./scripts/ci/sign-new-macos-releases.sh
+        env:
+          WORK_DIR: ${{ github.workspace }}
+          AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }} # implicitly read from env by gon
+          AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD }}
+      - name: List ./releases after
+        run: ls -Rhl ./releases || echo "No ./releases"
+      - name: Temporarily save notarized artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: releases-signed-macos-diff
+          path: releases
+          retention-days: 1
+        continue-on-error: true # skip if no releases
+
+  persist:
+    runs-on: "ubuntu-latest"
+    needs: sign-macos
+    steps:
+      - uses: actions/checkout@v2
+      - name: Retrieve signed artifacts
+        uses: actions/download-artifact@v2
+        continue-on-error: true # skip if no releases
+        with:
+          name: releases-signed-macos-diff
+          path: releases
+      - name: List ./releases
+        run: ls -Rhl ./releases || echo "No ./releases"
+      - name: Setup IPFS
+        run: ./scripts/ci/setup-ipfs.sh
+        env:
+          CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
+          CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        timeout-minutes: 5
+      - run: ./dockerized make publish
+      - run: git status
+      - name: Read CID of updated DAG
+        id: cid-reader
+        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+      - name: Pin new website to ipfs-websites.collab.ipfscluster.io
+        run: ./scripts/ci/pin-to-cluster.sh
+        env:
+          PIN_CID: ${{ steps.cid-reader.outputs.CID }}
+          PIN_NAME: "https://github.com/ipfs/distributions/commits/${{ github.sha }}"
+          PIN_ADD_EXTRA_ARGS: ""
+          CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
+          CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        timeout-minutes: 60
+      - name: Update PR status with preview link
+        run: ./scripts/ci/github-preview-link.sh
+        env:
+          CONTENT_PATH: "/ipfs/${{ steps.cid-reader.outputs.CID }}/"
+          GIT_REVISION: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./dockerized make diff
+        if: github.event_name == 'pull_request'
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: diff
+          path: diff
+
+  diff:
+    needs: persist
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: diff
+      - id: diff
+        run: |
+          body=$(cat diff | sed 's:`:\\`:g')
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo ::set-output name=diff::$body
+      - name: Create comment with the diff
+        uses: actions/github-script@v4
+        with:
+          script: |
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.number }},
+              body: `${{ steps.diff.outputs.diff }}`
+            })
