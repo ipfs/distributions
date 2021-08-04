@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 set -e
 
+download_dist_package () {
+    local DIST_NAME="$1"
+    local DIST_VERSION="$2"
+    local DIST_FILE="${DIST_NAME}_${DIST_VERSION}_linux-amd64.tar.gz"
+    local DIST_URL="https://dist.ipfs.io/${DIST_NAME}/${DIST_VERSION}/${DIST_FILE}"
+    wget -nv -c --retry-connrefused --tries=0 --retry-on-host-error --retry-on-http-error=503,504,429 -O "${DIST_FILE}" "${DIST_URL}"
+    wget -nv -c --retry-connrefused --tries=0 --retry-on-host-error --retry-on-http-error=503,504,429 -O "${DIST_FILE}.sha512" "${DIST_URL}.sha512"
+    sha512sum -c "${DIST_FILE}.sha512"
+}
+
 echo "::group::Install go-ipfs and ipfs-cluster-ctl"
-    curl -s https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
-    curl -s https://dist.ipfs.io/ipfs-cluster-ctl/${CLUSTER_CTL_VER}/ipfs-cluster-ctl_${CLUSTER_CTL_VER}_linux-amd64.tar.gz | sudo tar vzx -C /usr/local/bin/ ipfs-cluster-ctl/ipfs-cluster-ctl --strip-components=1
+    download_dist_package go-ipfs "${GO_IPFS_VER}"
+    sudo tar vzx -f "go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz" -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+
+    download_dist_package ipfs-cluster-ctl "${CLUSTER_CTL_VER}"
+    sudo tar vzx -f "ipfs-cluster-ctl_${CLUSTER_CTL_VER}_linux-amd64.tar.gz" -C /usr/local/bin/ ipfs-cluster-ctl/ipfs-cluster-ctl --strip-components=1
+
+    rm *.tar.gz*
 echo "::endgroup::"
 
 # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
