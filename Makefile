@@ -1,3 +1,5 @@
+export NODE_OPTIONS="--unhandled-rejections=strict"
+
 all: deps releases all_dists site
 
 DISTS = $(notdir $(wildcard dists/*))
@@ -33,6 +35,9 @@ site: deps
 
 publish: deps all_dists site
 	./scripts/patch.js
+
+diff:
+	./scripts/diff.js > diff
 
 clean:
 	rm -rf releases

@@ -134,3 +134,36 @@ jobs:
           CONTENT_PATH: "/ipfs/${{ steps.cid-reader.outputs.CID }}/"
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./dockerized make diff
+        if: github.event_name == 'pull_request'
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: diff
+          path: diff
+
+  diff:
+    needs: persist
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: diff
+      - id: diff
+        run: |
+          body=$(cat diff | sed 's:`:\\`:g')
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo ::set-output name=diff::$body
+      - name: Create comment with the diff
+        uses: actions/github-script@v4
+        with:
+          script: |
+            await github.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.number }},
+              body: `${{ steps.diff.outputs.diff }}`
+            })
