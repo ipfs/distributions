@@ -49,6 +49,8 @@ async function spawnAsync (command, args, options = {}) {
 (async () => {
   const versionsContents = await fs.readFile(path.join(__dirname, '..', 'versions'), 'utf-8')
   const cid = versionsContents.split('\n').filter(x => x).pop()
+  const resolveResult = await exec(`ipfs resolve -r ${DIST_ROOT} -enc=json`)
+  const resolvedDistRoot = JSON.parse(resolveResult.stdout).Path
 
   // to produce a nice diff we'll setup two dirs and diff them recursively
   const tmpDir = await tempDir()
@@ -57,7 +59,7 @@ async function spawnAsync (command, args, options = {}) {
   const dirB = path.join(tmpDir, 'b')
   await fs.mkdir(dirB, { recursive: true })
 
-  const ipfsDiffResult = await exec(`ipfs object diff ${DIST_ROOT} /ipfs/${cid} --enc=json`)
+  const ipfsDiffResult = await exec(`ipfs object diff ${resolvedDistRoot} /ipfs/${cid} --enc=json`)
   const changes = JSON.parse(ipfsDiffResult.stdout).Changes
   var skipped = []
   for (const f of changes) {
@@ -66,14 +68,14 @@ async function spawnAsync (command, args, options = {}) {
         await ipfsGet(`${cid}/${f.Path}`, path.join(dirB, f.Path))
         break
       case CHANGE_TYPE_REMOVE:
-        await ipfsGet(`${DIST_ROOT}/${f.Path}`, path.join(dirA, f.Path))
+        await ipfsGet(`${resolvedDistRoot}/${f.Path}`, path.join(dirA, f.Path))
         break
       case CHANGE_TYPE_MOD:
         if (skipDiff.has(f.Path)) {
           skipped.push(f.Path)
         } else {
           await ipfsGet(`${cid}/${f.Path}`, path.join(dirB, f.Path))
-          await ipfsGet(`${DIST_ROOT}/${f.Path}`, path.join(dirA, f.Path))
+          await ipfsGet(`${resolvedDistRoot}/${f.Path}`, path.join(dirA, f.Path))
         }
         break
       default:
@@ -94,12 +96,18 @@ async function spawnAsync (command, args, options = {}) {
   }
 
   const noDifferences = diffResult.code === 0
+  const oldSitePath = DIST_ROOT === resolvedDistRoot ? DIST_ROOT : `${DIST_ROOT} at ${resolvedDistRoot}`
 
   const diffMarkdownLines = []
   if (noDifferences) {
     diffMarkdownLines.push('This change produced no new differences in built artifacts.')
   } else {
-    diffMarkdownLines.push('## Diff of Changes', '')
+    diffMarkdownLines.push(
+      '## Diff of Changes',
+      '',
+      `Old: ${oldSitePath}`,
+      `New: /ipfs/${cid}`,
+      '')
 
     if (skipped.length > 0) {
       diffMarkdownLines.push('The following files changed but will not show diffs, because the diffs would be unreadable:')
