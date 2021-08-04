@@ -5,7 +5,7 @@ ARG USER_UID
 
 ARG GO_IPFS_VER
 RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip tzdata && \
-    ln -fs /usr/share/zoneinfo/America/Los_Angeles /etc/localtime && \
+    ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
     dpkg-reconfigure --frontend noninteractive tzdata
 RUN curl -s "https://dist.ipfs.io/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz" | tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
 
