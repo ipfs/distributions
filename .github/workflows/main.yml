@@ -150,20 +150,15 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: diff
-      - id: diff
-        run: |
-          body=$(cat diff | sed 's:`:\\`:g')
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo ::set-output name=diff::$body
       - name: Create comment with the diff
         uses: actions/github-script@v4
         with:
           script: |
+            const fs = require('fs').promises
+            const diff = await fs.readFile('diff', 'utf8')
             await github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: ${{ github.event.number }},
-              body: `${{ steps.diff.outputs.diff }}`
+              body: diff
             })
