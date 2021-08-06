@@ -98,6 +98,8 @@ jobs:
   persist:
     runs-on: "ubuntu-latest"
     needs: sign-macos
+    permissions:
+      statuses: write
     steps:
       - uses: actions/checkout@v2
       - name: Retrieve signed artifacts
