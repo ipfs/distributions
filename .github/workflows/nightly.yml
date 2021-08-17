@@ -104,3 +104,29 @@ jobs:
           CONTENT_PATH: "/ipfs/${{ steps.cid-reader.outputs.CID }}/${{ matrix.dist_name }}"
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Close any open issues about broken build
+        uses: actions/github-script@v4
+        if: ${{ success() }}
+        with:
+          script: |
+            const title = 'Nightly build failed for ${{ matrix.dist_name }}'
+            const body = 'Fixed! ${{ matrix.dist_name }} got successfully built from the latest commit: https://github.com/ipfs/distributions/actions/runs/${{ github.run_id }}'
+            const opts = { owner: context.repo.owner, repo: context.repo.repo }
+            const response = await github.search.issuesAndPullRequests({
+              q: `repo:ipfs/distributions is:issue is:open in:title ${title}`
+            })
+            console.log('github.issuesAndPullRequests', response)
+            for (const issue of response.data.items) {
+              if (issue.title !== title) continue
+              console.log('found existing open issue', issue)
+              const created = await github.issues.createComment({ ...opts,
+                issue_number: issue.number,
+                body
+              })
+              await github.issues.update({ ...opts,
+                issue_number: issue.number,
+                state: 'closed',
+                assignees: []
+              })
+              console.log('commented and closed existing open issue', created)
+            }
