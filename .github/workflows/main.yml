@@ -1,18 +1,18 @@
 name: CI
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-  workflow_dispatch:
-    inputs:
-      dist_root:
-        description: 'DIST_ROOT'
-        required: true
-        default: '/ipns/dist.ipfs.io'
+on: push
+  # push:
+  #   branches:
+  #     - master
+  # pull_request:
+  #   branches:
+  #     - master
+  # workflow_dispatch:
+  #   inputs:
+  #     dist_root:
+  #       description: 'DIST_ROOT'
+  #       required: true
+  #       default: '/ipns/dist.ipfs.io'
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
@@ -99,6 +99,10 @@ jobs:
     runs-on: "ubuntu-latest"
     needs: sign-macos
     steps:
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15
       - uses: actions/checkout@v2
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v2
@@ -141,6 +145,11 @@ jobs:
         with:
           name: diff
           path: diff
+      # production dnslink is updated on release (during tag build)
+      - run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+        env:
+          DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
+
 
   diff:
     needs: persist
