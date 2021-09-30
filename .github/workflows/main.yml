@@ -1,18 +1,18 @@
 name: CI
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-  workflow_dispatch:
-    inputs:
-      dist_root:
-        description: 'DIST_ROOT'
-        required: true
-        default: '/ipns/dist.ipfs.io'
+on: push
+  # push:
+  #   branches:
+  #     - master
+  # pull_request:
+  #   branches:
+  #     - master
+  # workflow_dispatch:
+  #   inputs:
+  #     dist_root:
+  #       description: 'DIST_ROOT'
+  #       required: true
+  #       default: '/ipns/dist.ipfs.io'
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
