@@ -35,7 +35,7 @@ echo "::group::Set up IPFS daemon"
     # restore deterministic port (changed by test profile)
     ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
     # wait for ipfs daemon
-    ipfs daemon --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+    ipfs daemon --routing=none --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
 echo "::endgroup::"
 
 
@@ -46,7 +46,7 @@ echo "::group::Preconnect to cluster peers"
         --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
         peers ls > cluster-peers-ls
     for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
-        ipfs swarm connect "$maddr" || continue
+        ipfs swarm peering add "$maddr" || continue
     done
     echo '-> manual connect to cluster.ipfs.io'
     ipfs swarm connect /dnsaddr/cluster.ipfs.io
