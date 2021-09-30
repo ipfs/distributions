@@ -47,6 +47,7 @@ echo "::group::Preconnect to cluster peers"
         peers ls > cluster-peers-ls
     for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
         ipfs swarm peering add "$maddr" || continue
+        ipfs swarm connect "$maddr" || continue
     done
     echo '-> manual connect to cluster.ipfs.io'
     ipfs swarm connect /dnsaddr/cluster.ipfs.io
