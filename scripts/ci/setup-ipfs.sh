@@ -29,13 +29,13 @@ sudo sysctl -w net.core.rmem_max=2500000
 
 # init ipfs
 echo "::group::Set up IPFS daemon"
-    ipfs init --profile flatfs,server,test,lowpower
+    ipfs init --profile flatfs,server,test,randomports,lowpower
     # make flatfs async for faster ci
     new_config=$( jq '.Datastore.Spec.mounts[0].child.sync = false' ~/.ipfs/config) && echo "${new_config}" > ~/.ipfs/config
     # restore deterministic port (changed by test profile)
     ipfs config Addresses.API "/ip4/127.0.0.1/tcp/5001"
     # wait for ipfs daemon
-    ipfs daemon --routing=none --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
+    ipfs daemon --enable-gc=false & while (! ipfs id --api "/ip4/127.0.0.1/tcp/5001"); do sleep 1; done
 echo "::endgroup::"
 
 
