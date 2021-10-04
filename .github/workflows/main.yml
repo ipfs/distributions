@@ -1,18 +1,18 @@
 name: CI
 
-on: push
-  # push:
-  #   branches:
-  #     - master
-  # pull_request:
-  #   branches:
-  #     - master
-  # workflow_dispatch:
-  #   inputs:
-  #     dist_root:
-  #       description: 'DIST_ROOT'
-  #       required: true
-  #       default: '/ipns/dist.ipfs.io'
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      dist_root:
+        description: 'DIST_ROOT'
+        required: true
+        default: '/ipns/dist.ipfs.io'
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
@@ -145,8 +145,9 @@ jobs:
         with:
           name: diff
           path: diff
-      # production dnslink is updated on release (during tag build)
+      - name: Update DNSLink (if on the main branch)
       - run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+        if: github.ref == 'refs/heads/master'
         env:
           DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
 
