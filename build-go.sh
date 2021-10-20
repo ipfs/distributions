@@ -94,16 +94,22 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
-  (
-      export GOOS="$goos"
-      export GOARCH="$goarch"
+	(
+		export GOOS="$goos"
+		export GOARCH="$goarch"
 
-      local output
-      output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-      go build -mod=mod -o "$output" \
-	 -trimpath \
-	 "${package}"
-  )
+		local output
+		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
+		go build -mod=mod -o "$output" \
+			-trimpath \
+			"${package}"
+
+		if [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
+			echo "GLIBC versions:"
+			glibc-check list-versions "$output"
+			glibc-check assert-all 'major == 2 && minor < 32' "$output"
+		fi
+	)
 }
 
 function doBuild() {
