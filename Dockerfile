@@ -28,6 +28,8 @@ RUN asdf install
 ENV IPFS_PATH=/asdf/.ipfs
 RUN mkdir -p ${IPFS_PATH} && echo "/ip4/127.0.0.1/tcp/5001" > ${IPFS_PATH}/api
 
+RUN go install github.com/guseggert/glibc-check/cmd/glibc-check@v0.0.0-20211020180227-964e8f06bf27 && asdf reshim
+
 ARG CACHEBUST=undefined
 USER root
 RUN apt-get update && apt-get -y upgrade

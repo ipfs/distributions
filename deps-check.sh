@@ -19,6 +19,7 @@ function fail() {
 (node --version > /dev/null 2>&1) || fail "Missing node.js, please see https://nodejs.org/"
 (npm --version > /dev/null 2>&1) || fail "Missing npm, please see https://npmjs.com/"
 (jq --version > /dev/null 2>&1) || fail "Missing jq, please see https://stedolan.github.io/jq/"
+(glibc-check > /dev/null 2>&1) || fail "Missing glibc-check, install with 'go install github.com/guseggert/glibc-check/cmd/glibc-check@latest'"
 
 if [ "$failed" = true ]; then 
 	exit 1
