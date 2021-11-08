@@ -29,7 +29,7 @@ sudo sysctl -w net.core.rmem_max=2500000
 
 # init ipfs
 echo "::group::Set up IPFS daemon"
-    ipfs init --profile flatfs,server,test,randomports,lowpower
+    ipfs init --profile flatfs,server,randomports,lowpower
     # make flatfs async for faster ci
     new_config=$( jq '.Datastore.Spec.mounts[0].child.sync = false' ~/.ipfs/config) && echo "${new_config}" > ~/.ipfs/config
     # restore deterministic port (changed by test profile)
@@ -46,8 +46,8 @@ echo "::group::Preconnect to cluster peers"
         --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
         peers ls > cluster-peers-ls
     for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
-        ipfs swarm peering add "$maddr" || continue
-        ipfs swarm connect "$maddr" || continue
+        ipfs swarm peering add $maddr || continue
+        ipfs swarm connect $maddr || continue
     done
     echo '-> manual connect to cluster.ipfs.io'
     ipfs swarm connect /dnsaddr/cluster.ipfs.io

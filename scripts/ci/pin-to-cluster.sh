@@ -11,6 +11,7 @@ ipfs-cluster-ctl --enc=json \
     "$PIN_CID"
 echo "::endgroup::"
 
+# TODO: below can now be replaced with ipfs-cluster-ctl --wait now (https://github.com/ipfs/ipfs-cluster/blob/v0.14.1/CHANGELOG.md#v0141---2021-08-18)
 echo "::group::waiting until pinned"
     while true; do
     ipfs-cluster-ctl --enc=json \
