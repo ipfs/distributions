@@ -104,7 +104,7 @@ function goBuild() {
 			-trimpath \
 			"${package}"
 
-		if [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
+		if [ -x "$(which glibc-check)" ] && [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
 			echo "GLIBC versions:"
 			glibc-check list-versions "$output"
 			glibc-check assert-all 'major == 2 && minor < 32' "$output"
@@ -369,7 +369,7 @@ function startGoBuilds() {
 	echo "comparing $versions with $existing/$distname/versions"
 
 	existingVersions=$(mktemp)
-	ipfs cat "$existing/$distname/versions" > "$existingVersions"
+	ipfs cat "$existing/$distname/versions" > "$existingVersions" || touch "$existingVersions"
 
 	newVersions=$(comm --nocheck-order -13 "$existingVersions" "$versions")
 
