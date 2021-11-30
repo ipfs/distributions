@@ -51,7 +51,7 @@ case $1 in
 		tag_prefix="$(dirname "$latest_tag")"
 
 		cp templates/build_matrix "dists/$name/"
-		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$subpkg/g" > "dists/$name/Makefile"
+		sed "s/github.com\/foo\/bar/$(sedEscapeArg "$repo")/g" templates/Makefile | sed "s/cmd\/bar/$(sedEscapeArg "$subpkg")/g" > "dists/$name/Makefile"
 		echo "$description" > "dists/$name/description"
 		echo "$version" > "dists/$name/current"
 		echo "$version" > "dists/$name/versions"
