@@ -50,7 +50,7 @@ echo "::group::Preconnect to cluster peers"
         ipfs swarm connect $maddr || continue
     done
     echo '-> manual connect to cluster.ipfs.io'
-    ipfs swarm connect /dnsaddr/cluster.ipfs.io
+    ipfs swarm connect /dnsaddr/ipfs-nodes.cluster.ipfs.io || true
     echo '-> list swarm peers'
     ipfs swarm peers
 echo "::endgroup::"
