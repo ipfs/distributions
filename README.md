@@ -113,6 +113,10 @@ The optional `sub_package` argument is used to specify a module within a repo.  
 > ./dist.sh new-go-dist fs-repo-99-to-100 github.com/ipfs/fs-repo-migrations fs-repo-99-to-100
 ```
 
+- If the distribution should not show up on the website (e.g. go-ipfs migrations) add a `no-site` file into the `dists/<repo>` folder.
+- Manually create a repo-owner file
+- Reminder that for submodules the version numbers will look like fs-repo-x-to-y/v1.0.0
+
 ### Publishing
 
 To produce a CID (`<NEW_HASH>`) that includes binaries for all versions defined in `./dists/`, in the root of the repository, run:
