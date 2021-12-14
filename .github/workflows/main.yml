@@ -27,11 +27,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - name: Setup IPFS
-        run: ./scripts/ci/setup-ipfs.sh
-        env:
+      - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        uses: ./.github/actions/setup-ipfs
         timeout-minutes: 5
       - name: Build any new ./releases
         run: ./dockerized make all_dists
@@ -113,11 +112,10 @@ jobs:
           path: releases
       - name: List ./releases
         run: ls -Rhl ./releases || echo "No ./releases"
-      - name: Setup IPFS
-        run: ./scripts/ci/setup-ipfs.sh
-        env:
+      - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        uses: ./.github/actions/setup-ipfs
         timeout-minutes: 5
       - run: ./dockerized make publish
       - run: git status

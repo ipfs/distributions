@@ -38,11 +38,10 @@ jobs:
         dist_name: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v2
-      - name: Setup IPFS
-        run: ./scripts/ci/setup-ipfs.sh
-        env:
+      - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
+        uses: ./.github/actions/setup-ipfs
         timeout-minutes: 5
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish

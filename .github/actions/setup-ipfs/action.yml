@@ -1,0 +1,41 @@
+name: Setup IPFS
+description: Setup IPFS
+runs:
+  using: "composite"
+  steps:
+    - uses: ipfs/download-ipfs-distribution-action@v1
+      with:
+        name: go-ipfs
+        version: "${{ env.GO_IPFS_VER }}"
+    - uses: ipfs/download-ipfs-distribution-action@v1
+      with:
+        name: ipfs-cluster-ctl
+        version: "${{ env.CLUSTER_CTL_VER }}"
+    - name: Init IPFS daemon
+      run: |
+        # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
+        sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
+        ipfs init --profile flatfs,server,randomports,lowpower
+        # make flatfs async for faster ci
+        ipfs config --json 'Datastore.Spec.mounts' "$(ipfs config 'Datastore.Spec.mounts' | jq -c '.[0].child.sync=false')"
+      shell: bash
+    - uses: ipfs/start-ipfs-daemon-action@v1
+      with:
+        args: --enable-gc=false
+    - name: Preconnect to cluster peers
+      run: |
+        ipfs-cluster-ctl --enc=json \
+          --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+          --basic-auth "$CLUSTER_USER:$CLUSTER_PASSWORD" \
+          peers ls > cluster-peers-ls
+        for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
+          ipfs swarm peering add $maddr || continue
+          ipfs swarm connect $maddr || continue
+        done
+      shell: bash
+    - name: Manual connect to cluster.ipfs.io
+      run: ipfs swarm connect /dnsaddr/ipfs-nodes.cluster.ipfs.io || true
+      shell: bash
+    - name: List swarm peers
+      run: ipfs swarm peers
+      shell: bash
