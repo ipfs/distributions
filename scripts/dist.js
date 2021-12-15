@@ -20,7 +20,7 @@ const HUGO_DATA_DIR = join(__dirname, '..', 'site', 'data')
 const DIST_PATH = join(__dirname, '..', 'dists')
 const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.io'
 
-const ipfs = IpfsHttpClient()
+const ipfs = IpfsHttpClient({ timeout: '45m' })
 
 async function getCurrentVersion (distName) {
   const pathToCurrent = join(DIST_PATH, distName, 'current')
