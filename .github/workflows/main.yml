@@ -31,7 +31,7 @@ jobs:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 5
+        timeout-minutes: 30
       - name: Build any new ./releases
         run: ./dockerized make all_dists
       - name: Inspect git status and contents of ./releases
@@ -116,7 +116,7 @@ jobs:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 5
+        timeout-minutes: 30
       - run: ./dockerized make publish
       - run: git status
       - name: Read CID of updated DAG
