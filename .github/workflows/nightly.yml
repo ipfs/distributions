@@ -42,7 +42,7 @@ jobs:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 5
+        timeout-minutes: 30
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Create issue if build failed
