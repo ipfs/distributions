@@ -75,13 +75,6 @@ jobs:
               console.log('commented on existing open issue', created)
               link = created.data.html_url
             }
-            await github.repos.createCommitStatus({ ...opts,
-              sha: '${{ github.sha }}',
-              state: 'error',
-              target_url: link,
-              context: 'Problem with ${{ matrix.dist_name }}',
-              description: 'See details in the linked issue'
-            })
       - name: Inspect git status and contents of ./releases
         run: git status && ls -Rhl ./releases
       - name: Read CID of updated DAG
