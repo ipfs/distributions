@@ -16,8 +16,8 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.11.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v0.14.4'      # ipfs-cluster-ctl used for pinning
+ GO_IPFS_VER: 'v0.12.0'          # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v0.14.5'      # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - run: npm ci --no-audit --progress=false
       - run: npm run lint
 
@@ -100,9 +100,9 @@ jobs:
     environment: Deploy
     steps:
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: '16'
       - uses: actions/checkout@v2
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v2
