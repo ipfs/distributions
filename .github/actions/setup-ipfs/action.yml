@@ -28,7 +28,7 @@ runs:
           --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
           --basic-auth "$CLUSTER_USER:$CLUSTER_PASSWORD" \
           peers ls > cluster-peers-ls
-        for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
+        for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
           ipfs swarm peering add $maddr &
           ipfs swarm connect $maddr &
         done
