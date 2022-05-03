@@ -60,7 +60,7 @@ jobs:
             let link
             if (response.data.items.length === 0) {
               const created = await github.issues.create({ ...opts, title, body,
-                labels: ['kind/bug', 'need/triage']
+                labels: ['kind/bug', 'need/triage', 'team/ipdx']
               })
               console.log('no open issues, created a new one', created)
               link = created.data.html_url
