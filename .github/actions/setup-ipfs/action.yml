@@ -29,12 +29,9 @@ runs:
           --basic-auth "$CLUSTER_USER:$CLUSTER_PASSWORD" \
           peers ls > cluster-peers-ls
         for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
-          ipfs swarm peering add $maddr &
-          ipfs swarm connect $maddr &
+          ipfs swarm peering add $maddr
+          ipfs swarm connect $maddr
         done
-      shell: bash
-    - name: Manual connect to cluster.ipfs.io
-      run: ipfs swarm connect /dnsaddr/ipfs-nodes.cluster.ipfs.io &
       shell: bash
     - name: List swarm peers
       run: ipfs swarm peers
