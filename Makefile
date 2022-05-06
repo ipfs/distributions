@@ -4,7 +4,9 @@ all: deps releases all_dists site
 
 DISTS = $(notdir $(wildcard dists/*))
 
-NDISTS = $(DISTS:%=nightly-%)
+NIGHTLY_IGNORED := $(shell cat ignored-during-nightly)
+DISTS_FILTERED = $(filter-out $(NIGHTLY_IGNORED),$(DISTS))
+NDISTS = $(DISTS_FILTERED:%=nightly-%)
 
 .PHONY: all all_dists deps nightly
 all_dists: $(DISTS)
