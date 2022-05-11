@@ -1,0 +1,1 @@
+ipfs-banana is the oldest (but not the only one!) implementation of IPFS. It includes:\n- an IPFS core implementation\n- an IPFS daemon server\n- extensive command line tooling\n- an HTTP RPC API for controlling the node\n- an HTTP Gateway for serving content to HTTP browsers\n
