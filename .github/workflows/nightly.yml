@@ -12,8 +12,8 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.12.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.0'      # ipfs-cluster-ctl used for pinning
+ GO_IPFS_VER: 'v0.13.0'          # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.1'      # ipfs-cluster-ctl used for pinning
 
 concurrency:
   group: nightly
