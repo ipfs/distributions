@@ -1,15 +1,28 @@
 #!/bin/bash
 set -euxo pipefail
 
-# We always want the latest image
-docker pull ubuntu:20.04
+# Reuse image when building the same revision
+IMAGE_NAME=${IMAGE_NAME:-distributions}
+IMAGE_TAG="$(git rev-parse --short HEAD)"
 
-# CACHEBUST means this will apply the updates once a day
-docker build . -t distributions \
-    --build-arg CACHEBUST=`date --iso-8601=date` \
-    --build-arg USER_UID=$(id -u "$USER") \
-    --build-arg GO_IPFS_VER=${GO_IPFS_VER:-$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)} # match http api client version on CI
+# './dockerized ... clean' should also remove any prebuilt images
+if [[ "${@:$#}" == "clean" ]]; then
+    docker image rmi "$IMAGE_NAME:$IMAGE_TAG" 2> /dev/null || true
+fi
+
+if [[ "$(docker images -q "$IMAGE_NAME:$IMAGE_TAG" 2> /dev/null)" == "" ]]; then
+
+    # We always want the latest base image
+    docker pull ubuntu:20.04
+
+    # Build image
+    docker build . -t "$IMAGE_NAME:$IMAGE_TAG" \
+        --build-arg CACHEBUST="$IMAGE_TAG" \
+        --build-arg USER_UID="$(id -u "$USER")" \
+        --build-arg GO_IPFS_VER="${GO_IPFS_VER:-$(curl -s https://dist.ipfs.io/go-ipfs/versions | tail -n 1)}" # match http api client version on CI
+
+fi
 
 # We use host networking as the build process assumes a fairly long-lived ipfs
 # node has the CIDs (we give them to the collab cluster to pin) 
-docker run --rm -i --network host -e DIST_ROOT -v `pwd`:/build distributions "$@"
+docker run --rm -i --network host -e DIST_ROOT -v "$(pwd)":/build "$IMAGE_NAME:$IMAGE_TAG" "$@"
