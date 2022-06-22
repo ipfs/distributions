@@ -29,21 +29,22 @@
               <li class="d-sidebar-item nav-item">
                 <a class="d-sidebar-link nav-link" href="#about">About</a>
               </li>
-              {{ range $key, $value := $.Site.Data.releases }}
+              {{ range $key, $value := $.Site.Data.releases }}{{ if not (in $.Site.Params.hiddenDists $key) }}
                 <li class="d-sidebar-item nav-item">
-                  <a class="d-sidebar-link nav-link" href="#{{ $key }}">{{ $key }}</a>
+                  <a class="d-sidebar-link nav-link" href="#{{ $key }}">{{ if eq "go-ipfs" $key }}{{ $.Site.Params.newGoIpfsName }} ({{ $key }}){{ else }}{{ $key }}{{ end }}</a>
                 </li>
-              {{ end }}
+              {{ end }}{{ end }}
             </ul>
           </div>
         </div>
         <div class="col-md-9">
-          {{ range $key, $value := $.Site.Data.releases }}
+          {{ range $key, $value := $.Site.Data.releases }}{{ if not (in $.Site.Params.hiddenDists $key) }}
             {{ $data := $value.data }}
+            {{ if eq "go-ipfs" $key }}<div id="{{ $.Site.Params.newGoIpfsName }}"></div>{{ end }}
             <div class="d-component" id="{{ $key }}">
               <div class="d-component-desc row">
                 <div class="col-md-7">
-                  <h1 class="d-component-desc-title">{{ $key }}</h1>
+                  <h1 class="d-component-desc-title">{{ if eq "go-ipfs" $key }}{{ $.Site.Params.newGoIpfsName }} (old name: {{ $key }}){{ else }}{{ $key }}{{ end }}</h1>
                   <h2 class="d-component-desc-sub-title">{{ $data.tagline }}</h2>
                   <div class="d-component-desc-body">{{ $data.description | markdownify }}</div>
                 </div>
@@ -115,7 +116,7 @@
                 </div>
               </div>
             </div>
-          {{ end }}
+          {{ end }}{{ end }}
         </div>
       </div>
     </div>
