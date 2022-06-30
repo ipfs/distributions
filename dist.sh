@@ -80,6 +80,15 @@ case $1 in
 
 		echo "$nvers" >> "dists/$dist/versions"
 
+		# legacy go-ipfs dist needs to be created for every new kubo release:
+		# https://github.com/ipfs/distributions/pull/717
+		if [ "$dist" == "kubo" ]; then
+			# make sure latest go-ipfs release follows kubo
+			cat "dists/kubo/current" > "dists/go-ipfs/current"
+			# make sure go-ipfs has all new kubo releases (one directional sync)
+			diff "dists/kubo/versions" "dists/go-ipfs/versions" | grep '^<' | awk '{print $2}' | uniq >> "dists/go-ipfs/versions"
+		fi
+
 		# cd "dists/$dist" && make update_sources
 		# build-go will update sources as needed
 		cd "dists/$dist" && make
