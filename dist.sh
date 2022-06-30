@@ -89,6 +89,16 @@ case $1 in
 			diff "dists/kubo/versions" "dists/go-ipfs/versions" | grep '^<' | awk '{print $2}' | uniq >> "dists/go-ipfs/versions"
 		fi
 
+		# error on old kubo name
+		if [ "$dist" == "go-ipfs" ]; then
+			echo "ERROR: go-ipfs is now named kubo, use the new name:"
+			echo
+			echo "$ dist.sh add-version kubo <version>"
+			echo
+			echo "(a backward-compatible go-ipfs release will be added automatically)"
+			exit 1
+		fi
+
 		# cd "dists/$dist" && make update_sources
 		# build-go will update sources as needed
 		cd "dists/$dist" && make
@@ -101,3 +111,4 @@ case $1 in
 		exit 1
 		;;
 esac
+## vim: sts=4:ts=4:sw=4:noet
