@@ -1,4 +1,4 @@
-repo = github.com/ipfs/go-ipfs
+repo = github.com/ipfs/kubo
 package = cmd/ipfs
 
 include ../../common.mk
