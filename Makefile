@@ -2,7 +2,10 @@ export NODE_OPTIONS="--unhandled-rejections=strict"
 
 all: deps releases all_dists site
 
-DISTS = $(notdir $(wildcard dists/*))
+# DISTS are sorted in reverse lex order
+# because 'kubo' MUST build before 'go-ipfs'
+reverse = $(if $1,$(call reverse,$(wordlist 2,999999,$1)) $(firstword $1))
+DISTS = $(call reverse,$(sort $(notdir $(wildcard dists/*))))
 
 NIGHTLY_IGNORED := $(shell cat ignored-during-nightly)
 DISTS_FILTERED = $(filter-out $(NIGHTLY_IGNORED),$(DISTS))
