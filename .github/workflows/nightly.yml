@@ -24,8 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: awk 'NR == FNR {f1[$0] = 1; next}; !($0 in f1)' ignored-during-nightly <(ls ./dists -1) > nightlies-to-run
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(ls ./dists -1))"
+        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
