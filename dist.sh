@@ -105,7 +105,9 @@ case $1 in
 
 		# cd "dists/$dist" && make update_sources
 		# build-go will update sources as needed
-		cd "dists/$dist" && make
+		if [ "$CI" == "true" ]; then
+			cd "dists/$dist" && make
+		fi
 		;;
 	*)
 		echo "unrecognized command $1"
