@@ -74,7 +74,7 @@ and
 
 ## Usage
 
-Add a new version or a new distribution with `./dist.sh` then run `make publish` to get the new CID to publish as dist.ipfs.io.
+Add a new version or a new distribution with `./dist.sh` then let CI run `make publish` to update DNSLink at dist.ipfs.io.
 
 ### Adding a version
 
@@ -96,7 +96,7 @@ To produce a signed, **official build** for use in DNSLink at `dist.ipfs.io`:
 1. Run `./dist.sh add-version` locally.
 2. Commit created changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
 3. Wait for Github Action to finish PR build. It runs `./dockerized` build, then signs macOS binaries and spits out updated root CID at the end.
-4. If everything looks good, write down the CID from the preview link on the PR, and update the DNSlink at `dist.ipfs.io`.
+4. If everything looks good, merge PR and wait for CI running on `master` to update the DNSlink at `dist.ipfs.io`.
 
 ### Adding a new (go) distribution
 
