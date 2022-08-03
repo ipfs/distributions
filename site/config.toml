@@ -1,4 +1,4 @@
-baseurl = ""
+baseurl = "https://dist.ipfs.tech"
 relativeurls = true
 languageCode = "en-us"
 title = "IPFS Distributions"

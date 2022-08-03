@@ -1,21 +1,20 @@
-{{- $baseURL := "https://dist.ipfs.io" -}}
 {{- printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>{{ .Site.Title }}</title>
-    <link>{{ $baseURL }}</link>
+    <link>{{ .Site.BaseURL }}</link>
     <description>Recent releases on {{ .Site.Title }}</description>
     <generator>Hugo -- gohugo.io</generator>
     {{ with .Site.LanguageCode }}<language>{{.}}</language>{{end}}
     <lastBuildDate>{{ $.Site.Data.siteroot.lastBuildDate | safeHTML }}</lastBuildDate>
     {{ with .OutputFormats.Get "RSS" }}
-	<atom:link href="{{ $baseURL }}{{ .Permalink }}" rel="self" type="{{ .MediaType }}" />
+	<atom:link href="{{ .Permalink }}" rel="self" type="{{ .MediaType }}" />
     {{ end }}
     {{ range $key, $value := $.Site.Data.releases }}
     {{ $data := $value.data }}
     <item>
       <title>{{ $key }}</title>
-      <link>{{ $baseURL }}/#{{ $data.id }}</link>
+      <link>{{ $.Site.BaseURL }}/#{{ $data.id }}</link>
       <pubDate>{{ $data.dateUTC }}</pubDate>
       <description>{{ $data.description | markdownify }}</description>
     </item>

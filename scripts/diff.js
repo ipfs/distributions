@@ -8,7 +8,7 @@ const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 require('make-promises-safe') // exit on error
 
-const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.io'
+const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.tech'
 const CHANGE_TYPE_ADD = 0
 const CHANGE_TYPE_REMOVE = 1
 const CHANGE_TYPE_MOD = 2
