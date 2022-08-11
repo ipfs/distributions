@@ -144,7 +144,12 @@ jobs:
         with:
           name: diff
           path: diff
-      - name: Update DNSLink (if on the main branch)
+      - name: Update .tech DNSLink (if on the main branch)
+        run: npx dnslink-dnsimple --domain dist.ipfs.tech --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+        if: github.ref == 'refs/heads/master'
+        env:
+          DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
+      - name: Update legacy .io DNSLink (if on the main branch)
         run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
         if: github.ref == 'refs/heads/master'
         env:
