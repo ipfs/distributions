@@ -6,12 +6,12 @@ on:
       dist_root:
         description: 'DIST_ROOT'
         required: true
-        default: '/ipns/dist.ipfs.io'
+        default: '/ipns/dist.ipfs.tech'
   schedule:
     - cron: '0 5 * * *' # UTC
 
 env:
- DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
  GO_IPFS_VER: 'v0.13.0'          # go-ipfs daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v1.0.1'      # ipfs-cluster-ctl used for pinning
 

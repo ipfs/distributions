@@ -8,6 +8,8 @@
     <meta name="description" content="Description">
     <link rel="stylesheet" href="site.css">
     <link rel="icon" type="image/png" href="/img/favicon.png">
+    <link rel="canonical" href="{{ .Permalink | safeURL }}" />
+    <link rel="alternate" type="application/rss+xml" href="{{ $.Site.BaseURL }}/index.xml">
   </head>
   <body data-spy="scroll" data-target="#d-navbar" data-offset="40">
     {{ partial "header.html" }}
