@@ -12,12 +12,12 @@ on:
       dist_root:
         description: 'DIST_ROOT'
         required: true
-        default: '/ipns/dist.ipfs.io'
+        default: '/ipns/dist.ipfs.tech'
 
 env:
- DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.12.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.0'       # ipfs-cluster-ctl used for pinning
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.13.0'          # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.1'       # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
@@ -68,13 +68,6 @@ jobs:
         run: ls -Rhl ./releases || echo "No ./releases"
       - name: Install gon via HomeBrew for code signing and app notarization
         run: |
-          # workaround for https://github.com/mitchellh/gon/issues/56
-          pushd .
-          cd /usr/local/Homebrew
-          git fetch origin tag 3.3.9 --no-tags
-          git checkout 3.3.9
-          popd
-          # /workaround
           brew tap mitchellh/gon
           brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
           ipfs init --profile test # needed for calculating NEW_CID later
@@ -151,7 +144,12 @@ jobs:
         with:
           name: diff
           path: diff
-      - name: Update DNSLink (if on the main branch)
+      - name: Update .tech DNSLink (if on the main branch)
+        run: npx dnslink-dnsimple --domain dist.ipfs.tech --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+        if: github.ref == 'refs/heads/master'
+        env:
+          DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
+      - name: Update legacy .io DNSLink (if on the main branch)
         run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
         if: github.ref == 'refs/heads/master'
         env:

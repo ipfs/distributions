@@ -6,14 +6,14 @@ on:
       dist_root:
         description: 'DIST_ROOT'
         required: true
-        default: '/ipns/dist.ipfs.io'
+        default: '/ipns/dist.ipfs.tech'
   schedule:
     - cron: '0 5 * * *' # UTC
 
 env:
- DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.12.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.0'      # ipfs-cluster-ctl used for pinning
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.13.0'          # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.1'      # ipfs-cluster-ctl used for pinning
 
 concurrency:
   group: nightly
@@ -24,8 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: awk 'NR == FNR {f1[$0] = 1; next}; !($0 in f1)' ignored-during-nightly <(ls ./dists -1) > nightlies-to-run
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(ls ./dists -1))"
+        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 

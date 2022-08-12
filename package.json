@@ -1,8 +1,9 @@
 {
-  "name": "dist.ipfs.io",
+  "name": "dist.ipfs.tech",
   "version": "1.0.0",
-  "description": "Source for building https://dist.ipfs.io.",
+  "description": "Source for building https://dist.ipfs.tech.",
   "main": "",
+  "private": true,
   "scripts": {
     "standard": "standard scripts/*.js site/assets/js/*.js",
     "lint": "npm run standard && shellcheck *.sh",

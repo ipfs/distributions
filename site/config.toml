@@ -1,4 +1,4 @@
-baseurl = ""
+baseurl = "https://dist.ipfs.tech"
 relativeurls = true
 languageCode = "en-us"
 title = "IPFS Distributions"
@@ -7,6 +7,9 @@ title = "IPFS Distributions"
 taxonomies = {}
 
 [params]
+hiddenDists = ['go-ipfs', 'gx', 'gx-go']
+newGoIpfsName = 'kubo'
+
 [params.targetMap]
 386 = "32-bit"
 amd64 = "64-bit"
