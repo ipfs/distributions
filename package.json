@@ -50,7 +50,7 @@
     "babel-polyfill": "^6.26.0",
     "browser-sync": "^2.26.7",
     "chalk": "^4.1.0",
-    "concurrently": "^4.1.2",
+    "concurrently": "^7.4.0",
     "del": "^5.1.0",
     "hugo-bin": "^0.64.5",
     "ipfs-http-client": "^47.0.1",
