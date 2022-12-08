@@ -97,11 +97,9 @@ function goBuild() {
 	(
 		export GOOS="$goos"
 		if [[ "$goarch" == amd64-* ]]; then
-			local _IFS="$IFS"
-			local IFS="-"
-			export GOARCH="${goarch[0]}"
-			export GOAMD64="${goarch[1]}"
-			IFS="$_IFS"
+			IFS="-"; read -ar arr <<<"$goarch"
+			export GOARCH="${arr[0]}"
+			export GOAMD64="${arr[1]}"
 		else
 			export GOARCH="$goarch"
 		fi
