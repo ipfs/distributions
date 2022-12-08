@@ -96,7 +96,15 @@ function goBuild() {
 	local goarch="$3"
 	(
 		export GOOS="$goos"
-		export GOARCH="$goarch"
+		if [[ "$goarch" == amd64-* ]]; then
+			local _IFS="$IFS"
+			local IFS="-"
+			export GOARCH="${goarch[0]}"
+			export GOAMD64="${goarch[1]}"
+			IFS="$_IFS"
+		else
+			export GOARCH="$goarch"
+		fi
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
