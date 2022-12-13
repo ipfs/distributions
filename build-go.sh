@@ -378,6 +378,17 @@ function startGoBuilds() {
 
 	newVersions=$(comm --nocheck-order -13 "$existingVersions" "$versions")
 
+	if [ "$distname" == "kubo" ]; then
+		# Kubo is a special case, we want to build it
+		# if there are new go-ipfs versions too.
+		if [ -z "$newVersions" ]; then
+			goIpfsVersions="../go-ipfs/versions"
+			goIpfsExistingVersions="$(mktemp)"
+			ipfs cat "$existing/go-ipfs/versions" > "$goIpfsExistingVersions" || touch "$goIpfsExistingVersions"
+			newVersions=$(comm --nocheck-order -13 "$goIpfsExistingVersions" "$goIpfsVersions")
+		fi
+	fi
+
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
 		return
