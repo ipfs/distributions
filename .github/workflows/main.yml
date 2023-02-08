@@ -121,7 +121,7 @@ jobs:
       - run: git status
       - name: Read CID of updated DAG
         id: cid-reader
-        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+        run: echo "CID=$(tail -1 ./versions)" >> $GITHUB_OUTPUT
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
         run: ./scripts/ci/pin-to-cluster.sh
         env:
