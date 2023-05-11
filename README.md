@@ -42,9 +42,9 @@ manager, which the Docker build environment will also use.
 
 ## Running in Docker
 
-There is a `./dockerize` script, you can run it without arguements and be in a
+There is a `./dockerize` script, you can run it without arguments and be in a
 shell with the correct software installed in an Ubuntu 20.04 in a directory
-thats mapped to the present working directory
+that is mapped to the present working directory
 
 Note that we use host networking so you must run an IPFS daemon locally as the
 build process assumes a fairly long-lived ipfs node has the CIDs (we give them
