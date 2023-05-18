@@ -8,7 +8,7 @@ RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential ga
     ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
     dpkg-reconfigure --frontend noninteractive tzdata
 RUN curl --retry 5 \
-    "https://dist.ipfs.tech/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz"  -o /tmp/ipfs.tar.gz && \
+    "https://dist.ipfs.tech/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz" -o /tmp/ipfs.tar.gz && \
     tar vzx -f /tmp/ipfs.tar.gz -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
 
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
