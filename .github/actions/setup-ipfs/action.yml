@@ -27,14 +27,11 @@ runs:
         ipfs-cluster-ctl --enc=json \
           --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
           --basic-auth "$CLUSTER_USER:$CLUSTER_PASSWORD" \
-          peers ls > cluster-peers-ls
-        for maddr in $(jq -r '.[].ipfs.addresses[]?' cluster-peers-ls); do
-          ipfs swarm peering add $maddr || continue
-          ipfs swarm connect $maddr || continue
+          peers ls | tee cluster-peers-ls
+        for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
+          ipfs swarm peering add $maddr
+          ipfs swarm connect $maddr || true &
         done
-      shell: bash
-    - name: Manual connect to cluster.ipfs.io
-      run: ipfs swarm connect /dnsaddr/ipfs-nodes.cluster.ipfs.io || true
       shell: bash
     - name: List swarm peers
       run: ipfs swarm peers

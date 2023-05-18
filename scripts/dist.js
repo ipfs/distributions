@@ -4,7 +4,7 @@
 /*
  * Copy dist.json for the current version of each distribution to the hugo data dir.
  * Looks for a local releases/<dist>/<ver>/dist.json and fallsback to fetching the
- * current published one from dist.ipfs.io/<dist>/<ver>/dist.json
+ * current published one from dist.ipfs.tech/<dist>/<ver>/dist.json
  */
 
 const fs = require('fs')
@@ -18,7 +18,7 @@ require('make-promises-safe') // exit on error
 const RELEASE_PATH = join(__dirname, '..', 'releases')
 const HUGO_DATA_DIR = join(__dirname, '..', 'site', 'data')
 const DIST_PATH = join(__dirname, '..', 'dists')
-const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.io'
+const DIST_ROOT = process.env.DIST_ROOT || '/ipns/dist.ipfs.tech'
 
 const ipfs = IpfsHttpClient({ timeout: '45m' })
 

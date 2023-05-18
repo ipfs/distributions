@@ -10,7 +10,7 @@ export GOPATH
 export GO111MODULE=on
 
 # Content path to use when looking for pre-existing release data
-DIST_ROOT=$(ipfs resolve "${DIST_ROOT:-/ipns/dist.ipfs.io}")
+DIST_ROOT=$(ipfs resolve "${DIST_ROOT:-/ipns/dist.ipfs.tech}")
 
 # normalize umask
 umask 022
@@ -46,7 +46,7 @@ function notice() {
 }
 
 # dep checks
-reqbins="jq zip tar go npm"
+reqbins="jq zip unzip tar go npm"
 for b in $reqbins
 do
 	if ! type "$b" > /dev/null; then
@@ -96,7 +96,13 @@ function goBuild() {
 	local goarch="$3"
 	(
 		export GOOS="$goos"
-		export GOARCH="$goarch"
+		if [[ "$goarch" == amd64-* ]]; then
+			IFS="-" read -ra arr <<< "$goarch"
+			export GOARCH="${arr[0]}"
+			export GOAMD64="${arr[1]}"
+		else
+			export GOARCH="$goarch"
+		fi
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
@@ -141,11 +147,9 @@ function doBuild() {
 	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp "$build_dir_name/build-log" "$logfi"
-		warn "    failed. logfile at '$logfi'"
+		warn "    $binname failed. logfile at '$logfi'"
 		return 1
 	fi
-
-	notice "    $goos $goarch build succeeded!"
 
 	# copy dist assets if they exist
 	if [ -e "$GOPATH/src/$package/dist" ]; then
@@ -156,8 +160,9 @@ function doBuild() {
 	if bundleDist "$dir/$binname" "$goos" "$build_dir_name"; then
 		buildDistInfo "$binname" "$dir"
 		rm -rf "$build_dir_name"
+		notice "    build $binname succeeded!"
 	else
-		warn "    failed to zip up output"
+		warn "    failed to build $binname"
 		success=1
 	fi
 
@@ -373,6 +378,17 @@ function startGoBuilds() {
 
 	newVersions=$(comm --nocheck-order -13 "$existingVersions" "$versions")
 
+	if [ "$distname" == "kubo" ]; then
+		# Kubo is a special case, we want to build it
+		# if there are new go-ipfs versions too.
+		if [ -z "$newVersions" ]; then
+			goIpfsVersions="../go-ipfs/versions"
+			goIpfsExistingVersions="$(mktemp)"
+			ipfs cat "$existing/go-ipfs/versions" > "$goIpfsExistingVersions" || touch "$goIpfsExistingVersions"
+			newVersions=$(comm --nocheck-order -13 "$goIpfsExistingVersions" "$goIpfsVersions")
+		fi
+	fi
+
 	if [ -z "$newVersions" ]; then
 		notice "skipping $distname - all versions published at $existing"
 		return
@@ -454,6 +470,9 @@ function startGoBuilds() {
 	notice "build complete!"
 }
 
+# Execute only when called directly (allows for sourcing)
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]; then
 startGoBuilds "$1" "$2" "$3" "$4" "$5"
+fi
 
-# vim: noet
+# vim: ts=4:noet

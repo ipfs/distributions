@@ -2,7 +2,7 @@
 'use strict'
 
 /*
- * Patch the items in the local releases dir into the current dist.ipfs.io
+ * Patch the items in the local releases dir into the current dist.ipfs.tech
  * For each item
  *   - if it does not exist in dist, add it.
  *   - if it exists and has the same cid, skip it.
@@ -27,7 +27,7 @@ const ipfs = IpfsHttpClient({ timeout: '45m' })
 const pathTo = (file) => path.join(__dirname, '..', file)
 
 const event = new Date()
-const DIST_DOMAIN = 'dist.ipfs.io'
+const DIST_DOMAIN = 'dist.ipfs.tech'
 const MFS_DIR = `/${DIST_DOMAIN}/${DIST_DOMAIN}` + '_' + event.toISOString()
 const PATCH_SRC = pathTo('releases')
 const VERSIONS = pathTo('versions')

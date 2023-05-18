@@ -12,26 +12,26 @@ on:
       dist_root:
         description: 'DIST_ROOT'
         required: true
-        default: '/ipns/dist.ipfs.io'
+        default: '/ipns/dist.ipfs.tech'
 
 env:
- DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.io' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.10.0-rc2'           # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v0.14.0'      # ipfs-cluster-ctl used for pinning
+ DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
+ GO_IPFS_VER: 'v0.15.0'          # go-ipfs daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.4'       # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 5
+        timeout-minutes: 30
       - name: Build any new ./releases
         run: ./dockerized make all_dists
       - name: Inspect git status and contents of ./releases
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
       - run: npm ci --no-audit --progress=false
       - run: npm run lint
 
@@ -100,9 +100,9 @@ jobs:
     environment: Deploy
     steps:
       - name: Setup node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: 15
+          node-version: '16'
       - uses: actions/checkout@v2
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v2
@@ -116,12 +116,12 @@ jobs:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 5
+        timeout-minutes: 30
       - run: ./dockerized make publish
       - run: git status
       - name: Read CID of updated DAG
         id: cid-reader
-        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+        run: echo "CID=$(tail -1 ./versions)" >> $GITHUB_OUTPUT
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
         run: ./scripts/ci/pin-to-cluster.sh
         env:
@@ -144,7 +144,12 @@ jobs:
         with:
           name: diff
           path: diff
-      - name: Update DNSLink (if on the main branch)
+      - name: Update .tech DNSLink (if on the main branch)
+        run: npx dnslink-dnsimple --domain dist.ipfs.tech --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+        if: github.ref == 'refs/heads/master'
+        env:
+          DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
+      - name: Update legacy .io DNSLink (if on the main branch)
         run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
         if: github.ref == 'refs/heads/master'
         env:

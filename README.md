@@ -1,10 +1,10 @@
 # IPFS distributions
 
 [![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](https://protocol.ai)
-[![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](https://ipfs.io/)
+[![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](https://ipfs.tech/)
 [![](https://img.shields.io/badge/matrix%20chat-%23lobby:ipfs.io-blue.svg?style=flat-square)](https://matrix.to/#/#lobby:ipfs.io )
 
-> Source for building https://dist.ipfs.io
+> Source for building https://dist.ipfs.tech
 
 **Table of Contents**
 
@@ -42,9 +42,9 @@ manager, which the Docker build environment will also use.
 
 ## Running in Docker
 
-There is a `./dockerize` script, you can run it without arguements and be in a
+There is a `./dockerize` script, you can run it without arguments and be in a
 shell with the correct software installed in an Ubuntu 20.04 in a directory
-thats mapped to the present working directory
+that is mapped to the present working directory
 
 Note that we use host networking so you must run an IPFS daemon locally as the
 build process assumes a fairly long-lived ipfs node has the CIDs (we give them
@@ -74,7 +74,7 @@ and
 
 ## Usage
 
-Add a new version or a new distribution with `./dist.sh` then run `make publish` to get the new CID to publish as dist.ipfs.io.
+Add a new version or a new distribution with `./dist.sh` then let CI run `make publish` to update DNSLink at dist.ipfs.tech.
 
 ### Adding a version
 
@@ -91,12 +91,12 @@ Example:
 > ./dist.sh add-version fs-repo-99-to-100 v1.0.1
 ```
 
-To produce a signed, **official build** for use in DNSLink at `dist.ipfs.io`:
+To produce a signed, **official build** for use in DNSLink at `dist.ipfs.tech`:
 
 1. Run `./dist.sh add-version` locally.
 2. Commit created changes to `dists/<dist>` and open a PR against `ipfs/distributions`.
 3. Wait for Github Action to finish PR build. It runs `./dockerized` build, then signs macOS binaries and spits out updated root CID at the end.
-4. If everything looks good, write down the CID from the preview link on the PR, and update the DNSlink at `dist.ipfs.io`.
+4. If everything looks good, merge PR and wait for CI running on `master` to update the DNSlink at `dist.ipfs.tech`.
 
 ### Adding a new (go) distribution
 
@@ -125,23 +125,20 @@ To produce a CID (`<NEW_HASH>`) that includes binaries for all versions defined 
 > make publish
 ```
 
-- This will build any new binaries defined by dist and the website to the `releases` dir, add it to ipfs and patch it into the existing dag for the published `/ipns/dist.ipfs.io`.
+- This will build any new binaries defined by dist and the website to the `releases` dir, add it to ipfs and patch it into the existing DAG for the published `/ipns/dist.ipfs.tech`.
 - Versions that are already present on the website will be reused, speeding up the build.
-- Updated CID (`<NEW_HASH>`) will be printed at the end. That's the new hash for `dists.ipfs.io`. We also append it to a file called `versions` in the repo root (*not* checked into git).
+- Updated CID (`<NEW_HASH>`) will be printed at the end. That's the new hash for `dist.ipfs.tech`. We also append it to a file called `versions` in the repo root (*not* checked into git).
 
 After the local build is done, make a quick inspection:
 
 2. Load the dists website in your browser to make sure everything looks right: `http://localhost:8080/ipfs/<NEW_HASH>`.
-3. Compare `<NEW_HASH>` with the current `dists.ipfs.io` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.io /ipfs/<NEW_HASH>`
+3. Compare `<NEW_HASH>` with the current `dist.ipfs.tech` to make sure nothing is amiss: `ipfs object diff /ipns/dist.ipfs.tech /ipfs/<NEW_HASH>`
 
 Finally,
 
 1. Commit your changes and make a PR. Specifically, the changes to `dists/<dist>/versions` and `dists/<dist>/current`.
 2. Wait for [Github Action](https://github.com/ipfs/distributions/actions/) on your PR to build **signed** binaries. `<NEW_SIGNED_HASH>` will be different than one from local build.
-3. Make a PR with an edit on [protocol/infra](https://github.com/protocol/infra/blob/master/dns/config/dist.ipfs.io.yaml) with `<NEW_SIGNED_HASH>` you got from the Github Action output and a link to the PR above.
-   - TODO: this step may be automated in the future - see the [discussion](https://github.com/ipfs/distributions/issues/372).
-
-If you have permission, you can just merge the PR, update the DNS, and then immediately, close the issue on ipfs/infrastructure. Ping someone on IRC.
+3. Confirm that [Github Action](https://github.com/ipfs/distributions/actions/) triggered by `master` branch push updated the DNSLink for `dist.ipfs.tech`.
 
 ## Background
 
