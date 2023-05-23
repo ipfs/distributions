@@ -3,6 +3,9 @@ const platform = require('platform')
 
 function getArch (os, arch) {
   if (arch === '32' && os !== 'darwin') return '386'
+  if (os === 'darwin') {
+    return 'arm64' // assume Apple ARM https://github.com/ipfs/distributions/issues/840
+  }
   return 'amd64'
 }
 
@@ -37,7 +40,7 @@ module.exports = function handlePlatform () {
     let osName = getOsName(platform.os.family)
     let arch = getArch(osName, platform.os.architecture)
 
-    if (arch === 'amd64') {
+    if (arch === 'amd64' || arch === 'arm64') {
       arch = '64bit'
     } else {
       arch = '32bit'
