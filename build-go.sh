@@ -451,7 +451,7 @@ function startGoBuilds() {
 		if [ "$GO111MODULE" == "on" ]; then
 		    # Setup version information so we can build with go mod
 		    go mod init "ipfs-distributions"
-		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
+		    go mod edit -require "$repo/$package@$version"
 		fi
 
 		buildWithMatrix "$matfile" "$repo/$package" "$outputVersion" "$(currentSha "$repopath")" "$buildVersion"
