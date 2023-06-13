@@ -94,6 +94,8 @@ function goBuild() {
 	local package="$1"
 	local goos="$2"
 	local goarch="$3"
+	local plugin="$4"
+
 	(
 		export GOOS="$goos"
 		if [[ "$goarch" == amd64-* ]]; then
@@ -106,9 +108,20 @@ function goBuild() {
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-		go build -mod=mod -o "$output" \
+
+		local buildmode="default"
+		if [ "$plugin" = "true" ]; then
+		    export CGO_ENABLED=1
+		    buildmode="plugin"
+		fi
+
+		go build -buildmode="$buildmode" -mod=mod -o "$output" \
 			-trimpath \
 			"${package}"
+
+		if [ "$buildmode" = "plugin" ]; then
+		    chmod +x "$output"
+		fi
 
 		if [ -x "$(which glibc-check)" ] && [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
 			echo "GLIBC versions:"
@@ -124,6 +137,7 @@ function doBuild() {
 	local package=$3
 	local output=$4
 	local version=$5
+	local plugin=$6
 
 	local dir name binname
 
@@ -144,7 +158,7 @@ function doBuild() {
 
 	mkdir -p "$dir"
 
-	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
+	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch" "$plugin") > build-log; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp "$build_dir_name/build-log" "$logfi"
 		warn "    $binname failed. logfile at '$logfi'"
@@ -211,6 +225,7 @@ function printInitialDistfile() {
   "owner": "$(< repo-owner)",
   "description": "$(< description)",
   "date": "$(date -u '+%B %d, %Y')",
+  "plugin": "$plugin",
   "platforms": {}
 }
 EOF
@@ -240,13 +255,19 @@ function buildWithMatrix() {
 	local distname
 	distname=$(basename "$(pwd)")
 
+	local plugin="false"
+	if [ -e plugin ]; then
+	    plugin="true"
+	fi
+
+
 	printInitialDistfile "$distname" "$buildVersion" > dist.json
 	printBuildInfo "$commit" > "$output/build-info"
 
 	# build each os/arch combo
 	while read -r goos goarch
 	do
-		doBuild "$goos" "$goarch" "$package" "$output" "$buildVersion"
+		doBuild "$goos" "$goarch" "$package" "$output" "$buildVersion" "$plugin"
 	done < "$matfile"
 
 	# build the source
