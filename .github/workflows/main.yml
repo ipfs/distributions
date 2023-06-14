@@ -165,7 +165,7 @@ jobs:
         with:
           name: diff
       - name: Create comment with the diff
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs').promises

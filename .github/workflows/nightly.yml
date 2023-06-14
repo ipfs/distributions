@@ -47,7 +47,7 @@ jobs:
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Create issue if build failed
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         if: ${{ failure() }}
         with:
           script: |
@@ -98,7 +98,7 @@ jobs:
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Close any open issues about broken build
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         if: ${{ success() }}
         with:
           script: |
