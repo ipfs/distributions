@@ -23,7 +23,7 @@ jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
@@ -46,7 +46,7 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
@@ -57,7 +57,7 @@ jobs:
     runs-on: "macos-latest"
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Retrieve unsigned artifacts
         uses: actions/download-artifact@v2
         with:
@@ -103,7 +103,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v2
         continue-on-error: true # skip if no releases
