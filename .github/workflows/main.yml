@@ -170,7 +170,7 @@ jobs:
           script: |
             const fs = require('fs').promises
             const diff = await fs.readFile('diff', 'utf8')
-            await github.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: ${{ github.event.number }},
