@@ -37,7 +37,7 @@ jobs:
       - name: Inspect git status and contents of ./releases
         run: git status && ls -Rhl ./releases
       - name: Temporarily save ./releases artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: releases-unsigned-diff
           path: releases
@@ -87,7 +87,7 @@ jobs:
       - name: List ./releases after
         run: ls -Rhl ./releases || echo "No ./releases"
       - name: Temporarily save notarized artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: releases-signed-macos-diff
           path: releases
@@ -139,7 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: ./dockerized make diff
         if: github.event_name == 'pull_request'
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: github.event_name == 'pull_request'
         with:
           name: diff
