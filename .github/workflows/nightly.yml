@@ -47,20 +47,20 @@ jobs:
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Create issue if build failed
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         if: ${{ failure() }}
         with:
           script: |
             const title = 'Nightly build failed for ${{ matrix.dist_name }}'
             const body = '${{ matrix.dist_name }} failed to build from the latest commit: https://github.com/ipfs/distributions/actions/runs/${{ github.run_id }}'
             const opts = { owner: context.repo.owner, repo: context.repo.repo }
-            const response = await github.search.issuesAndPullRequests({
+            const response = await github.rest.search.issuesAndPullRequests({
               q: `repo:ipfs/distributions is:issue is:open in:title ${title}`
             })
             console.log('github.issuesAndPullRequests', response)
             let link
             if (response.data.items.length === 0) {
-              const created = await github.issues.create({ ...opts, title, body,
+              const created = await github.rest.issues.create({ ...opts, title, body,
                 labels: ['kind/bug', 'need/triage']
               })
               console.log('no open issues, created a new one', created)
@@ -69,7 +69,7 @@ jobs:
             for (const issue of response.data.items) {
               if (issue.title !== title) continue
               console.log('found existing open issue', issue)
-              const created = await github.issues.createComment({ ...opts,
+              const created = await github.rest.issues.createComment({ ...opts,
                 issue_number: issue.number,
                 body
               })
@@ -98,25 +98,25 @@ jobs:
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Close any open issues about broken build
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         if: ${{ success() }}
         with:
           script: |
             const title = 'Nightly build failed for ${{ matrix.dist_name }}'
             const body = 'Fixed! ${{ matrix.dist_name }} got successfully built from the latest commit: https://github.com/ipfs/distributions/actions/runs/${{ github.run_id }}'
             const opts = { owner: context.repo.owner, repo: context.repo.repo }
-            const response = await github.search.issuesAndPullRequests({
+            const response = await github.rest.search.issuesAndPullRequests({
               q: `repo:ipfs/distributions is:issue is:open in:title ${title}`
             })
             console.log('github.issuesAndPullRequests', response)
             for (const issue of response.data.items) {
               if (issue.title !== title) continue
               console.log('found existing open issue', issue)
-              const created = await github.issues.createComment({ ...opts,
+              const created = await github.rest.issues.createComment({ ...opts,
                 issue_number: issue.number,
                 body
               })
-              await github.issues.update({ ...opts,
+              await github.rest.issues.update({ ...opts,
                 issue_number: issue.number,
                 state: 'closed',
                 assignees: []
