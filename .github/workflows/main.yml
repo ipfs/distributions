@@ -72,7 +72,7 @@ jobs:
           brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
           ipfs init --profile test # needed for calculating NEW_CID later
       - name: Import Keychain Certs
-        uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
+        uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
