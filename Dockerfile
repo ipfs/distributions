@@ -3,11 +3,11 @@ FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND noninteractive
 ARG USER_UID
 
-ARG GO_IPFS_VER
+ARG KUBO_VER
 RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip tzdata && \
     ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
     dpkg-reconfigure --frontend noninteractive tzdata
-RUN curl -s "https://dist.ipfs.tech/go-ipfs/${GO_IPFS_VER}/go-ipfs_${GO_IPFS_VER}_linux-amd64.tar.gz" | tar vzx -C /usr/local/bin/ go-ipfs/ipfs --strip-components=1
+RUN curl -s "https://dist.ipfs.tech/kubo/${KUBO_VER}/kubo_${KUBO_VER}_linux-amd64.tar.gz" | tar vzx -C /usr/local/bin/ kubo/ipfs --strip-components=1
 
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
 ENV PATH="${PATH}:/asdf/.asdf/shims:/asdf/.asdf/bin"

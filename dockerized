@@ -19,7 +19,7 @@ if [[ "$(docker images -q "$IMAGE_NAME:$IMAGE_TAG" 2> /dev/null)" == "" ]]; then
     docker build . -t "$IMAGE_NAME:$IMAGE_TAG" \
         --build-arg CACHEBUST="$IMAGE_TAG" \
         --build-arg USER_UID="$(id -u "$USER")" \
-        --build-arg GO_IPFS_VER="${GO_IPFS_VER:-$(curl -s https://dist.ipfs.tech/go-ipfs/versions | tail -n 1)}" # match http api client version on CI
+        --build-arg KUBO_VER="${KUBO_VER:-$(curl -s https://dist.ipfs.tech/kubo/versions | tail -n 1)}" # match http api client version on CI
 
 fi
 
