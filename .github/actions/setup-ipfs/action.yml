@@ -6,7 +6,7 @@ runs:
     - uses: ipfs/download-ipfs-distribution-action@v1
       with:
         name: go-ipfs
-        version: "${{ env.GO_IPFS_VER }}"
+        version: "${{ env.KUBO_VER }}"
     - uses: ipfs/download-ipfs-distribution-action@v1
       with:
         name: ipfs-cluster-ctl

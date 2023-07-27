@@ -12,8 +12,8 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.15.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.4'      # ipfs-cluster-ctl used for pinning
+ KUBO_VER: 'v0.21.0'       # kubo daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.4' # ipfs-cluster-ctl used for pinning
 
 concurrency:
   group: nightly
