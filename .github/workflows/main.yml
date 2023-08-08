@@ -21,7 +21,7 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
+    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON) || fromJSON(github.repository == 'ipfs/distributions' && '["self-hosted", "linux", "x64", "2xlarge"]') || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -95,7 +95,7 @@ jobs:
         continue-on-error: true # skip if no releases
 
   persist:
-    runs-on: "ubuntu-latest"
+    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON) || fromJSON(github.repository == 'ipfs/distributions' && '["self-hosted", "linux", "x64", "2xlarge"]') || '"ubuntu-latest"') }}
     needs: sign-macos
     environment: Deploy
     steps:
