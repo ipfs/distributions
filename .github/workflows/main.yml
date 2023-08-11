@@ -21,7 +21,7 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
+    runs-on: ["self-hosted", "linux", "x64", "2xlarge"]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -95,7 +95,7 @@ jobs:
         continue-on-error: true # skip if no releases
 
   persist:
-    runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
+    runs-on: ["self-hosted", "linux", "x64", "2xlarge"]
     needs: sign-macos
     environment: Deploy
     steps:
