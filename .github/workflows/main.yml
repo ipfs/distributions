@@ -16,15 +16,15 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- GO_IPFS_VER: 'v0.15.0'          # go-ipfs daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.4'       # ipfs-cluster-ctl used for pinning
+ KUBO_VER: 'v0.21.0'       # kubo daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.4' # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '16'
       - env:
@@ -37,7 +37,7 @@ jobs:
       - name: Inspect git status and contents of ./releases
         run: git status && ls -Rhl ./releases
       - name: Temporarily save ./releases artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: releases-unsigned-diff
           path: releases
@@ -46,8 +46,8 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '16'
       - run: npm ci --no-audit --progress=false
@@ -57,9 +57,9 @@ jobs:
     runs-on: "macos-latest"
     needs: build
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Retrieve unsigned artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: releases-unsigned-diff
           path: releases
@@ -72,7 +72,7 @@ jobs:
           brew install ipfs coreutils gawk gnu-sed jq mitchellh/gon/gon
           ipfs init --profile test # needed for calculating NEW_CID later
       - name: Import Keychain Certs
-        uses: apple-actions/import-codesign-certs@253ddeeac23f2bdad1646faac5c8c2832e800071 # v1@2020-02-03
+        uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
@@ -87,7 +87,7 @@ jobs:
       - name: List ./releases after
         run: ls -Rhl ./releases || echo "No ./releases"
       - name: Temporarily save notarized artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: releases-signed-macos-diff
           path: releases
@@ -100,12 +100,12 @@ jobs:
     environment: Deploy
     steps:
       - name: Setup node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Retrieve signed artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         continue-on-error: true # skip if no releases
         with:
           name: releases-signed-macos-diff
@@ -139,7 +139,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: ./dockerized make diff
         if: github.event_name == 'pull_request'
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: github.event_name == 'pull_request'
         with:
           name: diff
@@ -161,16 +161,16 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: diff
       - name: Create comment with the diff
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs').promises
             const diff = await fs.readFile('diff', 'utf8')
-            await github.issues.createComment({
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: ${{ github.event.number }},
