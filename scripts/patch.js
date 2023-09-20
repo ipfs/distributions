@@ -23,7 +23,7 @@ const IpfsHttpClient = require('ipfs-http-client')
 const { globSource } = IpfsHttpClient
 require('make-promises-safe') // exit on error
 
-const ipfs = IpfsHttpClient()
+const ipfs = IpfsHttpClient({ timeout: '45m' })
 const pathTo = (file) => path.join(__dirname, '..', file)
 
 const event = new Date()

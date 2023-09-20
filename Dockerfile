@@ -7,7 +7,10 @@ ARG KUBO_VER
 RUN apt-get update -q && apt-get install -y git curl gnupg jq build-essential gawk zip tzdata && \
     ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && \
     dpkg-reconfigure --frontend noninteractive tzdata
-RUN curl -s "https://dist.ipfs.tech/kubo/${KUBO_VER}/kubo_${KUBO_VER}_linux-amd64.tar.gz" | tar vzx -C /usr/local/bin/ kubo/ipfs --strip-components=1
+
+RUN curl -sS --retry 5 \
+    "https://dist.ipfs.tech/kubo/${KUBO_VER}/kubo_${KUBO_VER}_linux-amd64.tar.gz" -o /tmp/kubo.tar.gz && \
+    tar vzx -f /tmp/kubo.tar.gz -C /usr/local/bin/ kubo/ipfs --strip-components=1
 
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
 ENV PATH="${PATH}:/asdf/.asdf/shims:/asdf/.asdf/bin"
