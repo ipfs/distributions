@@ -25,5 +25,5 @@ if [ "$failed" = true ]; then
 	exit 1
 fi
 
-echo "npm install"
+echo "Starting npm ci (deterministic install)"
 exec npm ci --prefer-offline --no-audit --progress=false
