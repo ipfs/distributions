@@ -5,7 +5,7 @@ runs:
   steps:
     - uses: ipfs/download-ipfs-distribution-action@v1
       with:
-        name: go-ipfs
+        name: kubo
         version: "${{ env.KUBO_VER }}"
     - uses: ipfs/download-ipfs-distribution-action@v1
       with:

@@ -91,7 +91,7 @@ async function addFiles (localPath) {
   const patchRoot = await addFiles(PATCH_SRC)
   console.log(`Patch root is ${patchRoot}`)
 
-  const distRoot = await ipfs.dns(DIST_DOMAIN)
+  const distRoot = await ipfs.resolve(`/ipns/${DIST_DOMAIN}`)
   console.log(`DNSLink for ${DIST_DOMAIN} is ${distRoot}`)
 
   console.log('Patch operations:')
