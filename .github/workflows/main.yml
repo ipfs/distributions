@@ -16,8 +16,8 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- KUBO_VER: 'v0.22.0'       # kubo daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.6' # ipfs-cluster-ctl used for pinning
+ KUBO_VER: 'v0.24.0'       # kubo daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.7' # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
@@ -144,17 +144,17 @@ jobs:
         with:
           name: diff
           path: diff
-      - name: Update .tech DNSLink (if on the main branch)
-        run: npx dnslink-dnsimple --domain dist.ipfs.tech --link /ipfs/${{ steps.cid-reader.outputs.CID }}
+      - uses: actions/setup-go@v4
         if: github.ref == 'refs/heads/master'
+        with:
+          go-version: "1.20.x"
+      - name: Update _dnslink.dist.ipfs.tech (if on the main branch)
+        if: github.ref == 'refs/heads/master'
+        run: |
+          go install github.com/ipfs/dnslink-dnsimple@v0.1.0
+          dnslink-dnsimple --domain dist.ipfs.tech  --record _dnslink --link /ipfs/${{ steps.cid-reader.outputs.CID }}
         env:
           DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
-      - name: Update legacy .io DNSLink (if on the main branch)
-        run: npx dnslink-dnsimple --domain dist.ipfs.io --link /ipfs/${{ steps.cid-reader.outputs.CID }}
-        if: github.ref == 'refs/heads/master'
-        env:
-          DNSIMPLE_TOKEN: ${{ secrets.DNSIMPLE_TOKEN }}
-
 
   diff:
     needs: persist
