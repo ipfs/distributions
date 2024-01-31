@@ -15,16 +15,16 @@ on:
         default: '/ipns/dist.ipfs.tech'
 
 env:
- DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- KUBO_VER: 'v0.24.0'       # kubo daemon used for chunking and applying diff
- CLUSTER_CTL_VER: 'v1.0.7' # ipfs-cluster-ctl used for pinning
+ DIST_ROOT: '/ipfs/QmaSbz55W2q74SzMDYxLuwCwvfYwaHQrz5uHsyzonPUSUH' # TODO ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
+ KUBO_VER: 'v0.26.0'       # kubo daemon used for chunking and applying diff
+ CLUSTER_CTL_VER: 'v1.0.8' # ipfs-cluster-ctl used for pinning
 
 jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '16'
       - env:
@@ -46,8 +46,8 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '16'
       - run: npm ci --no-audit --progress=false
@@ -57,7 +57,7 @@ jobs:
     runs-on: "macos-latest"
     needs: build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Retrieve unsigned artifacts
         uses: actions/download-artifact@v3
         with:
@@ -100,10 +100,10 @@ jobs:
     environment: Deploy
     steps:
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '16'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v3
         continue-on-error: true # skip if no releases
