@@ -106,9 +106,10 @@ function goBuild() {
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-		go build -mod=mod -o "$output" \
-			-trimpath \
-			"${package}"
+		if ! (go build -mod=mod -o "$output" -trimpath "${package}"); then
+			warn "    go build with $package $goos $goarch failed."
+			return 1
+		fi
 
 		if [ -x "$(which glibc-check)" ] && [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
 			echo "GLIBC versions:"
