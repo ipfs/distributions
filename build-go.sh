@@ -106,9 +106,10 @@ function goBuild() {
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-		go build -mod=mod -o "$output" \
-			-trimpath \
-			"${package}"
+		if ! (go build -mod=mod -o "$output" -trimpath "${package}"); then
+			warn "    go build of $output failed."
+			return 1
+		fi
 
 		if [ -x "$(which glibc-check)" ] && [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
 			echo "GLIBC versions:"
@@ -144,7 +145,7 @@ function doBuild() {
 
 	mkdir -p "$dir"
 
-	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > build-log; then
+	if ! (cd "$build_dir_name" && goBuild "$package" "$goos" "$goarch") > "$build_dir_name/build-log" 2>&1; then
 		local logfi="$dir/build-log-$goos-$goarch"
 		cp "$build_dir_name/build-log" "$logfi"
 		warn "    $binname failed. logfile at '$logfi'"
