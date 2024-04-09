@@ -8,7 +8,7 @@ echo "::group::Unpack any new darwin arm64 and amd64 binaries to ./tmp"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             echo "-> Unpacking unsigned darwin_${arch}.tar.gz for name='${DIST_NAME}' and version='${DIST_VERSION}' to ./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/"
             mkdir -p "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned"
@@ -25,10 +25,24 @@ echo "::group::Sign and notarize the mac binaries"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
-            EXECUTABLES=$(jq -nc '$ARGS.positional' --args $(find "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/" -perm +111 -type f -print))
-            echo "-> Signing ${EXECUTABLES}"
+            # find executable files, and process each one
+            find "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/" -perm /111 -type f -print | while read -r file; do
+                echo "-> Processing ${file}"
+                ls -hl "${file}"
+
+                echo "-> Signing ${file}"
+                rcodesign sign \
+                    --p12-file ~/.apple-certs --p12-password-file ~/.apple-certs-pass \
+                    --code-signature-flags runtime --for-notarization \
+                    "${file}"
+
+                echo "-> Notarizing ${file}"
+                # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
+                # TODO rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
+            done
+
             echo "{
                 \"source\" : $EXECUTABLES,
                 \"bundle_id\" : \"io.ipfs.dist.${DIST_NAME}\",
@@ -42,7 +56,7 @@ echo "::group::Sign and notarize the mac binaries"
                     \"output_path\" : \"./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed.zip\"
                 }
             }" | tee | jq > "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-gon.json"
-            gon -log-level=info -log-json "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-gon.json"
+            # TODO gon -log-level=info -log-json "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-gon.json"
         done
     done
 echo "::endgroup::"
@@ -56,7 +70,7 @@ echo "::group::Update changed binaries in ./releases"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             echo "-> Starting the update of darwin_${arch}.tar.gz for name='${DIST_NAME}' and version='${DIST_VERSION}'"
             # unzip signed binaries to a directory matching .tar.gz structure
@@ -83,15 +97,15 @@ echo "::group::Update changed binaries in ./releases"
             tar -czvf "${WORK_DIR}/releases/${DIST_NAME}/${DIST_VERSION}/$PKG_NAME" -C "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/" "${DIST_NAME}"
             # calculate new hashes
             NEW_CID=$(ipfs add -Qn "$PKG_PATH")
-            NEW_SHA512_LINE=$(gsha512sum "$PKG_PATH")
-            NEW_SHA512=$(echo "$NEW_SHA512_LINE" | gawk '{ print $1; }')
+            NEW_SHA512_LINE=$(sha512sum "$PKG_PATH")
+            NEW_SHA512=$(echo "$NEW_SHA512_LINE" | awk '{ print $1; }')
             echo "-> New $PKG_NAME"
             echo "   new CID:    $NEW_CID"
             echo "   new SHA512: $NEW_SHA512"
             # update metadata to use new hashes
             echo "$NEW_CID" > "${PKG_PATH}.cid"
             echo "$NEW_SHA512_LINE" > "${PKG_PATH}.sha512"
-            gsed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
+            sed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
             echo "-> Completed the update of ${arch}.tar.gz for ${DIST_NAME} ${DIST_VERSION}"
         done
     done
