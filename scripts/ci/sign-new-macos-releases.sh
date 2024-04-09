@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+echo "::group::Store credentials to avoid GUI prompt in CI"
+    xcrun notarytool store-credentials "notarytool-profile" \
+        --apple-id "${APPLE_AC_USERNAME}" --team-id "${APPLE_AC_TEAM_ID}" --password "${APPLE_AC_PASSWORD}"
+echo "::endgroup::"
+
 echo "::group::Unpack any new darwin arm64 and amd64 binaries to ./tmp"
     # ./releases/{DIST_NAME}/{DIST_VERSION}/*_darwin-${arch}.tar.gz
     # -> ./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/
@@ -27,12 +32,15 @@ echo "::group::Sign and notarize the mac binaries"
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
         DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
+            # create destination dir matching .tar.gz structure
+            mkdir -p "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}"
             # find executable files, and process each one
-            find "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/" -perm /111 -type f -print | while read -r file; do
+            find "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned" -perm +111 -type f -print | while read -r file; do
                 echo "-> Processing ${file}"
                 ls -hl "${file}"
 
                 echo "-> Signing ${file}"
+                # TODO: we can use  rcodesign if we ever swithc away from macos runner
                 rcodesign sign \
                     --p12-file ~/.apple-certs --p12-password-file ~/.apple-certs-pass \
                     --code-signature-flags runtime --for-notarization \
@@ -42,11 +50,7 @@ echo "::group::Sign and notarize the mac binaries"
                 # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
                 # rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
 
-                # Store credentials to disable GUI prompt for password later
-                xcrun notarytool store-credentials "notarytool-profile" \
-                    --apple-id "${APPLE_AC_USERNAME}" --team-id "${APPLE_AC_TEAM_ID}" --password "${APPLE_AC_PASSWORD}"
-
-                # Notarize with Apples notarytool for now (only reason we use macOS runner)
+                # Notarize with Apple's notarytool for now (only reason we use macOS runner)
                 xcrun notarytool submit --keychain-profile "notarytool-profile" --wait "${file}"
 
                 # Verify produced blob is a-ok
@@ -55,8 +59,7 @@ echo "::group::Sign and notarize the mac binaries"
                     exit 1
                 fi
 
-                # Move signed binaries to a directory matching .tar.gz structure
-                mkdir -p "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}"
+                # move signed binaries to a directory matching .tar.gz structure
                 mv "${file}" "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}/"
             done
         done

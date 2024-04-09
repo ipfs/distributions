@@ -66,9 +66,11 @@ jobs:
         continue-on-error: true # skip if no releases
       - name: List ./releases before
         run: ls -Rhl ./releases || echo "No ./releases"
-      - name: Set up rcodesign rust tool for OSX code signing and app notarization
+      - name: Install dependencies of sign-new-macos-releases.sh
         run: |
           brew install ipfs coreutils gawk gnu-sed jq
+      - name: Set up rcodesign rust tool
+        run: |
           cargo install apple-codesign
       - name: Import Keychain Certs
         uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
@@ -77,7 +79,7 @@ jobs:
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
       - name: Verify identity used for signing
         run: security find-identity -v
-      - name: Secrets for signing with rcodesign
+      - name: Secrets for signing
         run: |
           echo -n "${{ secrets.APPLE_CERTS_P12 }}" | base64 --decode > ~/.apple-certs.p12
           echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs-pass
