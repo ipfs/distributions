@@ -30,6 +30,7 @@ echo "::group::Sign and notarize the mac binaries"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
+        # TODO: restore dists/kubo/build_matrix (only macos for now, for faster tests)
         DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             # create destination dir matching .tar.gz structure
@@ -40,9 +41,10 @@ echo "::group::Sign and notarize the mac binaries"
                 ls -hl "${file}"
 
                 echo "-> Signing ${file}"
+
                 # TODO: we can use  rcodesign if we ever swithc away from macos runner
                 rcodesign sign \
-                    --p12-file ~/.apple-certs --p12-password-file ~/.apple-certs-pass \
+                    --p12-file ~/.apple-certs.p12 --p12-password-file ~/.apple-certs.pass \
                     --code-signature-flags runtime --for-notarization \
                     "${file}"
 

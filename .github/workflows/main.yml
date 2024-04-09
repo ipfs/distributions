@@ -82,7 +82,7 @@ jobs:
       - name: Secrets for signing
         run: |
           echo -n "${{ secrets.APPLE_CERTS_P12 }}" | base64 --decode > ~/.apple-certs.p12
-          echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs-pass
+          echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs.pass
       - name: Secrets for notarization with rcodesign (new, wip)
         if: false
         run: |
