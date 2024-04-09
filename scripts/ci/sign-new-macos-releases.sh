@@ -8,7 +8,7 @@ echo "::group::Unpack any new darwin arm64 and amd64 binaries to ./tmp"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             echo "-> Unpacking unsigned darwin_${arch}.tar.gz for name='${DIST_NAME}' and version='${DIST_VERSION}' to ./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/"
             mkdir -p "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned"
@@ -25,7 +25,7 @@ echo "::group::Sign and notarize the mac binaries"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             # find executable files, and process each one
             find "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/" -perm /111 -type f -print | while read -r file; do
@@ -40,23 +40,25 @@ echo "::group::Sign and notarize the mac binaries"
 
                 echo "-> Notarizing ${file}"
                 # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
-                # TODO rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
-            done
+                # rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
 
-            echo "{
-                \"source\" : $EXECUTABLES,
-                \"bundle_id\" : \"io.ipfs.dist.${DIST_NAME}\",
-                \"apple_id\": {
-                \"password\":  \"@env:AC_PASSWORD\"
-                },
-                \"sign\" :{
-                \"application_identity\" : \"Developer ID Application: Protocol Labs, Inc. (7Y229E2YRL)\"
-                },
-                \"zip\" :{
-                    \"output_path\" : \"./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed.zip\"
-                }
-            }" | tee | jq > "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-gon.json"
-            # TODO gon -log-level=info -log-json "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-gon.json"
+                # Store credentials to disable GUI prompt for password later
+                xcrun notarytool store-credentials "notarytool-profile" \
+                    --apple-id "${APPLE_AC_USERNAME}" --team-id "${APPLE_AC_TEAM_ID}" --password "${APPLE_AC_PASSWORD}"
+
+                # Notarize with Apples notarytool for now (only reason we use macOS runner)
+                xcrun notarytool submit --keychain-profile "notarytool-profile" --wait "${file}"
+
+                # Verify produced blob is a-ok
+                if ! xcrun spctl --assess --type install --context context:primary-signature --ignore-cache --verbose=2 "${file}"; then
+                    echo "error: Signature of ${file} will not be accepted by Apple Gatekeeper!" 1>&2
+                    exit 1
+                fi
+
+                # Move signed binaries to a directory matching .tar.gz structure
+                mkdir -p "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}"
+                mv "${file}" "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}/"
+            done
         done
     done
 echo "::endgroup::"
@@ -70,16 +72,13 @@ echo "::group::Update changed binaries in ./releases"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        DIST_MAC_ARCHS=$(awk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
+        DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             echo "-> Starting the update of darwin_${arch}.tar.gz for name='${DIST_NAME}' and version='${DIST_VERSION}'"
-            # unzip signed binaries to a directory matching .tar.gz structure
             cd "${WORK_DIR}"
             mkdir -p "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}"
             cd "./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}/"
-            echo "-> Unpacking gon .zip for ${arch}"
-            unzip "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed.zip"
-            echo "-> Unpacked contents"
+            echo "-> Signed contents"
             ls -Rhl "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/"
             # replace .tar.gz with one that has the same structure, but signed binaries
             PKG_NAME="${DIST_NAME}_${DIST_VERSION}_darwin-${arch}.tar.gz"
@@ -97,15 +96,15 @@ echo "::group::Update changed binaries in ./releases"
             tar -czvf "${WORK_DIR}/releases/${DIST_NAME}/${DIST_VERSION}/$PKG_NAME" -C "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/" "${DIST_NAME}"
             # calculate new hashes
             NEW_CID=$(ipfs add -Qn "$PKG_PATH")
-            NEW_SHA512_LINE=$(sha512sum "$PKG_PATH")
-            NEW_SHA512=$(echo "$NEW_SHA512_LINE" | awk '{ print $1; }')
+            NEW_SHA512_LINE=$(gsha512sum "$PKG_PATH")
+            NEW_SHA512=$(echo "$NEW_SHA512_LINE" | gawk '{ print $1; }')
             echo "-> New $PKG_NAME"
             echo "   new CID:    $NEW_CID"
             echo "   new SHA512: $NEW_SHA512"
             # update metadata to use new hashes
             echo "$NEW_CID" > "${PKG_PATH}.cid"
             echo "$NEW_SHA512_LINE" > "${PKG_PATH}.sha512"
-            sed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
+            gsed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
             echo "-> Completed the update of ${arch}.tar.gz for ${DIST_NAME} ${DIST_VERSION}"
         done
     done

@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - master
-      - fix/osx-notarization
   workflow_dispatch:
     inputs:
       dist_root:
@@ -55,7 +54,7 @@ jobs:
       - run: npm run lint
 
   sign-macos:
-    runs-on: "ubuntu-latest"
+    runs-on: "macos-latest"
     needs: build
     steps:
       - uses: actions/checkout@v4
@@ -67,24 +66,42 @@ jobs:
         continue-on-error: true # skip if no releases
       - name: List ./releases before
         run: ls -Rhl ./releases || echo "No ./releases"
-      - name: Kubo init
-        run: ipfs init --profile test # needed for calculating NEW_CID later
       - name: Set up rcodesign rust tool for OSX code signing and app notarization
         run: |
+          brew install ipfs coreutils gawk gnu-sed jq
           cargo install apple-codesign
-      - name: Decode p12 file
+      - name: Import Keychain Certs
+        uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
+          p12-password: ${{ secrets.APPLE_CERTS_PASS }}
+      - name: Verify identity used for signing
+        run: security find-identity -v
+      - name: Secrets for signing with rcodesign
         run: |
           echo -n "${{ secrets.APPLE_CERTS_P12 }}" | base64 --decode > ~/.apple-certs.p12
           echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs-pass
+      - name: Secrets for notarization with rcodesign (new, wip)
+        if: false
+        run: |
+          # TODO: we dont use this yet, we use notarytool from Apple and run on macOS
+          # because (afaik) rcodesign does not support App-specific password mode
+          # we use for legacy reasons
+          # We will switch to rcodesign once we have to switch mode due to move to new org
           rcodesign encode-app-store-connect-api-key \
             "${{ secrets.APPLE_APIKEY_ISSUER_ID }}" \
             "${{ secrets.APPLE_APIKEY_ID }}" \
             "${{ secrets.APPLE_APIKEY_FILE }}" \
             > ~/.apple-api-key
+      - name: Kubo init
+        run: ipfs init --profile test # needed for calculating NEW_CID in sign-new-macos-releases.sh
       - name: Sign any new releases
         run: ./scripts/ci/sign-new-macos-releases.sh
         env:
           WORK_DIR: ${{ github.workspace }}
+          APPLE_AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }}
+          APPLE_AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD }}
+          APPLE_AC_TEAM_ID: ${{ secrets.APPLE_AC_TEAM_ID }}
       - name: List ./releases after
         run: ls -Rhl ./releases || echo "No ./releases"
       - name: Temporarily save notarized artifacts
@@ -94,9 +111,6 @@ jobs:
           path: releases
           retention-days: 3
         continue-on-error: true # skip if no releases
-    post:
-      - name: Cleanup secrets
-        run: shred -u -z -n 10 ~/.apple-certs.p12 ~/.apple-certs-pass ~/.apple-api-key
 
   persist:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
