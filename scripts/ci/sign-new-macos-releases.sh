@@ -42,11 +42,14 @@ echo "::group::Sign and notarize the mac binaries"
 
                 echo "-> Signing ${file}"
 
+                # TODO: try apple one
+                xcrun codesign --force -s "$APPLE_AC_TEAM_ID" "${file}"
+
                 # TODO: we can use  rcodesign if we ever swithc away from macos runner
-                rcodesign sign \
-                    --p12-file ~/.apple-certs.p12 --p12-password-file ~/.apple-certs.pass \
-                    --code-signature-flags runtime --for-notarization \
-                    "${file}"
+                #rcodesign sign \
+                #    --p12-file ~/.apple-certs.p12 --p12-password-file ~/.apple-certs.pass \
+                #    --code-signature-flags runtime --for-notarization \
+                #    "${file}"
 
                 echo "-> Notarizing ${file}"
                 # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
