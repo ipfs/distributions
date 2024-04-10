@@ -19,6 +19,16 @@ env:
  KUBO_VER: 'v0.27.0'       # kubo daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v1.0.8' # ipfs-cluster-ctl used for pinning
 
+concurrency:
+  # we want only one job running at the time because it is expensive
+  # expecially when building artifact for multiple platforms
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # IMPORTANT: we want to save resources and cancell old builds on PRs,
+  # but we can't cancel jobs in master branch because they update DNSLink
+  # which is used as DIST_ROOT of the next job, so if we cancel a master job
+  # we will "forget" about releases added in skipped build.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
@@ -56,6 +66,14 @@ jobs:
   sign-macos:
     runs-on: "macos-latest"
     needs: build
+    concurrency:
+      # notarization depends on remote HTTP service provided by Apple
+      # and we want to have only one instance at a time, across all branches
+      # and PRs to avoid triggering throttling / blacklisting when multiple
+      # jobs try to notarize at the same time
+      group: sign-macos
+      # never cancel ongoing notarization, it could me one for master branch
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - name: Retrieve unsigned artifacts
@@ -74,7 +92,7 @@ jobs:
         run: |
           cargo install apple-codesign
       - name: Import Keychain Certs
-        # TODO: replace this magic with epxlicit security commands executed inside of it via.. nodejs
+        # if this ever breaks, we should replace this magic with epxlicit security commands executed inside of it via.. nodejs
         # prior art: https://github.com/lando/code-sign-action/blob/f35d0b777ee592c758351252fa3f0d58f21e5129/action.yml#L106-L123
         uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
         with:
@@ -83,17 +101,20 @@ jobs:
       - name: Verify identity used for signing
         run: security find-identity -v
       - name: Secrets for signing (TODO rcodesign)
+        # TODO: revisit switch to rcodesign once we have to switch mode due to move to new org
+        # we dont use this yet, we use codesign from Apple and run on macOS
+        # because rcodesign errored on 'invalid password'
         if: false
         run: |
           echo -n "${{ secrets.APPLE_CERTS_P12 }}" | base64 --decode > ~/.apple-certs.p12
           echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs.pass
       - name: Secrets for notarization (TODO rcodesign)
+        # TODO: revisit switch to rcodesign once we have to switch mode due to move to new org
+        # we dont use this yet, we use notarytool from Apple and run on macOS
+        # because (afaik) rcodesign does not support App-specific password mode
+        # we use for legacy reasons
         if: false
         run: |
-          # TODO: we dont use this yet, we use notarytool from Apple and run on macOS
-          # because (afaik) rcodesign does not support App-specific password mode
-          # we use for legacy reasons
-          # We will switch to rcodesign once we have to switch mode due to move to new org
           rcodesign encode-app-store-connect-api-key \
             "${{ secrets.APPLE_APIKEY_ISSUER_ID }}" \
             "${{ secrets.APPLE_APIKEY_ID }}" \

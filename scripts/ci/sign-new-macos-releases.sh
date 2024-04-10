@@ -30,7 +30,6 @@ echo "::group::Unpack .zip and sign the binaries"
         (! test -d "$NEW_DIR") && continue
         DIST_VERSION=$(basename "$NEW_DIR")
         DIST_NAME=$(basename $(dirname "$NEW_DIR"))
-        # TODO: restore dists/kubo/build_matrix (only macos for now, for faster tests)
         DIST_MAC_ARCHS=$(gawk '{ print $2; }' <(grep darwin "./dists/${DIST_NAME}/build_matrix"))
         for arch in $DIST_MAC_ARCHS; do
             # create destination dir matching .tar.gz structure
@@ -40,7 +39,7 @@ echo "::group::Unpack .zip and sign the binaries"
                 # -perm +111 will return all executables, including .sh scripts
                 # so we need to skip them
                 if [[ "$file" == *.sh ]]; then
-                    echo "-- Skipping ${file}"
+                    echo "-- Skipping shell script ${file}"
                     continue
                 fi
 
@@ -52,19 +51,16 @@ echo "::group::Unpack .zip and sign the binaries"
                 # Sign with Apple's tool
                 # All credentials are imported to macOS keychain
                 # and will be found via TEAM_ID match
-                #xcrun codesign --force -v -s "$APPLE_AC_TEAM_ID" "${file}"
                 xcrun codesign --force --verbose --display --timestamp --options=runtime --sign "$APPLE_AC_TEAM_ID" "${file}"
 
-                # TODO: we can use  rcodesign if we ever swithc away from macos runner
+                # TODO: revisit switch to rcodesign once we have to generate new credentials anyway
+                # if we use rcodesign if we ever swithc away from macos runner
                 #rcodesign sign \
                 #    --p12-file ~/.apple-certs.p12 --p12-password-file ~/.apple-certs.pass \
                 #    --code-signature-flags runtime --for-notarization \
                 #    "${file}"
 
                 echo "-> Notarizing ${file}"
-                # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
-                # rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
-
                 # The tool (or Apple API) seems to only accept.zip, even if it is a single binary
                 TMP_ZIP=$(mktemp -u -t "${DIST_NAME}_${DIST_VERSION}_${arch}-signed-for-notarization.zip")
                 zip "${TMP_ZIP}" "${file}"
@@ -80,6 +76,12 @@ echo "::group::Unpack .zip and sign the binaries"
                     echo "error: Signature of ${file} will not be accepted by Apple Gatekeeper!" 1>&2
                     exit 1
                 fi
+                #
+                # TODO: revisit switching notarization to rcodesign once we have to generate new credentials anyway
+                # (rcodesign uses "api key" thing which is 3 things, and codesigns appleid + app-specific password
+                # and it was easier to use notarytool on macOS worker than to make rcodesign work)
+                # rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
+
 
                 # move signed binaries to a directory matching .tar.gz structure
                 mv "${file}" "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}/"
