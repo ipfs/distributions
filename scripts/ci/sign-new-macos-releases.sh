@@ -37,6 +37,13 @@ echo "::group::Unpack .zip and sign the binaries"
             mkdir -p "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/${DIST_NAME}"
             # find executable files, and process each one
             find "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned" -perm +111 -type f -print | while read -r file; do
+                # -perm +111 will return all executables, including .sh scripts
+                # so we need to skip them
+                if [[ "$file" == *.sh ]]; then
+                    echo "-- Skipping ${file}"
+                    continue
+                fi
+
                 echo "-> Processing ${file}"
                 ls -hl "${file}"
 
