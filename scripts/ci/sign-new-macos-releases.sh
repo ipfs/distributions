@@ -23,7 +23,7 @@ echo "::group::Unpack any new darwin arm64 and amd64 binaries to ./tmp"
     ls -Rhl ./tmp || echo "Nothing new in ./tmp"
 echo "::endgroup::"
 
-echo "::group::Sign and notarize the mac binaries"
+echo "::group::Unpack .zip and sign the binaries"
     # Find and sign executables in
     # ./tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-unsigned/
     for NEW_DIR in ./releases/*/*; do
@@ -42,8 +42,11 @@ echo "::group::Sign and notarize the mac binaries"
 
                 echo "-> Signing ${file}"
 
-                # TODO: try apple one
-                xcrun codesign --force -s "$APPLE_AC_TEAM_ID" "${file}"
+                # Sign with Apple's tool
+                # All credentials are imported to macOS keychain
+                # and will be found via TEAM_ID match
+                #xcrun codesign --force -v -s "$APPLE_AC_TEAM_ID" "${file}"
+                xcrun codesign --force --verbose --display --timestamp --options=runtime --sign "$APPLE_AC_TEAM_ID" "${file}"
 
                 # TODO: we can use  rcodesign if we ever swithc away from macos runner
                 #rcodesign sign \
@@ -55,8 +58,15 @@ echo "::group::Sign and notarize the mac binaries"
                 # TODO:  ugh, rcodesign uses different secrets than old tooling, and we can' generate them easily
                 # rcodesign notary-submit --api-key-path ~/.apple-api-key --wait "${file}"
 
+                # The tool (or Apple API) seems to only accept.zip, even if it is a single binary
+                TMP_ZIP=$(mktemp -u -t "${DIST_NAME}_${DIST_VERSION}_${arch}-signed-for-notarization.zip")
+                zip "${TMP_ZIP}" "${file}"
+
                 # Notarize with Apple's notarytool for now (only reason we use macOS runner)
-                xcrun notarytool submit --keychain-profile "notarytool-profile" --wait "${file}"
+                xcrun notarytool submit --progress --keychain-profile "notarytool-profile" --wait "${TMP_ZIP}"
+
+                # NOTE: no stappling, because it would break signatures of Mach-O Binaries (which we publish without any .app or .dmg envelope)
+                # This means out binaries will rely on online notarization the first time macOS Gatewkeeper sees a new binary.
 
                 # Verify produced blob is a-ok
                 if ! xcrun spctl --assess --type install --context context:primary-signature --ignore-cache --verbose=2 "${file}"; then
