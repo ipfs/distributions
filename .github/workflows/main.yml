@@ -69,21 +69,25 @@ jobs:
       - name: Install dependencies of sign-new-macos-releases.sh
         run: |
           brew install ipfs coreutils gawk gnu-sed jq
-      - name: Set up rcodesign rust tool
+      - name: Set up rcodesign rust tool (TODO)
+        if: false
         run: |
           cargo install apple-codesign
       - name: Import Keychain Certs
+        # TODO: replace this magic with epxlicit security commands executed inside of it via.. nodejs
+        # prior art: https://github.com/lando/code-sign-action/blob/f35d0b777ee592c758351252fa3f0d58f21e5129/action.yml#L106-L123
         uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
       - name: Verify identity used for signing
         run: security find-identity -v
-      - name: Secrets for signing
+      - name: Secrets for signing (TODO rcodesign)
+        if: false
         run: |
           echo -n "${{ secrets.APPLE_CERTS_P12 }}" | base64 --decode > ~/.apple-certs.p12
           echo -n "{{ secrets.APPLE_CERTS_PASS }}" > ~/.apple-certs.pass
-      - name: Secrets for notarization with rcodesign (new, wip)
+      - name: Secrets for notarization (TODO rcodesign)
         if: false
         run: |
           # TODO: we dont use this yet, we use notarytool from Apple and run on macOS
