@@ -23,7 +23,7 @@ concurrency:
   # we want only one job running at the time because it is expensive
   # expecially when building artifact for multiple platforms
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # IMPORTANT: we want to save resources and cancell old builds on PRs,
+  # IMPORTANT: we want to save resources and cancel old builds on PRs,
   # but we can't cancel jobs in master branch because they update DNSLink
   # which is used as DIST_ROOT of the next job, so if we cancel a master job
   # we will "forget" about releases added in skipped build.
@@ -72,7 +72,7 @@ jobs:
       # and PRs to avoid triggering throttling / blacklisting when multiple
       # jobs try to notarize at the same time
       group: sign-macos
-      # never cancel ongoing notarization, it could me one for master branch
+      # never cancel ongoing notarization, it could be one for master branch
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
