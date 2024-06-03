@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
+echo "::group::preconnect to cluster"
+ipfs-cluster-ctl --enc=json \
+    --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+    --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
+    peers ls | tee cluster-peers-ls
+for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
+    ipfs swarm peering add $maddr
+    ipfs swarm connect $maddr || true &
+done
+
 echo "::group::pin add"
 ipfs-cluster-ctl --enc=json \
     --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
