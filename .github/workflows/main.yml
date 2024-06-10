@@ -16,7 +16,7 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.custom_dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- KUBO_VER: 'v0.28.0'       # kubo daemon used for chunking and applying diff
+ KUBO_VER: 'v0.28.0'   # kubo daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v1.0.8' # ipfs-cluster-ctl used for pinning
 
 concurrency:
@@ -161,12 +161,14 @@ jobs:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
-        timeout-minutes: 30
+        timeout-minutes: 5
       - run: ./dockerized make publish
       - run: git status
       - name: Read CID of updated DAG
         id: cid-reader
-        run: echo "CID=$(tail -1 ./versions)" >> $GITHUB_OUTPUT
+        run: |
+          tail -1 ./versions
+          echo "CID=$(tail -1 ./versions)" >> $GITHUB_OUTPUT
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
         run: ./scripts/ci/pin-to-cluster.sh
         env:
@@ -175,7 +177,7 @@ jobs:
           PIN_ADD_EXTRA_ARGS: ""
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
-        timeout-minutes: 60
+        timeout-minutes: 120
       - name: Update PR status with preview link
         run: ./scripts/ci/github-preview-link.sh
         env:
