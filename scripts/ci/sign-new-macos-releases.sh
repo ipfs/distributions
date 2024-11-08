@@ -121,18 +121,20 @@ echo "::group::Update changed binaries in ./releases"
             echo "-> Updating $PKG_NAME"
             rm "$PKG_PATH"
             tar -czvf "${WORK_DIR}/releases/${DIST_NAME}/${DIST_VERSION}/$PKG_NAME" -C "${WORK_DIR}/tmp/${DIST_NAME}_${DIST_VERSION}_${arch}-signed/" "${DIST_NAME}"
+	    pushd "${PKG_ROOT}"
             # calculate new hashes
-            NEW_CID=$(ipfs add -Qn "$PKG_PATH")
-            NEW_SHA512_LINE=$(gsha512sum "$PKG_PATH")
+            NEW_CID=$(ipfs add -Qn "$PKG_NAME")
+            NEW_SHA512_LINE=$(gsha512sum "$PKG_NAME")
             NEW_SHA512=$(echo "$NEW_SHA512_LINE" | gawk '{ print $1; }')
             echo "-> New $PKG_NAME"
             echo "   new CID:    $NEW_CID"
             echo "   new SHA512: $NEW_SHA512"
             # update metadata to use new hashes
-            echo "$NEW_CID" > "${PKG_PATH}.cid"
-            echo "$NEW_SHA512_LINE" > "${PKG_PATH}.sha512"
-            gsed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "${PKG_ROOT}/dist.json"
+            echo "$NEW_CID" > "${PKG_NAME}.cid"
+            echo "$NEW_SHA512_LINE" > "${PKG_NAME}.sha512"
+            gsed -i "s/${OLD_CID}/${NEW_CID}/g; s/${OLD_SHA512}/${NEW_SHA512}/g" "dist.json"
             echo "-> Completed the update of ${arch}.tar.gz for ${DIST_NAME} ${DIST_VERSION}"
+	    popd
         done
     done
 echo "::endgroup::"
