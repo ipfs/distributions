@@ -3,11 +3,11 @@ description: Setup IPFS
 runs:
   using: "composite"
   steps:
-    - uses: ipfs/download-ipfs-distribution-action@v1
+    - uses: ipfs/download-ipfs-distribution-action@ffe03c1ad9e44c51b90e9bc342a3646a925b2923 # TODO: swith to v1 once https://github.com/ipfs/download-ipfs-distribution-action/pull/36/ is released
       with:
         name: kubo
         version: "${{ env.KUBO_VER }}"
-    - uses: ipfs/download-ipfs-distribution-action@v1
+    - uses: ipfs/download-ipfs-distribution-action@ffe03c1ad9e44c51b90e9bc342a3646a925b2923 # TODO: swith to v1 once https://github.com/ipfs/download-ipfs-distribution-action/pull/36/ is released
       with:
         name: ipfs-cluster-ctl
         version: "${{ env.CLUSTER_CTL_VER }}"
@@ -15,9 +15,7 @@ runs:
       run: |
         # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
         sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
-        ipfs init --profile flatfs,server,randomports,lowpower
-        # make flatfs async for faster ci
-        ipfs config --json 'Datastore.Spec.mounts' "$(ipfs config 'Datastore.Spec.mounts' | jq -c '.[0].child.sync=false')"
+        ipfs init --profile server,randomports
       shell: bash
     - uses: ipfs/start-ipfs-daemon-action@v1
       with:
