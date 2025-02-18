@@ -11,7 +11,6 @@ hiddenDists = ['go-ipfs', 'gx', 'gx-go', 'libp2p-relay-daemon', 'ipfs-ds-convert
 newGoIpfsName = 'kubo'
 
 [params.targetMap]
-386 = "32-bit"
 amd64 = "64-bit"
 arm = "ARM"
 arm64 = "ARM-64"
