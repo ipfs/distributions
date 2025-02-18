@@ -1,7 +1,5 @@
 darwin amd64
 freebsd amd64
-freebsd arm
 linux amd64
-linux arm
 linux arm64
 windows amd64

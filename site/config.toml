@@ -12,7 +12,6 @@ newGoIpfsName = 'kubo'
 
 [params.targetMap]
 amd64 = "64-bit"
-arm = "ARM"
 arm64 = "ARM-64"
 
 [params.architectureMap]
