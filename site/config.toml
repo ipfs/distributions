@@ -7,7 +7,7 @@ title = "IPFS Distributions"
 taxonomies = {}
 
 [params]
-hiddenDists = ['go-ipfs', 'gx', 'gx-go', 'libp2p-relay-daemon', 'ipfs-ds-convert']
+hiddenDists = ['go-ipfs', 'gx', 'gx-go', 'libp2p-relay-daemon', 'ipfs-ds-convert', 'ipfs-updater']
 newGoIpfsName = 'kubo'
 
 [params.targetMap]
