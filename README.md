@@ -54,20 +54,20 @@ You can also do `./dockerized <COMAND>`, for instance:
 
 ```
 ./dockerized make clean
-./dockerized ./dist.sh add-version go-ipfs v0.9.0
+./dockerized ./dist.sh add-version kubo v0.33.0
 ./dockerized make publish
 ```
 
-Note that you can't use bash in the command, so 
+Note that you can't use bash in the command, so
 
 ```
-./dockerized make clean && ./dist.sh go-ipfs add-version v0.9.0
+./dockerized make clean && ./dist.sh kubo add-version v0.33.0
 # Does not work
 ```
 and
 
 ```
-./dockerized "make clean && ./dist.sh go-ipfs add-version v0.9.0"
+./dockerized "make clean && ./dist.sh kubo add-version v0.33.0"
 # Does not work
 ```
 
@@ -113,9 +113,9 @@ The optional `sub_package` argument is used to specify a module within a repo.  
 > ./dist.sh new-go-dist fs-repo-99-to-100 github.com/ipfs/fs-repo-migrations fs-repo-99-to-100
 ```
 
-- If the distribution should not show up on the website (e.g. go-ipfs migrations) add a `no-site` file into the `dists/<repo>` folder.
+- If the distribution should not show up on the website (e.g. old kubo migrations) add a `no-site` file into the `dists/<repo>` folder.
 - Manually create a repo-owner file
-- Reminder that for submodules the version numbers will look like fs-repo-x-to-y/v1.0.0
+- Reminder that for submodules the version numbers will look like `fs-repo-x-to-y/v1.0.0`
 
 ### Publishing
 
@@ -163,44 +163,31 @@ Definitions:
 - `<version>` is the version of the `<dist>`.
 - `<platform>` is a supported platform of `<dist>@<version>`
 
-So for example, if we had `<dist>` `go-ipfs` and `fs-repo-migrations`, we might see a hierarchy like:
+So for example, if we had `<dist>` `ipfs-cluster-ctl` we might see a hierarchy like:
 
 ```
 .
-├── fs-repo-migrations
-│   ├── v1.3.0
-│   │   ├── build-info
-│   │   ├── dist.json
-│   │   ├── fs-repo-migrations_v1.3.0_darwin-386.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_darwin-amd64.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_freebsd-386.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_freebsd-amd64.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_freebsd-arm.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_linux-386.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_linux-amd64.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_linux-arm.tar.gz
-│   │   ├── fs-repo-migrations_v1.3.0_windows-386.zip
-│   │   ├── fs-repo-migrations_v1.3.0_windows-amd64.zip
-│   │   └── results
-│   └── versions
-├── go-ipfs
-│   ├── v0.4.9
-│   │   ├── build-info
-│   │   ├── build-log-freebsd-386
-│   │   ├── build-log-freebsd-arm
-│   │   ├── dist.json
-│   │   ├── go-ipfs_v0.4.9_darwin-386.tar.gz
-│   │   ├── go-ipfs_v0.4.9_darwin-amd64.tar.gz
-│   │   ├── go-ipfs_v0.4.9_freebsd-amd64.tar.gz
-│   │   ├── go-ipfs_v0.4.9_linux-386.tar.gz
-│   │   ├── go-ipfs_v0.4.9_linux-amd64.tar.gz
-│   │   ├── go-ipfs_v0.4.9_linux-arm.tar.gz
-│   │   ├── go-ipfs_v0.4.9_windows-386.zip
-│   │   ├── go-ipfs_v0.4.9_windows-amd64.zip
-│   │   └── results
-│   └── versions
-└── index.html
-85 directories, 943 files
+└─── ipfs-cluster-ctl
+   ├── v1.0.8
+   │  ├── build-info
+   │  ├── dist.json
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-amd64.tar.gz
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-amd64.tar.gz.cid
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-amd64.tar.gz.sha512
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-arm64.tar.gz
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-arm64.tar.gz.cid
+   │  ├── ipfs-cluster-ctl_v1.0.8_darwin-arm64.tar.gz.sha512
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-amd64.tar.gz
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-amd64.tar.gz.cid
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-amd64.tar.gz.sha512
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-arm64.tar.gz
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-arm64.tar.gz.cid
+   │  ├── ipfs-cluster-ctl_v1.0.8_linux-arm64.tar.gz.sha512
+   │  ├── ipfs-cluster-ctl_v1.0.8_windows-amd64.zip
+   │  ├── ipfs-cluster-ctl_v1.0.8_windows-amd64.zip.cid
+   │  ├── ipfs-cluster-ctl_v1.0.8_windows-amd64.zip.sha512
+   │  └── results
+   └── versions
 ```
 
 We call this the **distribution index**, the listing of all distributions, their versions, and platform assets.
