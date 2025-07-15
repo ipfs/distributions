@@ -18,7 +18,6 @@ env:
  DIST_ROOT: ${{ github.event.inputs.dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
  KUBO_VER: 'v0.30.0'   # kubo daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v1.0.8' # ipfs-cluster-ctl used for pinning
- SKIP_MACOS_SIGNING_FOR: 'kubo v0.36.0-rc2' # versions to skip macOS signing for
 
 concurrency:
   # we want only one job running at the time because it is expensive
@@ -123,29 +122,7 @@ jobs:
             > ~/.apple-api-key
       - name: Kubo init
         run: ipfs init --profile test # needed for calculating NEW_CID in sign-new-macos-releases.sh
-      - name: Check if releases should skip signing
-        id: check-skip-signing
-        run: |
-          SKIP_SIGNING=false
-          if [ -n "$SKIP_MACOS_SIGNING_FOR" ] && [ -d "./releases" ]; then
-            for release_dir in ./releases/*/*; do
-              if [ -d "$release_dir" ]; then
-                DIST_VERSION=$(basename "$release_dir")
-                DIST_NAME=$(basename $(dirname "$release_dir"))
-                RELEASE_STRING="${DIST_NAME} ${DIST_VERSION}"
-                if echo "$SKIP_MACOS_SIGNING_FOR" | grep -q "$RELEASE_STRING"; then
-                  echo "Found release to skip: $RELEASE_STRING"
-                  SKIP_SIGNING=true
-                  break
-                fi
-              fi
-            done
-          fi
-          echo "skip_signing=$SKIP_SIGNING" >> $GITHUB_OUTPUT
-        env:
-          SKIP_MACOS_SIGNING_FOR: ${{ env.SKIP_MACOS_SIGNING_FOR }}
       - name: Sign any new releases
-        if: steps.check-skip-signing.outputs.skip_signing == 'false'
         run: ./scripts/ci/sign-new-macos-releases.sh
         env:
           WORK_DIR: ${{ github.workspace }}
