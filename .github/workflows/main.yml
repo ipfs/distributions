@@ -33,7 +33,7 @@ jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: '16'
@@ -56,7 +56,7 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: '16'
@@ -75,7 +75,7 @@ jobs:
       # never cancel ongoing notarization, it could be one for master branch
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Retrieve unsigned artifacts
         uses: actions/download-artifact@v4
         with:
@@ -148,7 +148,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '16'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true # skip if no releases

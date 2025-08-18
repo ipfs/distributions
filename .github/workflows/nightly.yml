@@ -23,7 +23,7 @@ jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: awk 'NR == FNR {f1[$0] = 1; next}; !($0 in f1)' ignored-during-nightly <(ls ./dists -1) > nightlies-to-run
       - id: set-matrix
         run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))"
@@ -38,7 +38,7 @@ jobs:
       matrix:
         dist_name: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
