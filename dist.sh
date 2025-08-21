@@ -80,19 +80,6 @@ case $1 in
 
 		echo "$nvers" >> "dists/$dist/versions"
 
-		# legacy go-ipfs dist needs to be created for every new kubo release:
-		# https://github.com/ipfs/distributions/pull/717
-		if [ "$dist" == "kubo" ]; then
-			# use the same targets
-			cat "dists/kubo/build_matrix" > "dists/go-ipfs/build_matrix"
-			# make sure latest go-ipfs release follows kubo
-			cat "dists/kubo/current" > "dists/go-ipfs/current"
-			# make sure go-ipfs has all new kubo releases (one directional sync)
-			newreleases="$(mktemp)"
-			diff "dists/kubo/versions" "dists/go-ipfs/versions" | grep '^<' | awk '{print $2}' | uniq > "$newreleases"
-			cat "$newreleases" >> "dists/go-ipfs/versions"
-		fi
-
 		# error on old kubo name
 		if [ "$dist" == "go-ipfs" ]; then
 			echo "ERROR: go-ipfs is now named kubo, use the new name:"
