@@ -144,11 +144,11 @@ jobs:
     needs: sign-macos
     environment: Deploy
     steps:
+      - uses: actions/checkout@v5
       - name: Setup node
         uses: actions/setup-node@v5
         with:
           node-version-file: '.tool-versions'
-      - uses: actions/checkout@v5
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true # skip if no releases
