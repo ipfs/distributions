@@ -33,10 +33,10 @@ jobs:
   build:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '16'
+          node-version-file: '.tool-versions'
       - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
@@ -56,10 +56,10 @@ jobs:
   lint:
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: '16'
+          node-version-file: '.tool-versions'
       - run: npm ci --no-audit --progress=false
       - run: npm run lint
 
@@ -75,7 +75,7 @@ jobs:
       # never cancel ongoing notarization, it could be one for master branch
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Retrieve unsigned artifacts
         uses: actions/download-artifact@v4
         with:
@@ -145,10 +145,10 @@ jobs:
     environment: Deploy
     steps:
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '16'
-      - uses: actions/checkout@v4
+          node-version-file: '.tool-versions'
+      - uses: actions/checkout@v5
       - name: Retrieve signed artifacts
         uses: actions/download-artifact@v4
         continue-on-error: true # skip if no releases
@@ -191,7 +191,7 @@ jobs:
         with:
           name: diff
           path: diff
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         if: github.ref == 'refs/heads/master'
         with:
           go-version: "1.20.x"
@@ -212,7 +212,7 @@ jobs:
         with:
           name: diff
       - name: Create comment with the diff
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs').promises
