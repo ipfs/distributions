@@ -23,7 +23,7 @@ jobs:
   prepare-matrix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: awk 'NR == FNR {f1[$0] = 1; next}; !($0 in f1)' ignored-during-nightly <(ls ./dists -1) > nightlies-to-run
       - id: set-matrix
         run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))"
@@ -38,7 +38,7 @@ jobs:
       matrix:
         dist_name: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - env:
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
@@ -47,7 +47,7 @@ jobs:
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Create issue if build failed
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         if: ${{ failure() }}
         with:
           script: |
@@ -98,7 +98,7 @@ jobs:
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Close any open issues about broken build
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         if: ${{ success() }}
         with:
           script: |
