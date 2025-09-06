@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Retrieve unsigned artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: releases-unsigned-diff
           path: releases
@@ -150,7 +150,7 @@ jobs:
         with:
           node-version-file: '.tool-versions'
       - name: Retrieve signed artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         continue-on-error: true # skip if no releases
         with:
           name: releases-signed-macos-diff
@@ -208,7 +208,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: diff
       - name: Create comment with the diff
