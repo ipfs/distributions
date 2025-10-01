@@ -94,7 +94,7 @@ jobs:
       - name: Import Keychain Certs
         # if this ever breaks, we should replace this magic with epxlicit security commands executed inside of it via.. nodejs
         # prior art: https://github.com/lando/code-sign-action/blob/f35d0b777ee592c758351252fa3f0d58f21e5129/action.yml#L106-L123
-        uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
+        uses: apple-actions/import-codesign-certs@95e84a1a18f2bdbc5c6ab9b7f4429372e4b13a8b # v2
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
