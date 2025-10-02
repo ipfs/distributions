@@ -81,6 +81,14 @@
                       <i class="ion-ios-albums-outline"></i>
                       <a class="d-component-actions-versions" href="{{ $key }}">All Versions</a>
                     </li>
+                    {{ if eq "kubo" $key }}
+                    <li>
+                      <i class="ion-cube"></i>
+                      <a class="d-component-actions-docker"
+                         href="https://hub.docker.com/r/ipfs/kubo/"
+                         target="_blank">Docker Images</a>
+                    </li>
+                    {{ end }}
                     <li>
                       <i class="ion-bug"></i>
                       <a class="d-component-actions-issues"
