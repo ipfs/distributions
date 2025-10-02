@@ -126,8 +126,8 @@ jobs:
         run: ./scripts/ci/sign-new-macos-releases.sh
         env:
           WORK_DIR: ${{ github.workspace }}
-          APPLE_AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME }}
-          APPLE_AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD }}
+          APPLE_AC_USERNAME: ${{ secrets.APPLE_AC_USERNAME2 }}
+          APPLE_AC_PASSWORD: ${{ secrets.APPLE_AC_PASSWORD2 }}
           APPLE_AC_TEAM_ID: ${{ secrets.APPLE_AC_TEAM_ID }}
       - name: List ./releases after
         run: ls -Rhl ./releases || echo "No ./releases"
