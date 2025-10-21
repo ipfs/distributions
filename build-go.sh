@@ -154,7 +154,7 @@ function doBuild() {
 
 	# copy dist assets if they exist
 	if [ -e "$GOPATH/src/$package/dist" ]; then
-		cp -r "$GOPATH/src/$package/dist/"* "$build_dir_name/"
+		cp -R "$GOPATH/src/$package/dist/"* "$build_dir_name/"
 	fi
 
 	# now package it all up

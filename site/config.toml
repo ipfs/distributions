@@ -11,8 +11,9 @@ hiddenDists = ['go-ipfs', 'gx', 'gx-go', 'libp2p-relay-daemon', 'ipfs-ds-convert
 newGoIpfsName = 'kubo'
 
 [params.targetMap]
-amd64 = "64-bit"
-arm64 = "ARM-64"
+amd64 = "AMD64"
+arm64 = "ARM64"
+riscv64 = "RISC-V"
 
 [params.architectureMap]
 darwin = "macOS Binary"
