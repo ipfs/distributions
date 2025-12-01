@@ -17,7 +17,8 @@ runs:
         sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
         ipfs init --profile server,randomports
         ipfs config Routing.Type autoclient
-        ipfs config Reprovider.Interval 0
+        # only provide roots, making it easier for ipfs-cluster to pick them up
+        ipfs config Provide.Strategy roots
       shell: bash
     - uses: ipfs/start-ipfs-daemon-action@v1
       with:
