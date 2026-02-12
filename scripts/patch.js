@@ -97,6 +97,7 @@ async function addFiles (localPath) {
   console.log('Patch operations:')
   const ops = await calculatePatch(patchRoot, distRoot)
   logOps(ops)
+  await fs.promises.writeFile(pathTo('patch-ops.json'), JSON.stringify(ops, null, 2))
   const newRoot = await applyPatch(ops, patchRoot, distRoot)
 
   console.log(`Appending CID to ${VERSIONS}`)

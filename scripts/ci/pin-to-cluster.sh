@@ -30,6 +30,20 @@ echo "::group::waiting until pinned"
         status "$PIN_CID" | tee cluster-pin-status
     if [[ $(jq '.peer_map[].status' cluster-pin-status | grep '"pinned"' | wc -l) -ge 1 ]]; then
         echo "Got first pin confirmation, finishing the workflow"
+        # unpin the temporary additions pin (full root CID subsumes it)
+        if [[ -n "${ADDITIONS_PIN_NAME:-}" ]]; then
+            echo "Removing temporary additions pin '${ADDITIONS_PIN_NAME}' (if any).."
+            ADDITIONS_CID=$(ipfs-cluster-ctl --enc=json \
+                --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+                --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
+                pin ls | jq -r "select(.name == \"${ADDITIONS_PIN_NAME}\") | .cid" | head -1) || true
+            if [[ -n "$ADDITIONS_CID" ]]; then
+                ipfs-cluster-ctl --enc=json \
+                    --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
+                    --basic-auth "${CLUSTER_USER}:${CLUSTER_PASSWORD}" \
+                    pin rm "$ADDITIONS_CID" 2>/dev/null || true
+            fi
+        fi
         break
     else
         echo "Still waiting for at least one pin confirmation, sleeping for 1 minute.."
