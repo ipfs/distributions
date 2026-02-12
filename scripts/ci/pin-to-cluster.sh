@@ -11,15 +11,21 @@ cluster_ctl() {
         "$@"
 }
 
-echo "::group::preconnect to cluster"
-cluster_ctl peers ls | tee cluster-peers-ls
-for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
-    ipfs swarm peering add "$maddr"
-    ipfs swarm connect "$maddr" || true &
-done
-echo "::endgroup::"
+# Print per-peer pin status for a given CID.
+print_status() {
+    echo "Pin status for $1:"
+    cluster_ctl status "$1" |
+        jq -r '.peer_map | to_entries[] | "\(.value.peername // .key): \(.value.status)"' || true
+}
 
-# Upload additions .car to pre-seed new blocks before the full root pin
+# Return the number of peers with "pinned" status for a given CID.
+count_pinned() {
+    cluster_ctl status "$1" |
+        jq '[.peer_map[].status] | map(select(. == "pinned")) | length' || echo 0
+}
+
+# Upload additions .car to pre-seed new blocks before the full root pin.
+# This goes directly to the cluster API (--local), no peering needed.
 ADDITIONS_CID=""
 if [[ -n "${ADDITIONS_CAR:-}" ]]; then
     car_file=$(ls $ADDITIONS_CAR 2>/dev/null | head -1) || true
@@ -27,7 +33,6 @@ if [[ -n "${ADDITIONS_CAR:-}" ]]; then
         echo "::group::upload additions .car"
         echo "Uploading $car_file as pin '${ADDITIONS_PIN_NAME}'"
         add_output=$(cluster_ctl add --format=car --local \
-            --wait --wait-timeout 10m \
             --name "$ADDITIONS_PIN_NAME" \
             "$car_file")
         echo "$add_output"
@@ -39,15 +44,38 @@ if [[ -n "${ADDITIONS_CAR:-}" ]]; then
     fi
 fi
 
-echo "::group::pin root CID and wait"
+# Preconnect to cluster peers so they can fetch root DAG blocks from this node.
+# Done after car upload to give connections time to establish before pin add.
+echo "::group::preconnect to cluster"
+cluster_ctl peers ls | tee cluster-peers-ls
+for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
+    ipfs swarm peering add "$maddr"
+    ipfs swarm connect "$maddr" || true &
+done
+echo "::endgroup::"
+
+# Submit pin request (returns immediately, does not wait for completion).
+echo "::group::pin root CID"
 echo "Pinning $PIN_CID as '${PIN_NAME}'"
-cluster_ctl pin add \
-    --wait --wait-timeout 20m \
+cluster_ctl pin add --no-status \
     --name "$PIN_NAME" $PIN_ADD_EXTRA_ARGS \
     "$PIN_CID"
 echo "::endgroup::"
 
-# unpin the temporary additions pin (full root CID subsumes it)
+# Wait until at least one peer confirms pinned status for the root CID.
+echo "::group::waiting until pinned"
+while true; do
+    sleep 60
+    print_status "$PIN_CID"
+    if [[ $(count_pinned "$PIN_CID") -ge 1 ]]; then
+        echo "Root pin confirmed, finishing"
+        break
+    fi
+    echo "Still waiting for pin confirmation..."
+done
+echo "::endgroup::"
+
+# Unpin the temporary additions pin (full root CID subsumes it).
 if [[ -n "$ADDITIONS_CID" ]]; then
     echo "::group::unpin additions"
     echo "Removing temporary additions pin '$ADDITIONS_CID'"
