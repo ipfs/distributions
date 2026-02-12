@@ -172,31 +172,24 @@ jobs:
       - name: Export additions as .car (only new content, not removals)
         run: ./scripts/ci/export-additions-car.sh
         timeout-minutes: 30
-      - name: Pre-seed cluster with additions .car
-        if: hashFiles('additions_*.car') != ''
-        run: ./scripts/ci/upload-additions-car-to-cluster.sh
-        env:
-          PIN_NAME: "https://github.com/ipfs/distributions/commits/${{ github.sha }}_additions"
-          CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
-          CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
-        timeout-minutes: 30
       - name: Save additions .car as CI artifact
-        if: github.ref == 'refs/heads/master' && hashFiles('additions_*.car') != ''
+        if: hashFiles('additions_*.car') != ''
         uses: actions/upload-artifact@v4
         with:
           name: car-additions
           path: additions_*.car
-          retention-days: 90
+          retention-days: 1
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
         run: ./scripts/ci/pin-to-cluster.sh
         env:
           PIN_CID: ${{ steps.cid-reader.outputs.CID }}
           PIN_NAME: "https://github.com/ipfs/distributions/commits/${{ github.sha }}"
           PIN_ADD_EXTRA_ARGS: ""
+          ADDITIONS_CAR: "additions_*.car"
           ADDITIONS_PIN_NAME: "https://github.com/ipfs/distributions/commits/${{ github.sha }}_additions"
           CLUSTER_USER: ${{ secrets.CLUSTER_USER }}
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
-        timeout-minutes: 120
+        timeout-minutes: 35
       - name: Update PR status with preview link
         run: ./scripts/ci/github-preview-link.sh
         env:
