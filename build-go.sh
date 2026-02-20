@@ -106,7 +106,11 @@ function goBuild() {
 
 		local output
 		output="$(pwd)/$(basename "$package")$(go env GOEXE)"
-		if ! (go build -mod=mod -o "$output" -trimpath "${package}"); then
+		local -a build_args=(-mod=mod -o "$output" -trimpath)
+		if [ -n "$GO_LDFLAGS" ]; then
+			build_args+=("-ldflags=$GO_LDFLAGS")
+		fi
+		if ! (go build "${build_args[@]}" "${package}"); then
 			warn "    go build of $output failed."
 			return 1
 		fi
@@ -437,6 +441,14 @@ function startGoBuilds() {
 
 		notice "building version $version binaries"
 		checkoutVersion "$repopath" "$version"
+
+		# Compute project-specific ldflags if the dist provides a script
+		GO_LDFLAGS=""
+		if [ -x "go-ldflags.sh" ]; then
+			GO_LDFLAGS=$(./go-ldflags.sh "$repopath" "$version")
+		fi
+		export GO_LDFLAGS
+
 		installDeps "$repopath" > "deps-$version.log" 2>&1
 
 		matfile="matrices/$version"
