@@ -16,6 +16,7 @@ runs:
         # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
         sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
         ipfs init --profile server,randomports
+        ipfs config profile apply unixfs-v1-2025
         ipfs config Routing.Type autoclient
         # only provide roots, making it easier for ipfs-cluster to pick them up
         ipfs config Provide.Strategy roots
