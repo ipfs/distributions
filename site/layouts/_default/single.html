@@ -46,7 +46,7 @@
               </li>
               {{ range $visibleDists }}
                 <li class="d-sidebar-item nav-item">
-                  <a class="d-sidebar-link nav-link" href="#{{ .key }}">{{ if eq "kubo" .key }}kubo <small style="color: var(--gray)">(go-ipfs)</small>{{ else }}{{ .key }}{{ end }}</a>
+                  <a class="d-sidebar-link nav-link" href="#{{ .key }}">{{ .key }}</a>
                 </li>
               {{ end }}
             </ul>
@@ -60,7 +60,7 @@
             <div class="d-component" id="{{ $key }}">
               <div class="d-component-desc row">
                 <div class="col-md-7">
-                  <h1 class="d-component-desc-title">{{ $key }}{{ if eq $.Site.Params.newGoIpfsName $key }} <small style="color: var(--gray)">(go-ipfs)</small>{{ end }}</h1>
+                  <h1 class="d-component-desc-title">{{ $key }}</h1>
                   <h2 class="d-component-desc-sub-title">{{ $data.tagline }}</h2>
                   <div class="d-component-desc-body">{{ $data.description | markdownify }}</div>
                 </div>
