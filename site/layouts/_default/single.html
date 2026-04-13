@@ -24,6 +24,19 @@
           {{ partial "about.md" | markdownify }}
         </div>
       </div>
+      {{/* Build ordered list: pinned dists first, then the rest alphabetically */}}
+      {{ $visibleDists := slice }}
+      {{ range $.Site.Params.pinnedDists }}
+        {{ $k := . }}
+        {{ with index $.Site.Data.releases $k }}
+          {{ $visibleDists = $visibleDists | append (dict "key" $k "data" .data) }}
+        {{ end }}
+      {{ end }}
+      {{ range $key, $value := $.Site.Data.releases }}
+        {{ if and (not (in $.Site.Params.hiddenDists $key)) (not (in ($.Site.Params.pinnedDists | default slice) $key)) }}
+          {{ $visibleDists = $visibleDists | append (dict "key" $key "data" $value.data) }}
+        {{ end }}
+      {{ end }}
       <div class="row">
         <div class="d-sidebar-wrapper col-md-3 sticky navbar-offcanvas" id="d-navbar-offcanvas">
           <div class="d-sidebar">
@@ -31,22 +44,23 @@
               <li class="d-sidebar-item nav-item">
                 <a class="d-sidebar-link nav-link" href="#about">About</a>
               </li>
-              {{ range $key, $value := $.Site.Data.releases }}{{ if not (in $.Site.Params.hiddenDists $key) }}
+              {{ range $visibleDists }}
                 <li class="d-sidebar-item nav-item">
-                  <a class="d-sidebar-link nav-link" href="#{{ $key }}">{{ if eq "kubo" $key }}kubo <small style="color: var(--gray)">(go-ipfs)</small>{{ else }}{{ $key }}{{ end }}</a>
+                  <a class="d-sidebar-link nav-link" href="#{{ .key }}">{{ .key }}</a>
                 </li>
-              {{ end }}{{ end }}
+              {{ end }}
             </ul>
           </div>
         </div>
         <div class="col-md-9">
-          {{ range $key, $value := $.Site.Data.releases }}{{ if not (in $.Site.Params.hiddenDists $key) }}
-            {{ $data := $value.data }}
+          {{ range $visibleDists }}
+            {{ $key := .key }}
+            {{ $data := .data }}
             {{ if eq $.Site.Params.newGoIpfsName $key }}<div id="go-ipfs"></div>{{ end }}
             <div class="d-component" id="{{ $key }}">
               <div class="d-component-desc row">
                 <div class="col-md-7">
-                  <h1 class="d-component-desc-title">{{ $key }}{{ if eq $.Site.Params.newGoIpfsName $key }} <small style="color: var(--gray)">(go-ipfs)</small>{{ end }}</h1>
+                  <h1 class="d-component-desc-title">{{ $key }}</h1>
                   <h2 class="d-component-desc-sub-title">{{ $data.tagline }}</h2>
                   <div class="d-component-desc-body">{{ $data.description | markdownify }}</div>
                 </div>
@@ -126,7 +140,7 @@
                 </div>
               </div>
             </div>
-          {{ end }}{{ end }}
+          {{ end }}
         </div>
       </div>
     </div>

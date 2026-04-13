@@ -16,7 +16,7 @@ on:
 
 env:
  DIST_ROOT: ${{ github.event.inputs.dist_root || '/ipns/dist.ipfs.tech' }} # content root used for calculating diff to build
- KUBO_VER: 'v0.39.0'   # kubo daemon used for chunking and applying diff
+ KUBO_VER: 'v0.40.1'   # kubo daemon used for chunking and applying diff
  CLUSTER_CTL_VER: 'v1.0.8' # ipfs-cluster-ctl used for pinning
 
 concurrency:
@@ -121,7 +121,7 @@ jobs:
             "${{ secrets.APPLE_APIKEY_FILE }}" \
             > ~/.apple-api-key
       - name: Kubo init
-        run: ipfs init --profile test # needed for calculating NEW_CID in sign-new-macos-releases.sh
+        run: ipfs init --profile test,unixfs-v1-2025 # needed for calculating NEW_CID in sign-new-macos-releases.sh
       - name: Sign any new releases
         run: ./scripts/ci/sign-new-macos-releases.sh
         env:
