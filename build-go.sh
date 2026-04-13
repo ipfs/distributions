@@ -115,6 +115,11 @@ function goBuild() {
 			return 1
 		fi
 
+		# Enforce the glibc ABI floor: linux/amd64 tarballs published to
+		# dist.ipfs.tech must not require glibc symbols newer than GLIBC_2.31,
+		# so they keep running on hosts as old as CentOS 7-era glibc (~2.14).
+		# The Dockerfile is pinned to ubuntu:20.04 (glibc 2.31) to bound this;
+		# raising the base image without raising this assertion breaks users.
 		if [ -x "$(which glibc-check)" ] && [ "$GOOS" == "linux" ] && [ "$GOARCH" == "amd64" ]; then
 			echo "GLIBC versions:"
 			glibc-check list-versions "$output"
