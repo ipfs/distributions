@@ -34,7 +34,7 @@ jobs:
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.tool-versions'
       - env:
@@ -57,7 +57,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.tool-versions'
       - run: npm ci --no-audit --progress=false
@@ -77,7 +77,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Retrieve unsigned artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: releases-unsigned-diff
           path: releases
@@ -94,7 +94,7 @@ jobs:
       - name: Import Keychain Certs
         # if this ever breaks, we should replace this magic with epxlicit security commands executed inside of it via.. nodejs
         # prior art: https://github.com/lando/code-sign-action/blob/f35d0b777ee592c758351252fa3f0d58f21e5129/action.yml#L106-L123
-        uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2
+        uses: apple-actions/import-codesign-certs@95e84a1a18f2bdbc5c6ab9b7f4429372e4b13a8b # v5.0.3
         with:
           p12-file-base64: ${{ secrets.APPLE_CERTS_P12 }}
           p12-password: ${{ secrets.APPLE_CERTS_PASS }}
@@ -146,11 +146,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.tool-versions'
       - name: Retrieve signed artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         continue-on-error: true # skip if no releases
         with:
           name: releases-signed-macos-diff
@@ -203,7 +203,7 @@ jobs:
         with:
           name: diff
           path: diff
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         if: github.ref == 'refs/heads/master'
         with:
           go-version: "1.20.x"
@@ -220,11 +220,11 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: diff
       - name: Create comment with the diff
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs').promises
