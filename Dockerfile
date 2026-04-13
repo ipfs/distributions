@@ -12,21 +12,23 @@ RUN curl -sS --retry 5 \
     "https://dist.ipfs.tech/kubo/${KUBO_VER}/kubo_${KUBO_VER}_linux-amd64.tar.gz" -o /tmp/kubo.tar.gz && \
     tar vzx -f /tmp/kubo.tar.gz -C /usr/local/bin/ kubo/ipfs --strip-components=1
 
+ARG ASDF_VERSION=v0.18.1
+RUN curl -sS --retry 5 \
+    "https://github.com/asdf-vm/asdf/releases/download/${ASDF_VERSION}/asdf-${ASDF_VERSION}-linux-amd64.tar.gz" \
+    | tar -xz -C /usr/local/bin asdf
+
 RUN adduser --shell /bin/bash --home /asdf --disabled-password --gecos asdf asdf --uid $USER_UID
-ENV PATH="${PATH}:/asdf/.asdf/shims:/asdf/.asdf/bin"
+ENV ASDF_DATA_DIR=/asdf/.asdf
+ENV PATH="${PATH}:/asdf/.asdf/shims"
 
 USER asdf
 WORKDIR /asdf
 
-RUN git clone --depth 1 --branch v0.15.0 https://github.com/asdf-vm/asdf.git $HOME/.asdf && \
-    echo '. $HOME/.asdf/asdf.sh' >> $HOME/.bashrc && \
-    echo '. $HOME/.asdf/asdf.sh' >> $HOME/.profile 
-
-RUN asdf plugin-add golang 
-RUN asdf plugin-add nodejs
+RUN asdf plugin add golang
+RUN asdf plugin add nodejs
 ADD .tool-versions .
 
-RUN asdf install 
+RUN asdf install
 
 ENV IPFS_PATH=/asdf/.ipfs
 RUN mkdir -p ${IPFS_PATH} && echo "/ip4/127.0.0.1/tcp/5001" > ${IPFS_PATH}/api
