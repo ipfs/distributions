@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v5
       - run: awk 'NR == FNR {f1[$0] = 1; next}; !($0 in f1)' ignored-during-nightly <(ls ./dists -1) > nightlies-to-run
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))"
+        run: echo "matrix=$(jq -nc '$ARGS.positional' --args $(cat nightlies-to-run))" >> $GITHUB_OUTPUT
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -47,7 +47,7 @@ jobs:
       - run: cd ./dists/${{ matrix.dist_name }} && make nightly
       - run: ./dockerized make publish
       - name: Create issue if build failed
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         if: ${{ failure() }}
         with:
           script: |
@@ -80,7 +80,7 @@ jobs:
         run: git status && ls -Rhl ./releases
       - name: Read CID of updated DAG
         id: cid-reader
-        run: echo "::set-output name=CID::$(tail -1 ./versions)"
+        run: echo "CID=$(tail -1 ./versions)" >> $GITHUB_OUTPUT
       - name: Pin new website to ipfs-websites.collab.ipfscluster.io
         run: ./scripts/ci/pin-to-cluster.sh
         env:
@@ -98,7 +98,7 @@ jobs:
           GIT_REVISION: ${{ github.sha }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Close any open issues about broken build
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         if: ${{ success() }}
         with:
           script: |

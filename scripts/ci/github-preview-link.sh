@@ -10,5 +10,5 @@ API_PARAMS=$(jq --monochrome-output --null-input \
     '{ state: $state, target_url: $target_url, description: $description, context: $context }' )
 curl --output /dev/null --silent --show-error \
     -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H 'Content-Type: application/json' \
-    --data "$API_PARAMS" 'https://api.github.com/repos/ipfs/distributions/statuses/${GIT_REVISION}'
+    --data "$API_PARAMS" "https://api.github.com/repos/ipfs/distributions/statuses/${GIT_REVISION}"
 echo "Pinned to IPFS - $PREVIEW_URL"

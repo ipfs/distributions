@@ -16,9 +16,10 @@ runs:
         # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
         sudo sed -i -e 's/nameserver 127.0.0.*/nameserver 1.1.1.1/g' /etc/resolv.conf
         ipfs init --profile server,randomports,unixfs-v1-2025
-        ipfs config Routing.Type autoclient
-        # only provide roots, making it easier for ipfs-cluster to pick them up
-        ipfs config Provide.Strategy roots
+        ipfs config Routing.Type dhtclient
+        # advertise pinned content and MFS so ipfs-cluster peers can fetch
+        # the full DAG without waiting on bitswap-only discovery
+        ipfs config Provide.Strategy pinned+mfs
       shell: bash
     - uses: ipfs/start-ipfs-daemon-action@v1
       with:
@@ -33,6 +34,8 @@ runs:
           ipfs swarm peering add $maddr
           ipfs swarm connect $maddr || true &
         done
+        # best-effort: wait for background dials, never fail the step
+        wait || true
       shell: bash
     - name: List swarm peers
       run: ipfs swarm peers

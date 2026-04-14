@@ -24,16 +24,37 @@ count_pinned() {
         jq '[.peer_map[].status] | map(select(. == "pinned")) | length' || echo 0
 }
 
-# Upload additions .car to pre-seed new blocks before the full root pin.
-# This goes directly to the cluster API (--local), no peering needed.
+# Remove the temporary additions pin on any exit path (success or failure)
+# so we never leak it on the cluster when pin add or status polling fails.
 ADDITIONS_CID=""
+cleanup_additions() {
+    local exit_code=$?
+    if [[ -n "$ADDITIONS_CID" ]]; then
+        echo "::group::unpin additions"
+        echo "Removing temporary additions pin '$ADDITIONS_CID'"
+        # best-effort: never let cleanup mask the script's real exit code,
+        # the additions pin will expire in 2h regardless
+        cluster_ctl pin rm "$ADDITIONS_CID" 2>/dev/null \
+            || echo "warn: failed to remove additions pin (will expire in 2h)"
+        echo "::endgroup::"
+    fi
+    exit "$exit_code"
+}
+trap cleanup_additions EXIT
+
+# Upload additions .car to pre-seed new blocks before the full root pin.
+# Note: we do NOT pass --local. Without it, cluster fans the blocks out to
+# the peers allocated for this pin during the add itself, so the new blocks
+# land on the eventual pin holders directly instead of relying on bitswap
+# replication from a single entry peer afterwards.
 if [[ -n "${ADDITIONS_CAR:-}" ]]; then
     car_file=$(ls $ADDITIONS_CAR 2>/dev/null | head -1) || true
     if [[ -n "$car_file" ]]; then
         echo "::group::upload additions .car"
         echo "Uploading $car_file as pin '${ADDITIONS_PIN_NAME}'"
-        add_output=$(cluster_ctl add --format=car --local \
+        add_output=$(cluster_ctl add --format=car \
             --name "$ADDITIONS_PIN_NAME" \
+            --expire-in 2h \
             "$car_file")
         echo "$add_output"
         ADDITIONS_CID=$(echo "$add_output" | jq -rs '.[-1].cid' 2>/dev/null) || true
@@ -52,6 +73,8 @@ for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
     ipfs swarm peering add "$maddr"
     ipfs swarm connect "$maddr" || true &
 done
+# best-effort: wait for background dials, never fail the script
+wait || true
 echo "::endgroup::"
 
 # Submit pin request (returns immediately, does not wait for completion).
@@ -75,10 +98,4 @@ while true; do
 done
 echo "::endgroup::"
 
-# Unpin the temporary additions pin (full root CID subsumes it).
-if [[ -n "$ADDITIONS_CID" ]]; then
-    echo "::group::unpin additions"
-    echo "Removing temporary additions pin '$ADDITIONS_CID'"
-    cluster_ctl pin rm "$ADDITIONS_CID" 2>/dev/null || true
-    echo "::endgroup::"
-fi
+# Temporary additions pin is removed by the EXIT trap registered above.
