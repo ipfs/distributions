@@ -34,6 +34,8 @@ runs:
           ipfs swarm peering add $maddr
           ipfs swarm connect $maddr || true &
         done
+        # best-effort: wait for background dials, never fail the step
+        wait || true
       shell: bash
     - name: List swarm peers
       run: ipfs swarm peers
