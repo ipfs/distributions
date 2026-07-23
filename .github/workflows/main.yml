@@ -162,7 +162,10 @@ jobs:
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
         timeout-minutes: 5
-      - run: ./dockerized make publish
+      - name: Publish (reuse prebuilt signed binaries; never compile)
+        run: ./dockerized make publish
+        env:
+          DIST_NO_BUILD: "1"
       - run: git status
       - name: Read CID of updated DAG
         id: cid-reader

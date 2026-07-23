@@ -147,6 +147,10 @@ function doBuild() {
 		echo "    $dir/$binname exists, skipping build"
 		return
 	fi
+
+	if [ -n "${DIST_NO_BUILD:-}" ]; then
+		fail "DIST_NO_BUILD is set: refusing to compile $binname during publish (prebuilt, signed binary expected but missing)"
+	fi
 	echo "    output to $dir/$binname"
 
 	local build_dir_name=$name
@@ -362,6 +366,52 @@ function printVersions() {
 	notice "building versions: $versarr"
 }
 
+# assertPrebuilt verifies that a version's release artifacts were already built
+# (and, for macOS, signed) in earlier CI stages and carried into ./releases via
+# artifact, so the publish stage can reuse them without ever compiling. It fails
+# if the version directory or any per-platform package from the build matrix is
+# missing. Used when DIST_NO_BUILD is set to guarantee publish never ships
+# freshly built, unsigned binaries.
+function assertPrebuilt() {
+	local version="$1"
+	local outputVersion="$2"
+	local distname
+	distname=$(basename "$(pwd)")
+
+	# Almost always the operator re-ran only the publish/persist job. A single
+	# re-run job cannot fetch the build/sign-macos artifacts uploaded in an
+	# earlier run attempt (download-artifact returns 404 "workflow run not
+	# found"), so ./releases arrives empty and publish would otherwise rebuild
+	# unsigned binaries. The only supported recovery is a full re-run.
+	local rerunHint="Do NOT re-run just this job: a single re-run cannot download the build/sign-macos artifacts from an earlier run attempt, so the signed binaries never reach publish. Re-run the ENTIRE workflow starting from the 'build' job, so binaries are built, signed, and handed to publish within one run attempt."
+
+	if [ ! -d "$outputVersion" ]; then
+		fail "refusing to build $distname $version: DIST_NO_BUILD is set but no prebuilt release exists at $outputVersion. Binaries must be built and signed in earlier CI stages and handed to publish via artifact. $rerunHint"
+	fi
+
+	local matfile="matrices/$version"
+	if [ ! -e "$matfile" ]; then
+		matfile=build_matrix
+	fi
+	test -e "$matfile" || fail "no build matrix for $version found; cannot verify prebuilt artifacts"
+
+	local -a missing=()
+	local goos goarch pkg
+	while read -r goos goarch; do
+		[ -z "$goos" ] && continue
+		pkg="${distname}_${version}_${goos}-${goarch}.$(pkgType "$goos")"
+		if [ ! -e "$outputVersion/$pkg" ]; then
+			missing+=("$pkg")
+		fi
+	done < "$matfile"
+
+	if [ "${#missing[@]}" -gt 0 ]; then
+		fail "refusing to build $distname $version: DIST_NO_BUILD is set and the prebuilt release at $outputVersion is missing ${#missing[@]} platform package(s): ${missing[*]}. These must come from the signed build stages; publish must not compile them. $rerunHint"
+	fi
+
+	notice "verified prebuilt $distname $version ($(grep -c . "$matfile") platforms present), skipping build"
+}
+
 function startGoBuilds() {
 	distname="$1"
 	repo="$2"
@@ -429,6 +479,12 @@ function startGoBuilds() {
 	while read -r version
 	do
 		outputVersion=$outputDir/$version
+
+		if [ -n "${DIST_NO_BUILD:-}" ]; then
+			# Publish stage: never compile. Require prebuilt, signed binaries.
+			assertPrebuilt "$version" "$outputVersion"
+			continue
+		fi
 
 		if [ -e "$outputVersion" ]; then
 			echo "$version already exists, skipping..."

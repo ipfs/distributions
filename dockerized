@@ -25,4 +25,4 @@ fi
 
 # We use host networking as the build process assumes a fairly long-lived ipfs
 # node has the CIDs (we give them to the collab cluster to pin) 
-docker run --rm -i --network host -e DIST_ROOT -v "$(pwd)":/build "$IMAGE_NAME:$IMAGE_TAG" "$@"
+docker run --rm -i --network host -e DIST_ROOT -e DIST_NO_BUILD -v "$(pwd)":/build "$IMAGE_NAME:$IMAGE_TAG" "$@"
