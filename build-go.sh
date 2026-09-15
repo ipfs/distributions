@@ -360,6 +360,22 @@ function currentSha() {
 	git -C "$1" rev-parse HEAD
 }
 
+# Copy the replace directives of the module being built into the build module.
+# Go ignores replace directives in dependencies, so without this the build
+# would resolve versions the repo's own go.mod does not use. Directory
+# replaces are skipped: they point at paths that do not exist here.
+function applyReplaces() {
+	local modfile="$1"
+	go mod edit -json "$modfile" | jq -r '
+		.Replace[]? | select(.New.Version != null) |
+		"\(.Old.Path)\(if .Old.Version then "@" + .Old.Version else "" end)=\(.New.Path)@\(.New.Version)"
+	' | while read -r r; do
+		[ -n "$r" ] || continue
+		echo "    applying replace $r"
+		go mod edit -replace "$r"
+	done
+}
+
 function printVersions() {
 	local versions="$1"
 	versarr=$(tr "\n" ' ' <<< "$versions")
@@ -525,6 +541,10 @@ function startGoBuilds() {
 		if [ "$GO111MODULE" == "on" ]; then
 		    # Setup version information so we can build with go mod
 		    go mod init "ipfs-distributions"
+		    # before -require: the raw commit hash it writes is not a valid
+		    # version until go build -mod=mod resolves it, and go mod edit
+		    # refuses to touch the file while it is there
+		    applyReplaces "$repopath/go.mod"
 		    go mod edit -require "$repo@$(git -C "$repopath" rev-parse HEAD)"
 		fi
 
