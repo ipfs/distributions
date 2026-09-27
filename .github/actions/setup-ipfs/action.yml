@@ -3,11 +3,11 @@ description: Setup IPFS
 runs:
   using: "composite"
   steps:
-    - uses: ipfs/download-ipfs-distribution-action@v1
+    - uses: ipfs/download-ipfs-distribution-action@v2
       with:
         name: kubo
         version: "${{ env.KUBO_VER }}"
-    - uses: ipfs/download-ipfs-distribution-action@v1
+    - uses: ipfs/download-ipfs-distribution-action@v2
       with:
         name: ipfs-cluster-ctl
         version: "${{ env.CLUSTER_CTL_VER }}"
