@@ -42,8 +42,34 @@ jobs:
           CLUSTER_PASSWORD: ${{ secrets.CLUSTER_PASSWORD }}
         uses: ./.github/actions/setup-ipfs
         timeout-minutes: 30
+      # TEMPORARY: dist.ipfs.tech and the collab cluster are down, so CI must
+      # not resolve /ipns/dist.ipfs.tech or fetch from random peers.
+      # build-go.sh only reads <dist>/versions under DIST_ROOT to find new
+      # versions. Build that tree from the versions files of the base commit
+      # and add it to the local node.
+      # See https://github.com/ipfs/distributions/issues/1220
+      - name: Use git, not /ipns/dist.ipfs.tech, as the list of published versions
+        id: published
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [[ -z "$BASE_SHA" ]]; then
+            echo "::error::no base commit to compare versions with (workflow_dispatch is not supported while dist.ipfs.tech is down)"
+            exit 1
+          fi
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          root="$RUNNER_TEMP/published"
+          for dir in dists/*/; do
+            name=$(basename "$dir")
+            mkdir -p "$root/$name"
+            git show "$BASE_SHA:dists/$name/versions" > "$root/$name/versions" 2>/dev/null \
+              || : > "$root/$name/versions" # new dist: nothing published yet
+          done
+          echo "dist_root=/ipfs/$(ipfs add -r -Q "$root")" >> "$GITHUB_OUTPUT"
       - name: Build any new ./releases
         run: ./dockerized make all_dists
+        env:
+          DIST_ROOT: ${{ steps.published.outputs.dist_root }}
       - name: Inspect git status and contents of ./releases
         run: git status && ls -Rhl ./releases
       - name: Temporarily save ./releases artifacts
@@ -136,10 +162,20 @@ jobs:
         with:
           name: releases-signed-macos-diff
           path: releases
-          retention-days: 3
+          # TEMPORARY: while persist is disabled, this artifact is the only
+          # copy of the signed release, so keep it as long as GitHub allows.
+          # See https://github.com/ipfs/distributions/issues/1220
+          retention-days: 90
         continue-on-error: true # skip if no releases
 
   persist:
+    # TEMPORARY: disabled because the collab cluster is shut down and
+    # dist.ipfs.tech is down. This job builds on /ipns/dist.ipfs.tech, pins
+    # to the cluster and updates the DNSLink. Without the pin, the DNSLink
+    # would point at a CID that nobody hosts. The diff job needs this job,
+    # so it is skipped too.
+    # See https://github.com/ipfs/distributions/issues/1220
+    if: false
     runs-on: ${{ fromJSON(vars.CI_BUILD_RUNS_ON || '"ubuntu-latest"') }}
     needs: sign-macos
     environment: Deploy
