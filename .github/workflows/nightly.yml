@@ -21,6 +21,11 @@ concurrency:
 
 jobs:
   prepare-matrix:
+    # TEMPORARY: disabled because nightly builds resolve /ipns/dist.ipfs.tech
+    # and pin to the collab cluster, which are both down. The build job needs
+    # this job, so it is skipped too.
+    # See https://github.com/ipfs/distributions/issues/1220
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

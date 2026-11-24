@@ -7,10 +7,9 @@ runs:
       with:
         name: kubo
         version: "${{ env.KUBO_VER }}"
-    - uses: ipfs/download-ipfs-distribution-action@v2
-      with:
-        name: ipfs-cluster-ctl
-        version: "${{ env.CLUSTER_CTL_VER }}"
+    # TEMPORARY: the ipfs-cluster-ctl download and the "Preconnect to cluster
+    # peers" step are removed because the collab cluster is shut down.
+    # See https://github.com/ipfs/distributions/issues/1220
     - name: Init IPFS daemon
       run: |
         # fix resolv - DNS provided by Github is unreliable for DNSLik/dnsaddr
@@ -26,19 +25,6 @@ runs:
     - uses: ipfs/start-ipfs-daemon-action@v1
       with:
         args: --enable-gc=false
-    - name: Preconnect to cluster peers
-      run: |
-        ipfs-cluster-ctl --enc=json \
-          --host "/dnsaddr/ipfs-websites.collab.ipfscluster.io" \
-          --basic-auth "$CLUSTER_USER:$CLUSTER_PASSWORD" \
-          peers ls | tee cluster-peers-ls
-        for maddr in $(jq -r '.ipfs.addresses[]?' cluster-peers-ls); do
-          ipfs swarm peering add $maddr
-          ipfs swarm connect $maddr || true &
-        done
-        # best-effort: wait for background dials, never fail the step
-        wait || true
-      shell: bash
     - name: List swarm peers
       run: ipfs swarm peers
       shell: bash
